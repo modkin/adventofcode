@@ -22,20 +22,18 @@ func FindSpecial(name string) string {
 	for _, element := range words {
 		for _, element2 := range words {
 			var matches = 0
+			var missmatchIdx = 0
 			for index, char1 := range element {
 				if char1 == element2[index] {
 					matches++
+				} else {
+					missmatchIdx = index
 				}
 			}
 			if matches == len(element)-1 {
-				for index, char := range element {
-					if char != element2[index] {
-						result := append(element[0:index], element[index+1:]...)
-						return strings.Join(result, "")
-					}
-				}
+				result := append(element[0:missmatchIdx], element[missmatchIdx+1:]...)
+				return strings.Join(result, "")
 			}
-
 		}
 	}
 	return "Not Found"
