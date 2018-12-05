@@ -13,4 +13,5 @@ func main() {
 	fmt.Println("Day2.1:", day2.Checksum("./day2input.txt"))
 	fmt.Println("Day2.2:", day2.FindSpecial("./day2input.txt"))
 	fmt.Println("Day3.1:", day3.Task1())
+	fmt.Println("Day3.2:", day3.Task2())
 }

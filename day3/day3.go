@@ -20,6 +20,17 @@ func toInt(str string) int {
 	return ret
 }
 
+func findNonOverlapClaim(fabric *[1000][1000]int, claim claim) (bool, int) {
+	for i := claim.xOffset; i < claim.xOffset+claim.xSize; i++ {
+		for j := claim.yOffset; j < claim.yOffset+claim.ySize; j++ {
+			if fabric[i][j] != 1 {
+				return false, 0
+			}
+		}
+	}
+	return true, claim.claimId
+}
+
 func fillFabric(fabric *[1000][1000]int, claim claim) {
 	for i := claim.xOffset; i < claim.xOffset+claim.xSize; i++ {
 		for j := claim.yOffset; j < claim.yOffset+claim.ySize; j++ {
@@ -40,7 +51,7 @@ func countConflicts(fabric *[1000][1000]int) (count int) {
 	return
 }
 
-func Task1() int {
+func createFabricWithConflicts() ([1000][1000]int, []claim) {
 	file, err := os.Open("day3/day3input.txt")
 	if err != nil {
 		panic(err)
@@ -63,5 +74,25 @@ func Task1() int {
 	for _, element := range claimList {
 		fillFabric(&fabric, element)
 	}
+
+	return fabric, claimList
+}
+
+func Task1() int {
+	fabric, _ := createFabricWithConflicts()
 	return countConflicts(&fabric)
+}
+
+func Task2() int {
+	fabric, claimList := createFabricWithConflicts()
+	found := false
+	id := 0
+
+	for _, element := range claimList {
+		found, id = findNonOverlapClaim(&fabric, element)
+		if found {
+			break
+		}
+	}
+	return id
 }
