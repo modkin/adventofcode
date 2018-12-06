@@ -2,7 +2,6 @@ package day4
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"regexp"
 	"sort"
@@ -32,7 +31,7 @@ func (a byTime) Less(i, j int) bool {
 	return a[i].time.Before(a[j].time)
 }
 
-func findSleepiestGuard(tslist []timestamp) int {
+func createMaps(tslist []timestamp) (map[int]int, map[int][]int) {
 	guardMap := make(map[int]int)
 	sleepMap := make(map[int][]int)
 	var currentGuard = -1
@@ -60,7 +59,11 @@ func findSleepiestGuard(tslist []timestamp) int {
 			}
 		}
 	}
+	return guardMap, sleepMap
+}
 
+func findSleepiestGuard(tslist []timestamp) int {
+	guardMap, sleepMap := createMaps(tslist)
 	var longestSleep = -1
 	var longestSleepId = -1
 	for id, elem := range guardMap {
@@ -69,22 +72,34 @@ func findSleepiestGuard(tslist []timestamp) int {
 			longestSleepId = id
 		}
 	}
-
 	var longestMinute = -1
 	var longestMinuteId = -1
 	for idx, val := range sleepMap[longestSleepId] {
 		if val > longestMinute {
 			longestMinute = val
 			longestMinuteId = idx
-			fmt.Println(longestMinute)
 		}
 	}
-
 	return longestSleepId * longestMinuteId
 }
 
-func Task1() int {
+func findMaxSleepMinute(tslist []timestamp) int {
+	_, sleepMap := createMaps(tslist)
+	var maxMinute, minuteId, guardId = -1, -1, -1
+	for id, elem := range sleepMap {
+		for id2, elem2 := range elem {
+			if elem2 > maxMinute {
+				maxMinute = elem2
+				minuteId = id2
+				guardId = id
+			}
+		}
+	}
+	return guardId * minuteId
 
+}
+
+func createTimeStampList() []timestamp {
 	file, err := os.Open("day4/day4input.txt")
 	if err != nil {
 		panic(err)
@@ -104,11 +119,14 @@ func Task1() int {
 		v := timestamp{t, result[0][6]}
 		timestampList = append(timestampList, v)
 	}
-
 	sort.Sort(byTime(timestampList))
-	//for _, element := range timestampList {
-	//	fmt.Println(element.time.UTC(), element.text)
-	//}
 
-	return findSleepiestGuard(timestampList)
+	return timestampList
+}
+
+func Task1() int {
+	return findSleepiestGuard(createTimeStampList())
+}
+func Task2() int {
+	return findMaxSleepMinute(createTimeStampList())
 }
