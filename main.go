@@ -4,6 +4,7 @@ import (
 	"adventofcode/day1"
 	"adventofcode/day2"
 	"adventofcode/day3"
+	"adventofcode/day4"
 	"fmt"
 )
 
@@ -14,4 +15,5 @@ func main() {
 	fmt.Println("Day2.2:", day2.FindSpecial("./day2input.txt"))
 	fmt.Println("Day3.1:", day3.Task1())
 	fmt.Println("Day3.2:", day3.Task2())
+	fmt.Println("Day4.1:", day4.Task1())
 }
