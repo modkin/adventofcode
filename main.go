@@ -2,6 +2,7 @@ package main
 
 import (
 	"adventofcode/day1"
+	"adventofcode/day10"
 	"adventofcode/day2"
 	"adventofcode/day3"
 	"adventofcode/day4"
@@ -20,4 +21,5 @@ func main() {
 	fmt.Println("Day4.2:", day4.Task2())
 	fmt.Println("Day5.1:", day5.Task1())
 	fmt.Println("Day5.2:", day5.Task2())
+	fmt.Println("Day10.1:", day10.Task1())
 }
