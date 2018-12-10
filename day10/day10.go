@@ -17,9 +17,11 @@ type star struct {
 	yv int
 }
 
-func (s *star) move() {
-	s.x += s.xv
-	s.y += s.yv
+func (s *star) move(times int) {
+	for i := 0; i < times; i++ {
+		s.x += s.xv
+		s.y += s.yv
+	}
 }
 
 func toInt(str string) int {
@@ -54,36 +56,43 @@ func intAbs(x int) int {
 	return int(math.Abs(float64(x)))
 }
 
-func findSmallesBoundingBox(stars []star) {
+func findSmallesBoundingBox(stars []star) int {
 	currentVolume, _, _, _, _ := getVolume(stars)
-	oldStars := stars
+	counter := 0
 	for {
 		newVolume, _, _, _, _ := getVolume(stars)
 		if newVolume > currentVolume {
-			stars = oldStars
-			break
+			return counter
 		}
-		oldStars = stars
 		for idx, _ := range stars {
-			stars[idx].move()
+			stars[idx].move(1)
 		}
 		currentVolume = newVolume
-		printStars(stars)
+		counter++
 	}
 }
 
-func printStars(stars []star) {
+func printStars(stars []star, steps int) {
+	for idx, _ := range stars {
+		stars[idx].move(steps)
+	}
 	_, xmin, xmax, ymin, ymax := getVolume(stars)
-	starPic := make([][]rune, intAbs(ymax-ymin)+1)
+	starPic := make([][]bool, intAbs(ymax-ymin)+1)
 	for i := range starPic {
-		starPic[i] = make([]rune, intAbs(xmax-xmin)+1)
+		starPic[i] = make([]bool, intAbs(xmax-xmin)+1)
 	}
 	for _, elem := range stars {
-		starPic[elem.y+intAbs(ymin)][elem.x+intAbs(xmin)] = '#'
+		//starPic[elem.y+intAbs(ymin)][elem.x+intAbs(xmin)] = true
+		starPic[elem.y-ymin][elem.x-xmin] = true
 	}
-	for y := 0; y < ymax-ymin; y++ {
-		for x := 0; x < xmax-xmin; x++ {
-			fmt.Print(string(starPic[y][x]))
+	for y := 0; y <= ymax-ymin; y++ {
+		for x := 0; x <= xmax-xmin; x++ {
+			if starPic[y][x] {
+				fmt.Print("#")
+			} else {
+				fmt.Print(".")
+			}
+
 		}
 		fmt.Println()
 	}
@@ -91,17 +100,12 @@ func printStars(stars []star) {
 }
 
 func createStarSlice() []star {
-	file, err := os.Open("day10/day10-example.txt")
+	file, err := os.Open("day10/day10-input.txt")
 	if err != nil {
 		panic(err)
 	}
 	scanner := bufio.NewScanner(file)
-
 	var stars []star
-
-	//re := regexp.MustCompile(".*<([0-9]*), ([0-9]*)>.*<([0-9]*), ([0-9]*)>")
-	//re := regexp.MustCompile("position=< ?(-?[0-9]*)  ?(-?[0-9])> velocity=< ?(-?[0-9]*)  ?(-?[0-9])>")
-	//re := regexp.MustCompile("position=</s*([-/d]*),/s*([-/d])> velocity=</s*([-/d]*),/s*([-/d])>")
 	re := regexp.MustCompile("position=<\\s*([-\\d]*),\\s*([-\\d]*)> velocity=<\\s*([-\\d]*),\\s*([-\\d]*)>")
 	for scanner.Scan() {
 		word := scanner.Text()
@@ -116,8 +120,11 @@ func createStarSlice() []star {
 
 func Task1() int {
 	stars := createStarSlice()
-	printStars(stars)
-	findSmallesBoundingBox(stars)
-	printStars(stars)
+	steps := findSmallesBoundingBox(stars)
+
+	stars = createStarSlice()
+	fmt.Println(steps - 1)
+	printStars(stars, steps-1)
+
 	return 1
 }
