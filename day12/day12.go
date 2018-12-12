@@ -33,7 +33,7 @@ func parseInput() ([]rune, map[[5]rune]rune) {
 	return initState, rules
 }
 
-func performEvolution(state []rune, updates map[[5]rune]rune) {
+func performEvolution(state []rune, updates map[[5]rune]rune) bool {
 	tmp := make([]rune, len(state))
 	copy(tmp, state)
 	for i := 2; i < len(state)-2; i++ {
@@ -41,12 +41,23 @@ func performEvolution(state []rune, updates map[[5]rune]rune) {
 		targetState := updates[update]
 		tmp[i] = targetState
 	}
+	same := checkEqual(state, tmp)
 	copy(state, tmp)
+	return same
+}
+
+func checkEqual(one []rune, two []rune) bool {
+	for i := 0; i < len(one)-2; i++ {
+		if one[i] != two[i+1] {
+			return false
+		}
+	}
+	return true
 }
 
 func runXGenerations(count int) int {
 	initstate, rules := parseInput()
-	bufsize := 4 + (count-1)*2
+	bufsize := int(len(initstate) / 2)
 	buffer := make([]rune, bufsize)
 	for idx, _ := range buffer {
 		buffer[idx] = '.'
@@ -54,15 +65,26 @@ func runXGenerations(count int) int {
 	initstate = append(buffer, initstate...)
 	initstate = append(initstate, buffer...)
 
-	for i := 1; i <= count; i++ {
-		performEvolution(initstate, rules)
-		//fmt.Println(string(initstate))
+	idx := 1
+	for ; idx <= count; idx++ {
+		same := performEvolution(initstate, rules)
+		if same {
+			break
+		}
+		if initstate[len(initstate)-3] == rune('#') {
+			initstate = append(initstate, buffer...)
+		}
 	}
 	sum := 0
+	nonZero := 0
 	for idx, _ := range initstate {
 		if initstate[idx] == rune('#') {
 			sum += idx - bufsize
+			nonZero++
 		}
+	}
+	if idx != count {
+		sum += (count - idx) * nonZero
 	}
 	return sum
 }
@@ -72,5 +94,5 @@ func Task1() {
 }
 
 func Task2() {
-	//fmt.Println(runXGenerations(50000000000))
+	fmt.Println(runXGenerations(50000000000))
 }
