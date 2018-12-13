@@ -31,6 +31,7 @@ func Solve() {
 		node := rune([]rune(coords[7])[0])
 		nodeMap[node] = append(nodeMap[node], dep)
 		depMap[dep] = true
+		depMap[node] = true
 	}
 	for _, elem := range nodeMap {
 		sort.Slice(elem, func(i, j int) bool {
