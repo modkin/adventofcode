@@ -13,20 +13,7 @@ type node struct {
 	deps []rune
 }
 
-func processMap(curr rune, runeMap map[rune][]rune, printed map[rune]bool) {
-	for _, elem := range runeMap[curr] {
-		runeMap[curr] = runeMap[curr][1:]
-		if printed[curr] == false {
-			processMap(elem, runeMap, printed)
-		}
-	}
-	if printed[curr] == false {
-		fmt.Print(string(curr))
-		printed[curr] = true
-	}
-}
-
-func createNodeSlice() {
+func Solve() {
 	file, err := os.Open("day7/day7-input.txt")
 	if err != nil {
 		panic(err)
@@ -43,9 +30,7 @@ func createNodeSlice() {
 		dep := rune([]rune(coords[1])[0])
 		node := rune([]rune(coords[7])[0])
 		nodeMap[node] = append(nodeMap[node], dep)
-		//nodeMap[node] = append(nodeMap[node], dep)
 		depMap[dep] = true
-		//depSlice = append(depSlice, dep)
 	}
 	for _, elem := range nodeMap {
 		sort.Slice(elem, func(i, j int) bool {
@@ -56,49 +41,30 @@ func createNodeSlice() {
 	for key, _ := range depMap {
 		depSlice = append(depSlice, key)
 	}
-	fmt.Println(string(depSlice))
 	sort.Slice(depSlice, func(i, j int) bool {
-		return i < j
+		return depSlice[i] < depSlice[j]
 	})
 
-	abs := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	depSlice = []rune(abs)
-
-	fmt.Println(len(nodeMap))
-	fmt.Println(string(depSlice))
-	printMap := make(map[rune]bool)
-	for {
-		for key, elem := range nodeMap {
-			for _, val := range depSlice {
-				if val != key || elem == nil {
-					if printMap[val] == false {
-						fmt.Print(string(val))
-						printMap[val] = true
-					}
-					for idx, entry := range depSlice {
-						if val == entry {
-							depSlice = append(depSlice[0:idx], depSlice[idx+1:]...)
+	for len(depSlice) != 0 {
+		for depIdx, letter := range depSlice {
+			if nodeMap[letter] == nil || len(nodeMap[letter]) == 0 {
+				fmt.Print(string(letter))
+				depSlice = append(depSlice[0:depIdx], depSlice[depIdx+1:]...)
+				for keys, _ := range nodeMap {
+					for idx, elem := range nodeMap[keys] {
+						if elem == letter {
+							nodeMap[keys] = append(nodeMap[keys][0:idx], nodeMap[keys][idx+1:]...)
 							break
 						}
 					}
-					delete(nodeMap, val)
-
-					for _, elem2 := range nodeMap {
-						for idx, entry := range elem2 {
-							if val == entry {
-								elem2 = append(elem2[0:idx], elem2[idx+1:]...)
-								break
-							}
-						}
-					}
-					//processMap(key, nodeMap, make(map[rune]bool))
 				}
-				//fmt.Println("bla", string(val))
+				break
 			}
+
 		}
 	}
 }
 
 func Task1() {
-	createNodeSlice()
+	Solve()
 }
