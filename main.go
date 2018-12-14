@@ -15,6 +15,7 @@ func main() {
 	//fmt.Println("Day5.2:", day5.Task2())
 	//day6.Task1()
 	day7.Task1()
+	day7.Task2()
 	//day10.Task1()
 	//day11.Task1()
 	//day12.Task1()
