@@ -22,7 +22,32 @@ func processTree(tree []int, start int) int {
 	return update
 }
 
-func metaDataSum() int {
+func processTree2(tree []int, start int) int {
+	childs := tree[start]
+	childsSum := make([]int, childs)
+	metalen := tree[start+1]
+	update := 0
+	if childs == 0 {
+		for i := 0; i < metalen; i++ {
+			update += tree[start+2+i]
+		}
+	} else {
+		for i := 0; i < childs; i++ {
+			childsSum[i] = processTree2(tree, start+2)
+		}
+
+		for i := 0; i < metalen; i++ {
+			idx := tree[start+2+i] - 1
+			if idx < len(childsSum) {
+				update += childsSum[idx]
+			}
+		}
+	}
+	tree = append(tree[:start], tree[(start+metalen+2):]...)
+	return update
+}
+
+func getData() []int {
 
 	file, err := os.Open("day8/day8-input.txt")
 	if err != nil {
@@ -37,10 +62,12 @@ func metaDataSum() int {
 		number, _ := strconv.Atoi(elem)
 		data = append(data, number)
 	}
-	return processTree(data, 0)
-
+	return data
 }
 
 func Task1() {
-	fmt.Println(metaDataSum())
+	data := getData()
+	fmt.Println(processTree(data, 0))
+	data = getData()
+	fmt.Println(processTree2(data, 0))
 }
