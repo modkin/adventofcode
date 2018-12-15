@@ -17,7 +17,6 @@ func processTree(tree []int, start int) int {
 	}
 	for i := 0; i < metalen; i++ {
 		update += tree[start+2+i]
-		fmt.Println(update)
 	}
 	tree = append(tree[:start], tree[(start+metalen+2):]...)
 	return update
@@ -38,7 +37,6 @@ func metaDataSum() int {
 		number, _ := strconv.Atoi(elem)
 		data = append(data, number)
 	}
-	fmt.Println(data)
 	return processTree(data, 0)
 
 }
