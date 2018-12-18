@@ -1,6 +1,6 @@
 package main
 
-import "adventofcode/day9"
+import "adventofcode/day13"
 
 func main() {
 	//fmt.Println("Day1.1:", day1.SumFile("./day1input.txt"))
@@ -17,12 +17,13 @@ func main() {
 	//day7.Task1()
 	//day7.Task2()
 	//day8.Task1()
-	day9.Task1()
-	day9.Task2()
+	//day9.Task1()
+	//day9.Task2()
 	//day10.Task1()
 	//day11.Task1()
 	//day12.Task1()
 	//day12.Task2()
+	day13.Task1()
 	//day14.Task1()
 	//day14.Task2()
 }

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -16,4 +17,12 @@ func ToInt(str string) int {
 
 func IntAbs(x int) int {
 	return int(math.Abs(float64(x)))
+}
+
+func OpenFile(filePath string) *os.File {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	return file
 }
