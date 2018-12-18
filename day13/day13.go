@@ -31,6 +31,15 @@ func (t trainLex) Less(i, j int) bool {
 	return false
 }
 
+func removeTrain(t train, trains []train) []train {
+	for idx, train := range trains {
+		if train == t {
+			return append(trains[:idx], trains[idx+1:]...)
+		}
+	}
+	return []train{}
+}
+
 func getTrainSymbol(t train) rune {
 	switch t.xspeed {
 	case 1:
@@ -51,15 +60,15 @@ func (t train) String() string {
 	return fmt.Sprintf("x: %d y: %d xs: %d ys: %d p: %c", t.x, t.y, t.xspeed, t.yspeed, t.position)
 }
 
-func checkCrash(idx int, trains []train) bool {
+func checkCrash(idx int, trains []train) (bool, int) {
 	for i, train := range trains {
 		if i != idx {
 			if train.x == trains[idx].x && train.y == trains[idx].y {
-				return true
+				return true, i
 			}
 		}
 	}
-	return false
+	return false, -1
 }
 
 func printPlan(plan [][]rune) {
@@ -121,7 +130,8 @@ func moveTrains(plan [][]rune, trains []train) (bool, []int) {
 			train.turn = (train.turn + 1) % 3
 		}
 		plan[train.y][train.x] = getTrainSymbol(*train)
-		if checkCrash(idx, trains) {
+		crashed, _ := checkCrash(idx, trains)
+		if crashed {
 			crash = []int{train.x, train.y}
 			plan[train.y][train.x] = 'X'
 			return true, crash
@@ -133,13 +143,19 @@ func moveTrains(plan [][]rune, trains []train) (bool, []int) {
 func Task1() {
 	plan := parsePlan()
 	trains := findTrains(plan)
-	//printPlan(plan)
-	//fmt.Println(trains)
-
 	var crashCoord []int
 	crash := false
 	for !crash {
 		crash, crashCoord = moveTrains(plan, trains)
 	}
 	fmt.Println(crashCoord)
+}
+
+func Task2() {
+	plan := parsePlan()
+	trains := findTrains(plan)
+	for len(trains) != 1 {
+		//_, _, trains = moveTrains(plan, trains)
+	}
+	fmt.Println(trains[0].x, trains[0].y)
 }

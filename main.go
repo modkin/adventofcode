@@ -24,6 +24,7 @@ func main() {
 	//day12.Task1()
 	//day12.Task2()
 	day13.Task1()
+	day13.Task2()
 	//day14.Task1()
 	//day14.Task2()
 }
