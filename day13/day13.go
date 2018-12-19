@@ -16,7 +16,8 @@ type train struct {
 	yspeed   int
 	position rune
 	//0 = left; 1 == straight; 2 == right
-	turn int
+	turn    int
+	crashed bool
 }
 
 func (t trainLex) Len() int      { return len(t) }
@@ -93,13 +94,13 @@ func findTrains(plan [][]rune) []train {
 		for x, char := range elem {
 			switch char {
 			case '>':
-				trains = append(trains, train{x, y, 1, 0, '-', 0})
+				trains = append(trains, train{x, y, 1, 0, '-', 0, false})
 			case '<':
-				trains = append(trains, train{x, y, -1, 0, '-', 0})
+				trains = append(trains, train{x, y, -1, 0, '-', 0, false})
 			case '^':
-				trains = append(trains, train{x, y, 0, -1, '|', 0})
+				trains = append(trains, train{x, y, 0, -1, '|', 0, false})
 			case 'v':
-				trains = append(trains, train{x, y, 0, 1, '|', 0})
+				trains = append(trains, train{x, y, 0, 1, '|', 0, false})
 			}
 		}
 	}
@@ -108,12 +109,29 @@ func findTrains(plan [][]rune) []train {
 
 func moveTrains(plan [][]rune, trains []train) (bool, []int) {
 	sort.Sort(trainLex(trains))
+	crashed := false
+	c := false
 	var crash []int
+	var idx2 int
 	for idx, _ := range trains {
 		train := &trains[idx]
+		if train.crashed {
+			continue
+		}
 		plan[train.y][train.x] = train.position
 		train.x += train.xspeed
 		train.y += train.yspeed
+		c, idx2 = checkCrash(idx, trains)
+		if c {
+			if crash == nil {
+				crash = []int{train.x, train.y}
+			}
+			plan[train.y][train.x] = 'X'
+			crashed = true
+			train.crashed = true
+			trains[idx2].crashed = true
+			continue
+		}
 		train.position = plan[train.y][train.x]
 		switch plan[train.y][train.x] {
 		case '\\':
@@ -130,14 +148,9 @@ func moveTrains(plan [][]rune, trains []train) (bool, []int) {
 			train.turn = (train.turn + 1) % 3
 		}
 		plan[train.y][train.x] = getTrainSymbol(*train)
-		crashed, _ := checkCrash(idx, trains)
-		if crashed {
-			crash = []int{train.x, train.y}
-			plan[train.y][train.x] = 'X'
-			return true, crash
-		}
+
 	}
-	return false, crash
+	return crashed, crash
 }
 
 func Task1() {
@@ -154,8 +167,20 @@ func Task1() {
 func Task2() {
 	plan := parsePlan()
 	trains := findTrains(plan)
-	for len(trains) != 1 {
-		//_, _, trains = moveTrains(plan, trains)
+	runningTrains := len(trains)
+	for runningTrains != 1 {
+		moveTrains(plan, trains)
+		runningTrains = 0
+		for _, train := range trains {
+			if !train.crashed {
+				runningTrains++
+			}
+		}
 	}
-	fmt.Println(trains[0].x, trains[0].y)
+	printPlan(plan)
+	for _, train := range trains {
+		if !train.crashed {
+			fmt.Println(train.x, train.y)
+		}
+	}
 }
