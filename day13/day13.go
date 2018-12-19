@@ -63,7 +63,7 @@ func (t train) String() string {
 
 func checkCrash(idx int, trains []train) (bool, int) {
 	for i, train := range trains {
-		if i != idx {
+		if i != idx && !train.crashed {
 			if train.x == trains[idx].x && train.y == trains[idx].y {
 				return true, i
 			}
@@ -126,7 +126,7 @@ func moveTrains(plan [][]rune, trains []train) (bool, []int) {
 			if crash == nil {
 				crash = []int{train.x, train.y}
 			}
-			plan[train.y][train.x] = 'X'
+			plan[train.y][train.x] = trains[idx2].position
 			crashed = true
 			train.crashed = true
 			trains[idx2].crashed = true
@@ -168,6 +168,7 @@ func Task2() {
 	plan := parsePlan()
 	trains := findTrains(plan)
 	runningTrains := len(trains)
+	//printPlan(plan)
 	for runningTrains != 1 {
 		moveTrains(plan, trains)
 		runningTrains = 0
@@ -176,6 +177,7 @@ func Task2() {
 				runningTrains++
 			}
 		}
+		//printPlan(plan)
 	}
 	printPlan(plan)
 	for _, train := range trains {
