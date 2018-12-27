@@ -27,5 +27,5 @@ func main() {
 	//day13.Task2()
 	//day14.Task1()
 	//day14.Task2()
-	day22.Task1()
+	day22.Task2()
 }
