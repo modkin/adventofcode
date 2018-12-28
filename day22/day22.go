@@ -59,6 +59,22 @@ func printTypeMap(typmap [][]int) {
 	}
 }
 
+func printDistance(dist [][]field) {
+	for y := 0; y < len(dist[0]); y++ {
+		for x := 0; x < len(dist); x++ {
+			if dist[x][y].distance < 10 {
+				fmt.Print("0", dist[x][y].distance, "|")
+			} else if dist[x][y].distance > 99 {
+				fmt.Print("XX|")
+			} else {
+				fmt.Print(dist[x][y].distance, "|")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+}
+
 func sumTypeMap(typemap [][]int) (ret int) {
 	for y := 0; y < len(typemap[0]); y++ {
 		for x := 0; x < len(typemap); x++ {
@@ -125,7 +141,7 @@ func findMin(distance [][]field) []int {
 }
 
 func findShortestPath(depth int, x int, y int) int {
-	typemap := typeMap(4080, x*2, y*2)
+	typemap := typeMap(depth, x*2, y*2)
 
 	distance := make([][]field, x*2)
 	for i := range distance {
@@ -143,16 +159,17 @@ func findShortestPath(depth int, x int, y int) int {
 
 	offsets := [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -0}}
 
-	totalDistance := 0
-	for min[0] != finalTarget[0] && min[1] != finalTarget[1] {
+	printTypeMap(typemap)
+	for !distance[finalTarget[0]][finalTarget[1]].visited {
 		min = findMin(distance)
 		distance[min[0]][min[1]].visited = true
-		stepcost := 1
 		source := distance[min[0]][min[1]]
 		for _, offset := range offsets {
+			stepcost := 1
 			if min[0]+offset[0] < 0 || min[1]+offset[1] < 0 {
 				continue
 			}
+
 			tx := min[0] + offset[0]
 			ty := min[1] + offset[1]
 			tool := source.tool
@@ -163,21 +180,31 @@ func findShortestPath(depth int, x int, y int) int {
 			}
 			if source.distance+stepcost < distance[tx][ty].distance {
 				distance[tx][ty].distance = source.distance + stepcost
-				totalDistance = distance[tx][ty].distance
-				if sourceRegion == targetRegion {
+				if accessible(tool, targetRegion) {
 					distance[tx][ty].tool = source.tool
 				} else {
-					distance[tx][ty].tool = findTool(source.tool, distance[tx][ty].tool)
+					distance[tx][ty].tool = findTool(sourceRegion, targetRegion)
 				}
 			}
 		}
 	}
-	return totalDistance
+	printDistance(distance)
+	if distance[finalTarget[0]][finalTarget[1]].tool == 1 {
+		return distance[finalTarget[0]][finalTarget[1]].distance
+	} else {
+		return distance[finalTarget[0]][finalTarget[1]].distance + 7
+	}
 }
 
 func Task1() {
 	typemap := typeMap(4080, 14, 785)
 	//printTypeMap(typemap)
+	fmt.Println(sumTypeMap(typemap))
+}
+
+func Test1() {
+	typemap := typeMap(510, 10, 10)
+	printTypeMap(typemap)
 	fmt.Println(sumTypeMap(typemap))
 }
 
