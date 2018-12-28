@@ -61,7 +61,9 @@ func printTypeMap(typmap [][]int) {
 
 func printDistance(dist [][]field) {
 	for y := 0; y < len(dist[0]); y++ {
+		fmt.Printf("%2d|", y)
 		for x := 0; x < len(dist); x++ {
+
 			if dist[x][y].distance < 10 {
 				fmt.Print("0", dist[x][y].distance, "|")
 			} else if dist[x][y].distance > 99 {
@@ -129,11 +131,11 @@ func findTool(sourceRegion int, targetRegion int) int {
 func findMin(distance [][]field) []int {
 	min := []int{0, 0}
 	minDist := math.MaxInt64
-	for idx, x := range distance {
-		for idy, elem := range x {
-			if elem.distance < minDist && !elem.visited {
-				minDist = elem.distance
-				min = []int{idx, idy}
+	for x := 0; x < len(distance); x++ {
+		for y := 0; y < len(distance[0]); y++ {
+			if distance[x][y].distance < minDist && !distance[x][y].visited {
+				minDist = distance[x][y].distance
+				min = []int{x, y}
 			}
 		}
 	}
@@ -143,9 +145,9 @@ func findMin(distance [][]field) []int {
 func findShortestPath(depth int, x int, y int) int {
 	typemap := typeMap(depth, x*2, y*2)
 
-	distance := make([][]field, x*2)
+	distance := make([][]field, x*2+1)
 	for i := range distance {
-		distance[i] = make([]field, y*2)
+		distance[i] = make([]field, y*2+1)
 		for idx, _ := range distance[i] {
 			distance[i][idx].distance = math.MaxInt64
 			distance[i][idx].tool = 13
@@ -157,7 +159,7 @@ func findShortestPath(depth int, x int, y int) int {
 	finalTarget := []int{x, y}
 	min := []int{0, 0}
 
-	offsets := [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -0}}
+	offsets := [][]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 
 	printTypeMap(typemap)
 	for !distance[finalTarget[0]][finalTarget[1]].visited {
@@ -167,6 +169,9 @@ func findShortestPath(depth int, x int, y int) int {
 		for _, offset := range offsets {
 			stepcost := 1
 			if min[0]+offset[0] < 0 || min[1]+offset[1] < 0 {
+				continue
+			}
+			if min[0]+offset[0] >= x*2 || min[1]+offset[1] >= x*2 {
 				continue
 			}
 
@@ -209,5 +214,6 @@ func Test1() {
 }
 
 func Task2() {
-	fmt.Println(findShortestPath(510, 10, 10))
+	//fmt.Println(findShortestPath(510, 10, 10))
+	fmt.Println(findShortestPath(4080, 2, 4))
 }
