@@ -171,7 +171,7 @@ func findShortestPath(depth int, x int, y int) int {
 			if min[0]+offset[0] < 0 || min[1]+offset[1] < 0 {
 				continue
 			}
-			if min[0]+offset[0] >= x*2 || min[1]+offset[1] >= x*2 {
+			if min[0]+offset[0] >= x*2 || min[1]+offset[1] >= y*2 {
 				continue
 			}
 
@@ -215,5 +215,5 @@ func Test1() {
 
 func Task2() {
 	//fmt.Println(findShortestPath(510, 10, 10))
-	fmt.Println(findShortestPath(4080, 2, 4))
+	fmt.Println(findShortestPath(4080, 14, 785))
 }
