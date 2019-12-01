@@ -1,6 +1,6 @@
 package main
 
-import "adventofcode/day22"
+import "adventofcode/2018/day22"
 
 func main() {
 	//fmt.Println("Day1.1:", day1.SumFile("./day1input.txt"))
