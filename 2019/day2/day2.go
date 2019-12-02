@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"time"
 )
 
 func compute(opcode int, first int, second int) int {
@@ -49,10 +50,12 @@ func main() {
 	fmt.Println("Task 2.1: ", processIntCode(12, 2))
 
 	target := 19690720
+	t0 := time.Now()
 	for i := 0; i < 100; i++ {
 		for j := 0; j < 100; j++ {
 			if processIntCode(i, j) == target {
 				fmt.Println("Task 2.2: ", 100*i+j)
+				fmt.Println("Task 2.2 took: ", time.Now().Sub(t0))
 				return
 			}
 		}
