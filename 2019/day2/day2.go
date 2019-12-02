@@ -16,7 +16,7 @@ func compute(opcode int, first int, second int) int {
 	return -1
 }
 
-func processIntCode() int {
+func processIntCode(noun int, verb int) int {
 	content, err := ioutil.ReadFile("2019/day2/input")
 	if err != nil {
 		panic(err)
@@ -27,14 +27,13 @@ func processIntCode() int {
 		intcode[pos] = utils.ToInt(elem)
 	}
 	///adjust according to task
-	intcode[1] = 12
-	intcode[2] = 2
+	intcode[1] = noun
+	intcode[2] = verb
 
 	index := 0
 	for true {
 		opCode := intcode[index]
 		if opCode == 99 {
-			fmt.Println(intcode)
 			return intcode[0]
 		}
 		firstPos := intcode[index+1]
@@ -47,5 +46,15 @@ func processIntCode() int {
 }
 
 func main() {
-	fmt.Println("Task 2.1: ", processIntCode())
+	fmt.Println("Task 2.1: ", processIntCode(12, 2))
+
+	target := 19690720
+	for i := 0; i < 100; i++ {
+		for j := 0; j < 100; j++ {
+			if processIntCode(i, j) == target {
+				fmt.Println("Task 2.2: ", 100*i+j)
+				return
+			}
+		}
+	}
 }
