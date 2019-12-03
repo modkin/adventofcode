@@ -1,8 +1,10 @@
 package main
 
 import (
+	"adventofcode/2018/utils"
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -31,24 +33,39 @@ func advance(line string, start []int) []int {
 	return end
 }
 
-func intersectLineWithChain(line string, startLine []int, chain []string, startchain []int) (intersect bool, intersections [][]int) {
-	intersect = false
+func intersectLineWithChain(line string, startLine []int, chain []string, startChain []int) [][2]int {
+	var intersections [][2]int
 	endLine := advance(line, startLine)
 	for _, chainLine := range chain {
-		endChain := advance(chainLine, startchain)
-		t := float64((startLine[0]-startchain[0])*(startchain[1]-endChain[1])-
-			(endLine[1]-startchain[1])*(startchain[0]-endChain[0])) /
-			float64((startLine[0]-endLine[0])*(startchain[1]-endChain[1])-
-				(startLine[1]-endLine[1])*(startchain[0]-endChain[0]))
-		if t <= 1 && t >= 0 {
-			intersectX := startLine[0] + int(t*float64(endLine[0]-startLine[0]))
-			intersectY := startLine[1] + int(t*float64(endLine[1]-startLine[1]))
-			intersections = append(intersections, []int{intersectX, intersectY})
+		endChain := advance(chainLine, startChain)
+		t := float64((startLine[0]-startChain[0])*(startChain[1]-endChain[1])-
+			(startLine[1]-startChain[1])*(startChain[0]-endChain[0])) /
+			float64((startLine[0]-endLine[0])*(startChain[1]-endChain[1])-
+				(startLine[1]-endLine[1])*(startChain[0]-endChain[0]))
+		u := -float64((startLine[0]-endLine[0])*(startLine[1]-startChain[1])-
+			(startLine[1]-endLine[1])*(endLine[0]-startChain[0])) /
+			float64((startLine[0]-endLine[0])*(startChain[1]-endChain[1])-
+				(startLine[1]-endLine[1])*(startChain[0]-endChain[0]))
+		if t <= 1 && t >= 0 && u <= 1 && u >= 0 {
+			intersectX := startLine[0] + int(math.Round(t*float64(endLine[0]-startLine[0])))
+			intersectY := startLine[1] + int(math.Round(t*float64(endLine[1]-startLine[1])))
+			intersections = append(intersections, [2]int{intersectX, intersectY})
 		}
-		copy(startchain, endChain)
+		copy(startChain, endChain)
 	}
-	fmt.Println(intersections)
-	return
+	//fmt.Println(intersections)
+	return intersections
+}
+
+func shortestDistance(intersections [][2]int) int {
+	min := math.MaxInt32
+	for _, elem := range intersections {
+		distance := utils.IntAbs(elem[0]) + utils.IntAbs(elem[1])
+		if distance < min && distance != 0 {
+			min = distance
+		}
+	}
+	return min
 }
 
 func main() {
@@ -65,10 +82,21 @@ func main() {
 	scanner.Scan()
 	secondWire := strings.Split(scanner.Text(), ",")
 
-	fmt.Println(firstWire)
-	fmt.Println(secondWire)
+	//firstWire = strings.Split("R75,D30,R83,U83,L12,D49,R71,U7,L72",",")
+	//secondWire = strings.Split("U62,R66,U55,R34,D71,R55,D58,R83",",")
+	//firstWire = strings.Split("R8,U5,L5,D3", ",")
+	//secondWire = strings.Split("U7,R6,D4,L4", ",")
+
+	//fmt.Println(firstWire)
+	//fmt.Println(secondWire)
 
 	start := []int{0, 0}
 
-	intersectLineWithChain("R100", start, []string{"D100", "R50", "U100"}, []int{10, 10})
+	var intersections [][2]int
+	for _, line := range firstWire {
+		intersections = append(intersections, intersectLineWithChain(line, start, secondWire, []int{0, 0})...)
+		start = advance(line, start)
+	}
+	//fmt.Println(intersections)
+	fmt.Println("Task 3.1: ", shortestDistance(intersections))
 }
