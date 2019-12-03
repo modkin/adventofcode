@@ -68,6 +68,35 @@ func shortestDistance(intersections [][2]int) int {
 	return min
 }
 
+func getDistanceToInterSect(intersect [2]int, wire []string) int {
+	distance := 0
+	point := []int{0, 0}
+
+	for _, line := range wire {
+
+		step, _ := strconv.Atoi(line[1:])
+		for i := 0; i < step; i++ {
+			point = advance(string(line[0])+"1", point)
+			distance += 1
+			if point[0] == intersect[0] && point[1] == intersect[1] {
+				return distance
+			}
+		}
+	}
+	return math.MaxInt32
+}
+
+func nearestIntersection(intersections [][2]int, firstWire []string, secondWire []string) int {
+	min := math.MaxInt32
+	for _, intersect := range intersections {
+		distanceToIntersect := getDistanceToInterSect(intersect, firstWire) + getDistanceToInterSect(intersect, secondWire)
+		if distanceToIntersect < min {
+			min = distanceToIntersect
+		}
+	}
+	return min
+}
+
 func main() {
 	file, err := os.Open("2019/day3/input")
 	if err != nil {
@@ -97,6 +126,12 @@ func main() {
 		intersections = append(intersections, intersectLineWithChain(line, start, secondWire, []int{0, 0})...)
 		start = advance(line, start)
 	}
+	///remove 0,0
+	intersections = intersections[1:]
+
 	//fmt.Println(intersections)
 	fmt.Println("Task 3.1: ", shortestDistance(intersections))
+	nearestIntersect := nearestIntersection(intersections, firstWire, secondWire)
+	fmt.Println("Task 3.2: ", nearestIntersect)
+
 }
