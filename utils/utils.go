@@ -26,3 +26,11 @@ func OpenFile(filePath string) *os.File {
 	}
 	return file
 }
+
+func SumSlice(slice []int) int {
+	sum := 0
+	for _, element := range slice {
+		sum += element
+	}
+	return sum
+}

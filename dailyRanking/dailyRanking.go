@@ -22,7 +22,7 @@ func genEmptyTimings(length int) []int {
 	return timings
 }
 
-func printRanking(allMember []member) {
+func printDayRanking(allMember []member) {
 	for i, mem := range allMember {
 		fmt.Println(i+1, " ", mem.Name)
 	}
@@ -51,7 +51,6 @@ func main() {
 		for i, task := range elem.(map[string]interface{})["completion_day_level"].(map[string]interface{}) {
 			tmp.timings[(utils.ToInt(i)-1)*2] = utils.ToInt(task.(map[string]interface{})["1"].(map[string]interface{})["get_star_ts"].(string))
 			tmp.timings[(utils.ToInt(i)-1)*2+1] = utils.ToInt(task.(map[string]interface{})["2"].(map[string]interface{})["get_star_ts"].(string))
-			daysDone += 1
 		}
 		allMember = append(allMember, tmp)
 
@@ -62,14 +61,28 @@ func main() {
 
 	//fmt.Println(allMember)
 	for k := 0; k < 8; k++ {
-		fmt.Println("Day: ", (k/2)+1, ".", k%2+1)
 		sort.SliceStable(allMember, func(i, j int) bool { return allMember[i].timings[k] < allMember[j].timings[k] })
 		sort.SliceStable(memberPoints, func(i, j int) bool { return memberPoints[i].timings[k] < memberPoints[j].timings[k] })
 		for points, _ := range memberPoints {
-			memberPoints[points].timings[k] = points
+			if memberPoints[points].timings[k] != math.MaxInt32 {
+				memberPoints[points].timings[k] = 5 - points
+			} else {
+				memberPoints[points].timings[k] = 0
+			}
 		}
-		printRanking(allMember)
 	}
 	fmt.Println(memberPoints)
+	fmt.Printf("%-20v|", "Name")
+	for i := 0; i < daysDone*2; i++ {
+		fmt.Printf("Day %2v.%v|", (i/2)+1, i%2+1)
+	}
+	fmt.Print(" Sum\n")
+	for _, mem := range memberPoints {
+		fmt.Printf("%-20v|", mem.Name)
+		for _, point := range mem.timings {
+			fmt.Printf(" %6v |", point)
+		}
+		fmt.Print(" ", utils.SumSlice(mem.timings), "\n")
+	}
 
 }
