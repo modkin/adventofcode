@@ -1,7 +1,7 @@
 package main
 
 import (
-	"adventofcode/2018/utils"
+	"adventofcode/utils"
 	"bufio"
 	"fmt"
 	"math"
