@@ -38,7 +38,9 @@ func isValidPassword2(passwd int) (int, bool) {
 	for pos < 5 {
 		if numbers[pos] == numbers[pos+1] {
 			if pos == 0 {
-				hasDouble = true
+				if numbers[pos+2] != numbers[pos] {
+					hasDouble = true
+				}
 			} else if numbers[pos-1] != numbers[pos] {
 				if pos == 4 {
 					hasDouble = true
@@ -57,8 +59,6 @@ func isValidPassword2(passwd int) (int, bool) {
 
 func main() {
 	start := 171309
-	//start = 234444
-	//end := 171409
 	end := 643603
 	counter := 0
 	for i := start; i < end+1; i++ {
