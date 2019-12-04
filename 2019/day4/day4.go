@@ -71,9 +71,8 @@ func main() {
 
 	counter = 0
 	for i := start; i < end; i++ {
-		number, correct := isValidPassword2(i)
+		_, correct := isValidPassword2(i)
 		if correct {
-			fmt.Println(number)
 			counter++
 		}
 	}
