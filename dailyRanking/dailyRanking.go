@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math"
 	"sort"
+	"time"
 )
 
 type member struct {
@@ -43,7 +44,8 @@ func main() {
 	//	tmp := member{name.(string), genEmptyTimings()}
 	//	allMember = append(allMember, tmp)
 	//}
-	daysDone := 4
+	timestamp := time.Now()
+	daysDone := timestamp.Day()
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2)}
@@ -60,7 +62,7 @@ func main() {
 	copy(memberPoints, allMember)
 
 	//fmt.Println(allMember)
-	for k := 0; k < 8; k++ {
+	for k := 0; k < daysDone*2; k++ {
 		sort.SliceStable(allMember, func(i, j int) bool { return allMember[i].timings[k] < allMember[j].timings[k] })
 		sort.SliceStable(memberPoints, func(i, j int) bool { return memberPoints[i].timings[k] < memberPoints[j].timings[k] })
 		for points, _ := range memberPoints {
