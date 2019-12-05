@@ -37,20 +37,38 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		//	fmt.Println(err)
 		//	panic(err)
 		//}
-		memory[param[0]] = 1
+		memory[param[0]] = 5
 		*itrPtr += 2
 	} else if opcode == 4 {
 		fmt.Println(memory[param[0]])
 		*itrPtr += 2
-	} // else if opcode == 5 {
-	//	if input1 != 0 {
-	//		*itrPtr = input2
-	//	}
-	//} else if opcode == 6 {
-	//	if input1 == 0 {
-	//		*itrPtr
-	//	}
-	//}
+	} else if opcode == 5 {
+		if input1 != 0 {
+			*itrPtr = input2
+		} else {
+			*itrPtr += 3
+		}
+	} else if opcode == 6 {
+		if input1 == 0 {
+			*itrPtr = input2
+		} else {
+			*itrPtr += 3
+		}
+	} else if opcode == 7 {
+		if input1 < input2 {
+			memory[param[2]] = 1
+		} else {
+			memory[param[2]] = 0
+		}
+		*itrPtr += 4
+	} else if opcode == 8 {
+		if input1 == input2 {
+			memory[param[2]] = 1
+		} else {
+			memory[param[2]] = 0
+		}
+		*itrPtr += 4
+	}
 	return -1
 }
 
@@ -61,7 +79,7 @@ func splitInt(in int) []int {
 		in /= 10
 		count++
 	}
-	fmt.Println("count", count)
+	//mt.Println("count", count)
 
 	output := make([]int, count)
 	for i := 0; i < count; i++ {
@@ -91,10 +109,11 @@ func processIntCode(intcode []int) {
 	for true {
 		opCode, paramMode := parseOpcode(splitInt(intcode[index]))
 		if opCode == 99 {
-			fmt.Println("Program Finished")
+			//fmt.Println("Program Finished")
 			return
 		}
 		compute(opCode, intcode[index+1:], paramMode, intcode, &index)
+		fmt.Println("index: ", index)
 	}
 
 }
