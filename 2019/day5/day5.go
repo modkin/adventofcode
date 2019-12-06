@@ -25,38 +25,39 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		}
 	}
 
-	if opcode == 1 {
+	switch opcode {
+	case 1:
 		memory[param[2]] = input1 + input2
 		*itrPtr += 4
-	} else if opcode == 2 {
+	case 2:
 		memory[param[2]] = input1 * input2
 		*itrPtr += 4
-	} else if opcode == 3 {
+	case 3:
 		memory[param[0]] = input
 		*itrPtr += 2
-	} else if opcode == 4 {
+	case 4:
 		ret = memory[param[0]]
 		*itrPtr += 2
-	} else if opcode == 5 {
+	case 5:
 		if input1 != 0 {
 			*itrPtr = input2
 		} else {
 			*itrPtr += 3
 		}
-	} else if opcode == 6 {
+	case 6:
 		if input1 == 0 {
 			*itrPtr = input2
 		} else {
 			*itrPtr += 3
 		}
-	} else if opcode == 7 {
+	case 7:
 		if input1 < input2 {
 			memory[param[2]] = 1
 		} else {
 			memory[param[2]] = 0
 		}
 		*itrPtr += 4
-	} else if opcode == 8 {
+	case 8:
 		if input1 == input2 {
 			memory[param[2]] = 1
 		} else {
@@ -117,7 +118,7 @@ func processIntCode(intcode []int, input int) (outputs []int) {
 }
 
 func task1() int {
-	content, err := ioutil.ReadFile("2019/day5/input")
+	content, err := ioutil.ReadFile("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +132,7 @@ func task1() int {
 }
 
 func task2() int {
-	content, err := ioutil.ReadFile("2019/day5/input")
+	content, err := ioutil.ReadFile("./input")
 	if err != nil {
 		panic(err)
 	}
