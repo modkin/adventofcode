@@ -9,7 +9,8 @@ import (
 )
 
 /// paraMode assumed to be filled with 0s
-func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int) int {
+func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int, input int) (ret int) {
+	ret = -1
 	var input1, input2 int
 	if paramMode[0] == 0 {
 		input1 = memory[param[0]]
@@ -31,16 +32,10 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		memory[param[2]] = input1 * input2
 		*itrPtr += 4
 	} else if opcode == 3 {
-		//var i int
-		//_, err := fmt.Scanf("%d", &i)
-		//if err != nil{
-		//	fmt.Println(err)
-		//	panic(err)
-		//}
-		memory[param[0]] = 5
+		memory[param[0]] = input
 		*itrPtr += 2
 	} else if opcode == 4 {
-		fmt.Println(memory[param[0]])
+		ret = memory[param[0]]
 		*itrPtr += 2
 	} else if opcode == 5 {
 		if input1 != 0 {
@@ -69,7 +64,7 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		}
 		*itrPtr += 4
 	}
-	return -1
+	return
 }
 
 func splitInt(in int) []int {
@@ -100,11 +95,11 @@ func parseOpcode(input []int) (int, []int) {
 	for len(param) < 3 {
 		param = append(param, 0)
 	}
-	fmt.Println("Opcode ", opcode, " param ", param)
+	//fmt.Println("Opcode ", opcode, " param ", param)
 	return opcode, param
 }
 
-func processIntCode(intcode []int) {
+func processIntCode(intcode []int, input int) (outputs []int) {
 	index := 0
 	for true {
 		opCode, paramMode := parseOpcode(splitInt(intcode[index]))
@@ -112,13 +107,16 @@ func processIntCode(intcode []int) {
 			//fmt.Println("Program Finished")
 			return
 		}
-		compute(opCode, intcode[index+1:], paramMode, intcode, &index)
-		fmt.Println("index: ", index)
+		ret := compute(opCode, intcode[index+1:], paramMode, intcode, &index, input)
+		if ret != -1 {
+			outputs = append(outputs, ret)
+		}
+		//fmt.Println("index: ", index)
 	}
-
+	return
 }
 
-func main() {
+func task1() int {
 	content, err := ioutil.ReadFile("2019/day5/input")
 	if err != nil {
 		panic(err)
@@ -128,5 +126,25 @@ func main() {
 	for pos, elem := range contentString {
 		intcode[pos] = utils.ToInt(elem)
 	}
-	processIntCode(intcode)
+	outputs := processIntCode(intcode, 1)
+	return outputs[len(outputs)-1]
+}
+
+func task2() int {
+	content, err := ioutil.ReadFile("2019/day5/input")
+	if err != nil {
+		panic(err)
+	}
+	contentString := strings.Split(string(content), ",")
+	intcode := make([]int, len(contentString))
+	for pos, elem := range contentString {
+		intcode[pos] = utils.ToInt(elem)
+	}
+	outputs := processIntCode(intcode, 5)
+	return outputs[len(outputs)-1]
+}
+
+func main() {
+	fmt.Println("Task 5.1: ", task1())
+	fmt.Println("Task 5.2: ", task2())
 }
