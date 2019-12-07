@@ -127,52 +127,24 @@ func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
 	return
 }
 
-func checkValid(input [5]int, offset int) bool {
-	counter := [5]int{0, 0, 0, 0, 0}
-	for i := 0; i < 5; i++ {
-		counter[input[i]-offset]++
-	}
-	for i := 0; i < 5; i++ {
-		if counter[i] > 1 {
-			return false
+func heapPermutation(input []int) (ouput [][]int) {
+	var generate func(int, []int)
+	generate = func(k int, work []int) {
+		if k == 0 {
+			newWork := append(work[:0:0], work...)
+			ouput = append(ouput, newWork)
+			return
 		}
-	}
-	return true
-}
-
-func generatePSS() (pss [][5]int) {
-	for i1 := 0; i1 < 5; i1++ {
-		for i2 := 0; i2 < 5; i2++ {
-			for i3 := 0; i3 < 5; i3++ {
-				for i4 := 0; i4 < 5; i4++ {
-					for i5 := 0; i5 < 5; i5++ {
-						tmp := [5]int{i1, i2, i3, i4, i5}
-						if checkValid(tmp, 0) {
-							pss = append(pss, [5]int{i1, i2, i3, i4, i5})
-						}
-					}
-				}
+		for i := 0; i < len(input); i++ {
+			generate(k-1, work)
+			if k%2 == 0 {
+				work[0], work[k-1] = work[k-1], work[0]
+			} else {
+				work[i], work[k-1] = work[k-1], work[i]
 			}
 		}
 	}
-	return
-}
-
-func generatePSS2() (pss [][5]int) {
-	for i1 := 5; i1 < 10; i1++ {
-		for i2 := 5; i2 < 10; i2++ {
-			for i3 := 5; i3 < 10; i3++ {
-				for i4 := 5; i4 < 10; i4++ {
-					for i5 := 5; i5 < 10; i5++ {
-						tmp := [5]int{i1, i2, i3, i4, i5}
-						if checkValid(tmp, 5) {
-							pss = append(pss, [5]int{i1, i2, i3, i4, i5})
-						}
-					}
-				}
-			}
-		}
-	}
+	generate(len(input), input)
 	return
 }
 
@@ -188,11 +160,11 @@ func task1() int {
 		intcode[pos] = utils.ToInt(elem)
 	}
 	copy(intcodeCopy, intcode)
-	pss := generatePSS()
+	//pss := generatePSS()
 	maxThruster := -math.MaxInt32
-	var pssMax [5]int
+	var pssMax []int
 	var inputs [5]inputWrap
-	for _, code := range pss {
+	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
 		for i, c := range code {
 			inputs[i] = inputWrap{
 				input: []int{c},
@@ -231,13 +203,11 @@ func task2() int {
 		ampIntcodes[i] = make([]int, len(contentString))
 		copy(ampIntcodes[i], intcode)
 	}
-	pss := generatePSS2()
 	maxThruster := -math.MaxInt32
-	var pssMax [5]int
 	var inputs [5]inputWrap
 	indexAmp := [5]int{0, 0, 0, 0}
 	var lastOutput int
-	for _, code := range pss {
+	for _, code := range heapPermutation([]int{5, 6, 7, 8, 9}) {
 		indexAmp = [5]int{0, 0, 0, 0}
 		for i := 0; i < 5; i++ {
 			copy(ampIntcodes[i], intcode)
@@ -251,14 +221,10 @@ func task2() int {
 		running := true
 		for running {
 			for ampNr := 0; ampNr < 5; ampNr++ {
-				fmt.Println(inputs)
 				for true {
 					opCode, paramMode := parseOpcode(splitInt(ampIntcodes[ampNr][indexAmp[ampNr]]))
-					//if opCode == 3 && len(inputs[ampNr].input) == 0 {
-					//	break
-					//}
 					if opCode == 99 {
-						fmt.Println("Program Finished", ampNr)
+						//fmt.Println("Program Finished", ampNr)
 						running = false
 						break
 					}
@@ -282,11 +248,8 @@ func task2() int {
 		}
 		if lastOutput > maxThruster {
 			maxThruster = lastOutput
-			pssMax = code
 		}
 	}
-
-	fmt.Println(pssMax)
 	return maxThruster
 }
 
