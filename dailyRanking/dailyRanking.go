@@ -67,7 +67,7 @@ func main() {
 		sort.SliceStable(memberPoints, func(i, j int) bool { return memberPoints[i].timings[k] < memberPoints[j].timings[k] })
 		for points, _ := range memberPoints {
 			if memberPoints[points].timings[k] != math.MaxInt32 {
-				memberPoints[points].timings[k] = 5 - points
+				memberPoints[points].timings[k] = len(memberPoints) - points
 			} else {
 				memberPoints[points].timings[k] = 0
 			}
