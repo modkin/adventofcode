@@ -4,7 +4,6 @@ import (
 	"adventofcode/utils"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"strings"
 )
 
@@ -72,22 +71,6 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 	return
 }
 
-func splitInt(in int) []int {
-	count := 0
-	copyIn := in
-	for in != 0 {
-		in /= 10
-		count++
-	}
-	//mt.Println("count", count)
-
-	output := make([]int, count)
-	for i := 0; i < count; i++ {
-		output[i] = copyIn / int(math.Pow(10, float64(count-1-i))) % 10
-	}
-	return output
-}
-
 func parseOpcode(input []int) (int, []int) {
 	opcode := input[len(input)-1]
 	if len(input) >= 2 {
@@ -107,7 +90,7 @@ func parseOpcode(input []int) (int, []int) {
 func processIntCode(intcode []int, input int) (outputs []int) {
 	index := 0
 	for true {
-		opCode, paramMode := parseOpcode(splitInt(intcode[index]))
+		opCode, paramMode := parseOpcode(utils.SplitInt(intcode[index]))
 		if opCode == 99 {
 			//fmt.Println("Program Finished")
 			return

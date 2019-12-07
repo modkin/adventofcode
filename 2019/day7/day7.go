@@ -78,22 +78,6 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 	return
 }
 
-func splitInt(in int) []int {
-	count := 0
-	copyIn := in
-	for in != 0 {
-		in /= 10
-		count++
-	}
-	//mt.Println("count", count)
-
-	output := make([]int, count)
-	for i := 0; i < count; i++ {
-		output[i] = copyIn / int(math.Pow(10, float64(count-1-i))) % 10
-	}
-	return output
-}
-
 func parseOpcode(input []int) (int, []int) {
 	opcode := input[len(input)-1]
 	if len(input) >= 2 {
@@ -113,7 +97,7 @@ func parseOpcode(input []int) (int, []int) {
 func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
 	index := 0
 	for true {
-		opCode, paramMode := parseOpcode(splitInt(intcode[index]))
+		opCode, paramMode := parseOpcode(utils.SplitInt(intcode[index]))
 		if opCode == 99 {
 			//fmt.Println("Program Finished")
 			return
@@ -148,19 +132,7 @@ func heapPermutation(input []int) (ouput [][]int) {
 	return
 }
 
-func task1() int {
-	content, err := ioutil.ReadFile("./input")
-	if err != nil {
-		panic(err)
-	}
-	contentString := strings.Split(string(content), ",")
-	intcode := make([]int, len(contentString))
-	intcodeCopy := make([]int, len(contentString))
-	for pos, elem := range contentString {
-		intcode[pos] = utils.ToInt(elem)
-	}
-	copy(intcodeCopy, intcode)
-	//pss := generatePSS()
+func task1(intcode []int) int {
 	maxThruster := -math.MaxInt32
 	var pssMax []int
 	var inputs [5]inputWrap
@@ -181,26 +153,16 @@ func task1() int {
 					pssMax = code
 				}
 			}
-
 		}
 	}
 	fmt.Println(pssMax)
 	return maxThruster
 }
 
-func task2() int {
-	content, err := ioutil.ReadFile("./input")
-	if err != nil {
-		panic(err)
-	}
-	contentString := strings.Split(string(content), ",")
-	intcode := make([]int, len(contentString))
+func task2(intcode []int) int {
 	var ampIntcodes [5][]int
-	for pos, elem := range contentString {
-		intcode[pos] = utils.ToInt(elem)
-	}
 	for i := 0; i < 5; i++ {
-		ampIntcodes[i] = make([]int, len(contentString))
+		ampIntcodes[i] = make([]int, len(intcode))
 		copy(ampIntcodes[i], intcode)
 	}
 	maxThruster := -math.MaxInt32
@@ -222,7 +184,7 @@ func task2() int {
 		for running {
 			for ampNr := 0; ampNr < 5; ampNr++ {
 				for true {
-					opCode, paramMode := parseOpcode(splitInt(ampIntcodes[ampNr][indexAmp[ampNr]]))
+					opCode, paramMode := parseOpcode(utils.SplitInt(ampIntcodes[ampNr][indexAmp[ampNr]]))
 					if opCode == 99 {
 						//fmt.Println("Program Finished", ampNr)
 						running = false
@@ -254,6 +216,15 @@ func task2() int {
 }
 
 func main() {
-	fmt.Println("Task 7.1: ", task1())
-	fmt.Println("Task 7.2: ", task2())
+	content, err := ioutil.ReadFile("./input")
+	if err != nil {
+		panic(err)
+	}
+	contentString := strings.Split(string(content), ",")
+	intcode := make([]int, len(contentString))
+	for pos, elem := range contentString {
+		intcode[pos] = utils.ToInt(elem)
+	}
+	fmt.Println("Task 7.1: ", task1(intcode))
+	fmt.Println("Task 7.2: ", task2(intcode))
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -40,4 +41,14 @@ func ReverseSlice(a []string) {
 		opp := len(a) - 1 - i
 		a[i], a[opp] = a[opp], a[i]
 	}
+}
+
+///split integer into integer slice of the digits
+func SplitInt(input int) []int {
+	count := len(fmt.Sprint(input))
+	output := make([]int, count)
+	for i := 0; i < count; i++ {
+		output[i] = input / int(math.Pow(10, float64(count-1-i))) % 10
+	}
+	return output
 }
