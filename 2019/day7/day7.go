@@ -8,13 +8,8 @@ import (
 	"strings"
 )
 
-type inputWrap struct {
-	input []int
-}
-
 /// paraMode assumed to be filled with 0s
-func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-chan int) (ret int) {
-	ret = -1
+func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-chan int, output chan<- int) {
 	param := memory[*itrPtr+1:]
 
 	var input1, input2 int
@@ -43,9 +38,9 @@ func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-cha
 		*itrPtr += 2
 	case 4:
 		if paramMode[0] == 0 {
-			ret = memory[param[0]]
+			output <- memory[param[0]]
 		} else if paramMode[0] == 1 {
-			ret = param[0]
+			output <- param[0]
 		}
 		*itrPtr += 2
 	case 5:
@@ -90,23 +85,20 @@ func parseOpcode(input []int) (int, []int) {
 	for len(param) < 3 {
 		param = append(param, 0)
 	}
-	//fmt.Println("Opcode ", opcode, " param ", param)
 	return opcode, param
 }
 
-func processIntCode(intcode []int, input <-chan int) (outputs []int) {
+func processIntCode(intcode []int, input <-chan int, output chan<- int, halt chan<- bool) {
+	ownIntcode := make([]int, len(intcode))
+	copy(ownIntcode, intcode)
 	index := 0
 	for true {
-		opCode, paramMode := parseOpcode(utils.SplitInt(intcode[index]))
+		opCode, paramMode := parseOpcode(utils.SplitInt(ownIntcode[index]))
 		if opCode == 99 {
-			//fmt.Println("Program Finished")
+			halt <- true
 			return
 		}
-		ret := compute(opCode, paramMode, intcode, &index, input)
-		if ret != -1 {
-			outputs = append(outputs, ret)
-		}
-		//fmt.Println("index: ", index)
+		compute(opCode, paramMode, ownIntcode, &index, input, output)
 	}
 	return
 }
@@ -135,28 +127,24 @@ func heapPermutation(input []int) (ouput [][]int) {
 func task1(intcode []int) int {
 	maxThruster := -math.MaxInt32
 	var pssMax []int
-	channels := [...]chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
+	channels := [...]chan int{make(chan int), make(chan int), make(chan int), make(chan int), make(chan int, 1)}
+
 	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
+		halt := make(chan bool)
+		for ampNr := 0; ampNr < 5; ampNr++ {
+			go processIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr], halt)
+		}
 		for i, c := range code {
 			channels[i] <- c
 		}
-
 		channels[4] <- 0
-		for ampNr := 0; ampNr < 5; ampNr++ {
-			var outputs []int
-			if ampNr == 0 {
-				outputs = processIntCode(intcode, channels[4])
-			} else {
-				outputs = processIntCode(intcode, channels[ampNr-1])
-			}
-			if ampNr < 4 {
-				channels[ampNr] <- outputs[0]
-			} else {
-				if outputs[0] > maxThruster {
-					maxThruster = outputs[0]
-					pssMax = code
-				}
-			}
+		for i := 0; i < 5; i++ {
+			<-halt
+		}
+		output := <-channels[4]
+		if output > maxThruster {
+			maxThruster = output
+			pssMax = code
 		}
 	}
 	fmt.Println(pssMax)
@@ -172,10 +160,9 @@ func task2(intcode []int) int {
 	maxThruster := -math.MaxInt32
 	///0: A->B, 1: B->C, 3: C->D, 4: D->E, 5: E->A
 	channels := [...]chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
-	indexAmp := [5]int{0, 0, 0, 0}
 	var lastOutput int
 	for _, code := range heapPermutation([]int{5, 6, 7, 8, 9}) {
-		indexAmp = [5]int{0, 0, 0, 0}
+		halt := make(chan bool)
 		for i := 0; i < 5; i++ {
 			copy(ampIntcodes[i], intcode)
 		}
@@ -183,31 +170,11 @@ func task2(intcode []int) int {
 			channels[i] <- c
 		}
 		channels[4] <- 0
-		running := true
-		for running {
-			for ampNr := 0; ampNr < 5; ampNr++ {
-				for true {
-					opCode, paramMode := parseOpcode(utils.SplitInt(ampIntcodes[ampNr][indexAmp[ampNr]]))
-					if opCode == 99 {
-						//fmt.Println("Program Finished", ampNr)
-						running = false
-						break
-					}
-					var ret int
-					if ampNr == 0 {
-						ret = compute(opCode, paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], channels[4])
-					} else {
-						ret = compute(opCode, paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], channels[ampNr-1])
-					}
-
-					if ret != -1 {
-						channels[ampNr] <- ret
-						break
-					}
-					//fmt.Println("index: ", index)
-				}
-
-			}
+		for ampNr := 0; ampNr < 5; ampNr++ {
+			go processIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr], halt)
+		}
+		for i := 0; i < 5; i++ {
+			<-halt
 		}
 		lastOutput = <-channels[4]
 		if lastOutput > maxThruster {
