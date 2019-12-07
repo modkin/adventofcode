@@ -36,7 +36,11 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		memory[param[0]] = input
 		*itrPtr += 2
 	case 4:
-		ret = memory[param[0]]
+		if paramMode[0] == 0 {
+			ret = memory[param[0]]
+		} else if paramMode[0] == 1 {
+			ret = param[0]
+		}
 		*itrPtr += 2
 	case 5:
 		if input1 != 0 {
@@ -132,7 +136,7 @@ func task1() int {
 }
 
 func task2() int {
-	content, err := ioutil.ReadFile("./input")
+	content, err := ioutil.ReadFile("./testInput")
 	if err != nil {
 		panic(err)
 	}

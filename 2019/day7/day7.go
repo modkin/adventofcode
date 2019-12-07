@@ -42,7 +42,11 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		input.input = input.input[1:]
 		*itrPtr += 2
 	case 4:
-		ret = memory[param[0]]
+		if paramMode[0] == 0 {
+			ret = memory[param[0]]
+		} else if paramMode[0] == 1 {
+			ret = param[0]
+		}
 		*itrPtr += 2
 	case 5:
 		if input1 != 0 {
@@ -123,10 +127,10 @@ func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
 	return
 }
 
-func checkValid(input [5]int) bool {
+func checkValid(input [5]int, offset int) bool {
 	counter := [5]int{0, 0, 0, 0, 0}
 	for i := 0; i < 5; i++ {
-		counter[input[i]]++
+		counter[input[i]-offset]++
 	}
 	for i := 0; i < 5; i++ {
 		if counter[i] > 1 {
@@ -143,7 +147,25 @@ func generatePSS() (pss [][5]int) {
 				for i4 := 0; i4 < 5; i4++ {
 					for i5 := 0; i5 < 5; i5++ {
 						tmp := [5]int{i1, i2, i3, i4, i5}
-						if checkValid(tmp) {
+						if checkValid(tmp, 0) {
+							pss = append(pss, [5]int{i1, i2, i3, i4, i5})
+						}
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func generatePSS2() (pss [][5]int) {
+	for i1 := 5; i1 < 10; i1++ {
+		for i2 := 5; i2 < 10; i2++ {
+			for i3 := 5; i3 < 10; i3++ {
+				for i4 := 5; i4 < 10; i4++ {
+					for i5 := 5; i5 < 10; i5++ {
+						tmp := [5]int{i1, i2, i3, i4, i5}
+						if checkValid(tmp, 5) {
 							pss = append(pss, [5]int{i1, i2, i3, i4, i5})
 						}
 					}
@@ -166,7 +188,6 @@ func task1() int {
 		intcode[pos] = utils.ToInt(elem)
 	}
 	copy(intcodeCopy, intcode)
-	//pss := [5]int{4, 3, 2, 1, 0}
 	pss := generatePSS()
 	maxThruster := -math.MaxInt32
 	var pssMax [5]int
@@ -195,39 +216,74 @@ func task1() int {
 	return maxThruster
 }
 
-//func task2() int {
-//	content, err := ioutil.ReadFile("./input")
-//	if err != nil {
-//		panic(err)
-//	}
-//	contentString := strings.Split(string(content), ",")
-//	intcode := make([]int, len(contentString))
-//	intcodeCopy := make([]int, len(contentString))
-//	for pos, elem := range contentString {
-//		intcode[pos] = utils.ToInt(elem)
-//	}
-//	copy(intcodeCopy, intcode)
-//	//pss := [5]int{4, 3, 2, 1, 0}
-//	pss := generatePSS()
-//	nextinput := 0
-//	maxThruster := -math.MaxInt32
-//	var pssMax [5]int
-//	for _, code := range pss {
-//		for i := 0; i < 5; i++ {
-//			outputs := processIntCode(intcode, []int{code[i], nextinput})
-//			nextinput = outputs[0]
-//		}
-//		if nextinput > maxThruster {
-//			maxThruster = nextinput
-//			pssMax = code
-//		}
-//		nextinput = 0
-//	}
-//	fmt.Println(pssMax)
-//	return maxThruster
-//}
+func task2() int {
+	content, err := ioutil.ReadFile("./testInput2")
+	if err != nil {
+		panic(err)
+	}
+	contentString := strings.Split(string(content), ",")
+	intcode := make([]int, len(contentString))
+	var ampIntcodes [5][]int
+	intcodeCopy := make([]int, len(contentString))
+	for pos, elem := range contentString {
+		intcode[pos] = utils.ToInt(elem)
+	}
+	copy(intcodeCopy, intcode)
+	for i := 0; i < 5; i++ {
+		ampIntcodes[i] = make([]int, len(contentString))
+		copy(ampIntcodes[i], intcode)
+	}
+	pss := generatePSS2()
+	maxThruster := -math.MaxInt32
+	var pssMax [5]int
+	var inputs [5]inputWrap
+	index := 0
+	var lastOutput int
+	for _, code := range pss {
+		copy(intcode, intcodeCopy)
+		for i, c := range code {
+			inputs[i] = inputWrap{
+				input: []int{c},
+			}
+		}
+		inputs[0].input = append([]int{0}, inputs[0].input...)
+		running := true
+		for running {
+			for ampNr := 0; ampNr < 5; ampNr++ {
+				index = 0
+				for true {
+					opCode, paramMode := parseOpcode(splitInt(ampIntcodes[ampNr][index]))
+					if opCode == 99 {
+						fmt.Println("Program Finished", ampNr)
+						running = false
+						break
+					}
+					ret := compute(opCode, intcode[index+1:], paramMode, ampIntcodes[ampNr], &index, &inputs[ampNr])
+					lastOutput = ret
+					if ret != -1 {
+						if ampNr < 4 {
+							inputs[ampNr+1].input = append(inputs[ampNr+1].input, ret)
+							break
+						} else {
+							inputs[0].input = append(inputs[0].input, ret)
+							break
+						}
+					}
+					//fmt.Println("index: ", index)
+				}
+			}
+		}
+		if lastOutput > maxThruster {
+			maxThruster = lastOutput
+			pssMax = code
+		}
+	}
+
+	fmt.Println(pssMax)
+	return maxThruster
+}
 
 func main() {
-	fmt.Println("Task 7.1: ", task1())
-	//fmt.Println("Task 5.2: ", task2())
+	//fmt.Println("Task 7.1: ", task1())
+	fmt.Println("Task 7.2: ", task2())
 }
