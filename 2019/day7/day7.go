@@ -217,18 +217,16 @@ func task1() int {
 }
 
 func task2() int {
-	content, err := ioutil.ReadFile("./testInput2")
+	content, err := ioutil.ReadFile("./input")
 	if err != nil {
 		panic(err)
 	}
 	contentString := strings.Split(string(content), ",")
 	intcode := make([]int, len(contentString))
 	var ampIntcodes [5][]int
-	intcodeCopy := make([]int, len(contentString))
 	for pos, elem := range contentString {
 		intcode[pos] = utils.ToInt(elem)
 	}
-	copy(intcodeCopy, intcode)
 	for i := 0; i < 5; i++ {
 		ampIntcodes[i] = make([]int, len(contentString))
 		copy(ampIntcodes[i], intcode)
@@ -237,40 +235,49 @@ func task2() int {
 	maxThruster := -math.MaxInt32
 	var pssMax [5]int
 	var inputs [5]inputWrap
-	index := 0
+	indexAmp := [5]int{0, 0, 0, 0}
 	var lastOutput int
 	for _, code := range pss {
-		copy(intcode, intcodeCopy)
+		indexAmp = [5]int{0, 0, 0, 0}
+		for i := 0; i < 5; i++ {
+			copy(ampIntcodes[i], intcode)
+		}
 		for i, c := range code {
 			inputs[i] = inputWrap{
 				input: []int{c},
 			}
 		}
-		inputs[0].input = append([]int{0}, inputs[0].input...)
+		inputs[0].input = append(inputs[0].input, 0)
 		running := true
 		for running {
 			for ampNr := 0; ampNr < 5; ampNr++ {
-				index = 0
+				fmt.Println(inputs)
 				for true {
-					opCode, paramMode := parseOpcode(splitInt(ampIntcodes[ampNr][index]))
+					opCode, paramMode := parseOpcode(splitInt(ampIntcodes[ampNr][indexAmp[ampNr]]))
+					//if opCode == 3 && len(inputs[ampNr].input) == 0 {
+					//	break
+					//}
 					if opCode == 99 {
 						fmt.Println("Program Finished", ampNr)
 						running = false
 						break
 					}
-					ret := compute(opCode, intcode[index+1:], paramMode, ampIntcodes[ampNr], &index, &inputs[ampNr])
-					lastOutput = ret
+					ret := compute(opCode, ampIntcodes[ampNr][indexAmp[ampNr]+1:], paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], &inputs[ampNr])
+
 					if ret != -1 {
 						if ampNr < 4 {
+							lastOutput = ret
 							inputs[ampNr+1].input = append(inputs[ampNr+1].input, ret)
 							break
 						} else {
+							lastOutput = ret
 							inputs[0].input = append(inputs[0].input, ret)
 							break
 						}
 					}
 					//fmt.Println("index: ", index)
 				}
+
 			}
 		}
 		if lastOutput > maxThruster {
@@ -284,6 +291,6 @@ func task2() int {
 }
 
 func main() {
-	//fmt.Println("Task 7.1: ", task1())
+	fmt.Println("Task 7.1: ", task1())
 	fmt.Println("Task 7.2: ", task2())
 }
