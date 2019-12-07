@@ -8,10 +8,12 @@ import (
 	"strings"
 )
 
-var inputCounter = 0
+type inputWrap struct {
+	input []int
+}
 
 /// paraMode assumed to be filled with 0s
-func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int, input []int) (ret int) {
+func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int, input *inputWrap) (ret int) {
 	ret = -1
 	var input1, input2 int
 	if paramMode[0] == 0 {
@@ -35,8 +37,9 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		memory[param[2]] = input1 * input2
 		*itrPtr += 4
 	case 3:
-		memory[param[0]] = input[inputCounter]
-		inputCounter++
+		memory[param[0]] = input.input[0]
+		//pop first element
+		input.input = input.input[1:]
 		*itrPtr += 2
 	case 4:
 		ret = memory[param[0]]
@@ -103,7 +106,7 @@ func parseOpcode(input []int) (int, []int) {
 	return opcode, param
 }
 
-func processIntCode(intcode []int, input []int) (outputs []int) {
+func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
 	index := 0
 	for true {
 		opCode, paramMode := parseOpcode(splitInt(intcode[index]))
@@ -165,24 +168,64 @@ func task1() int {
 	copy(intcodeCopy, intcode)
 	//pss := [5]int{4, 3, 2, 1, 0}
 	pss := generatePSS()
-	nextinput := 0
 	maxThruster := -math.MaxInt32
 	var pssMax [5]int
+	var inputs [5]inputWrap
 	for _, code := range pss {
-		for i := 0; i < 5; i++ {
-			outputs := processIntCode(intcode, []int{code[i], nextinput})
-			inputCounter = 0
-			nextinput = outputs[0]
+		for i, c := range code {
+			inputs[i] = inputWrap{
+				input: []int{c},
+			}
 		}
-		if nextinput > maxThruster {
-			maxThruster = nextinput
-			pssMax = code
+		inputs[0].input = append(inputs[0].input, 0)
+		for ampNr := 0; ampNr < 5; ampNr++ {
+			outputs := processIntCode(intcode, &inputs[ampNr])
+			if ampNr < 4 {
+				inputs[ampNr+1].input = append(inputs[ampNr+1].input, outputs[0])
+			} else {
+				if outputs[0] > maxThruster {
+					maxThruster = outputs[0]
+					pssMax = code
+				}
+			}
+
 		}
-		nextinput = 0
 	}
 	fmt.Println(pssMax)
 	return maxThruster
 }
+
+//func task2() int {
+//	content, err := ioutil.ReadFile("./input")
+//	if err != nil {
+//		panic(err)
+//	}
+//	contentString := strings.Split(string(content), ",")
+//	intcode := make([]int, len(contentString))
+//	intcodeCopy := make([]int, len(contentString))
+//	for pos, elem := range contentString {
+//		intcode[pos] = utils.ToInt(elem)
+//	}
+//	copy(intcodeCopy, intcode)
+//	//pss := [5]int{4, 3, 2, 1, 0}
+//	pss := generatePSS()
+//	nextinput := 0
+//	maxThruster := -math.MaxInt32
+//	var pssMax [5]int
+//	for _, code := range pss {
+//		for i := 0; i < 5; i++ {
+//			outputs := processIntCode(intcode, []int{code[i], nextinput})
+//			nextinput = outputs[0]
+//		}
+//		if nextinput > maxThruster {
+//			maxThruster = nextinput
+//			pssMax = code
+//		}
+//		nextinput = 0
+//	}
+//	fmt.Println(pssMax)
+//	return maxThruster
+//}
 
 func main() {
 	fmt.Println("Task 7.1: ", task1())
