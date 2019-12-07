@@ -13,8 +13,10 @@ type inputWrap struct {
 }
 
 /// paraMode assumed to be filled with 0s
-func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int, input *inputWrap) (ret int) {
+func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-chan int) (ret int) {
 	ret = -1
+	param := memory[*itrPtr+1:]
+
 	var input1, input2 int
 	if paramMode[0] == 0 {
 		input1 = memory[param[0]]
@@ -37,9 +39,7 @@ func compute(opcode int, param []int, paramMode []int, memory []int, itrPtr *int
 		memory[param[2]] = input1 * input2
 		*itrPtr += 4
 	case 3:
-		memory[param[0]] = input.input[0]
-		//pop first element
-		input.input = input.input[1:]
+		memory[param[0]] = <-input
 		*itrPtr += 2
 	case 4:
 		if paramMode[0] == 0 {
@@ -94,7 +94,7 @@ func parseOpcode(input []int) (int, []int) {
 	return opcode, param
 }
 
-func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
+func processIntCode(intcode []int, input <-chan int) (outputs []int) {
 	index := 0
 	for true {
 		opCode, paramMode := parseOpcode(utils.SplitInt(intcode[index]))
@@ -102,7 +102,7 @@ func processIntCode(intcode []int, input *inputWrap) (outputs []int) {
 			//fmt.Println("Program Finished")
 			return
 		}
-		ret := compute(opCode, intcode[index+1:], paramMode, intcode, &index, input)
+		ret := compute(opCode, paramMode, intcode, &index, input)
 		if ret != -1 {
 			outputs = append(outputs, ret)
 		}
@@ -135,18 +135,22 @@ func heapPermutation(input []int) (ouput [][]int) {
 func task1(intcode []int) int {
 	maxThruster := -math.MaxInt32
 	var pssMax []int
-	var inputs [5]inputWrap
+	channels := [...]chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
 	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
 		for i, c := range code {
-			inputs[i] = inputWrap{
-				input: []int{c},
-			}
+			channels[i] <- c
 		}
-		inputs[0].input = append(inputs[0].input, 0)
+
+		channels[4] <- 0
 		for ampNr := 0; ampNr < 5; ampNr++ {
-			outputs := processIntCode(intcode, &inputs[ampNr])
+			var outputs []int
+			if ampNr == 0 {
+				outputs = processIntCode(intcode, channels[4])
+			} else {
+				outputs = processIntCode(intcode, channels[ampNr-1])
+			}
 			if ampNr < 4 {
-				inputs[ampNr+1].input = append(inputs[ampNr+1].input, outputs[0])
+				channels[ampNr] <- outputs[0]
 			} else {
 				if outputs[0] > maxThruster {
 					maxThruster = outputs[0]
@@ -166,7 +170,8 @@ func task2(intcode []int) int {
 		copy(ampIntcodes[i], intcode)
 	}
 	maxThruster := -math.MaxInt32
-	var inputs [5]inputWrap
+	///0: A->B, 1: B->C, 3: C->D, 4: D->E, 5: E->A
+	channels := [...]chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
 	indexAmp := [5]int{0, 0, 0, 0}
 	var lastOutput int
 	for _, code := range heapPermutation([]int{5, 6, 7, 8, 9}) {
@@ -175,11 +180,9 @@ func task2(intcode []int) int {
 			copy(ampIntcodes[i], intcode)
 		}
 		for i, c := range code {
-			inputs[i] = inputWrap{
-				input: []int{c},
-			}
+			channels[i] <- c
 		}
-		inputs[0].input = append(inputs[0].input, 0)
+		channels[4] <- 0
 		running := true
 		for running {
 			for ampNr := 0; ampNr < 5; ampNr++ {
@@ -190,24 +193,23 @@ func task2(intcode []int) int {
 						running = false
 						break
 					}
-					ret := compute(opCode, ampIntcodes[ampNr][indexAmp[ampNr]+1:], paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], &inputs[ampNr])
+					var ret int
+					if ampNr == 0 {
+						ret = compute(opCode, paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], channels[4])
+					} else {
+						ret = compute(opCode, paramMode, ampIntcodes[ampNr], &indexAmp[ampNr], channels[ampNr-1])
+					}
 
 					if ret != -1 {
-						if ampNr < 4 {
-							lastOutput = ret
-							inputs[ampNr+1].input = append(inputs[ampNr+1].input, ret)
-							break
-						} else {
-							lastOutput = ret
-							inputs[0].input = append(inputs[0].input, ret)
-							break
-						}
+						channels[ampNr] <- ret
+						break
 					}
 					//fmt.Println("index: ", index)
 				}
 
 			}
 		}
+		lastOutput = <-channels[4]
 		if lastOutput > maxThruster {
 			maxThruster = lastOutput
 		}
