@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"strings"
+	"sync"
 )
 
 /// paraMode assumed to be filled with 0s
@@ -155,20 +156,26 @@ func task2(intcode []int) int {
 	}
 	maxThruster := -math.MaxInt32
 	///0: A->B, 1: B->C, 3: C->D, 4: D->E, 5: E->A
-	channels := [...]chan int{make(chan int), make(chan int), make(chan int), make(chan int), make(chan int)}
+	channels := [...]chan int{make(chan int), make(chan int), make(chan int), make(chan int), make(chan int, 1)}
 	var lastOutput int
 	for _, code := range heapPermutation([]int{5, 6, 7, 8, 9}) {
+		var wg sync.WaitGroup
 		for i := 0; i < 5; i++ {
 			copy(ampIntcodes[i], intcode)
 		}
 		for ampNr := 0; ampNr < 5; ampNr++ {
-			go processIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr])
+			wg.Add(1)
+			go func(ampNr int) {
+				processIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr])
+				wg.Done()
+			}(ampNr)
 		}
 		for i, c := range code {
 			channels[i] <- c
 		}
 
 		channels[4] <- 0
+		wg.Wait()
 		lastOutput = <-channels[4]
 		if lastOutput > maxThruster {
 			maxThruster = lastOutput

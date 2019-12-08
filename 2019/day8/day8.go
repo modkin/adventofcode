@@ -67,9 +67,9 @@ func main() {
 					switch pix {
 					//1
 					case 48:
-						picture[i][j] = "."
+						picture[i][j] = " "
 					case 49:
-						picture[i][j] = "x"
+						picture[i][j] = "#"
 					}
 				}
 			}
