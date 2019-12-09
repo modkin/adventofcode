@@ -28,14 +28,8 @@ func TestTask1(t *testing.T) {
 
 	go computer.ProcessIntCode(intcode1, inputCh, outputCh)
 
-	//inputCh <- 1
-	//loop til channel is closed
-	for _, _ := range test1check {
-		output = append(output, <-outputCh)
-	}
-
 	for i, _ := range intcode1 {
-		if test1check[i] != output[i] {
+		if test1check[i] != <-outputCh {
 			t.Errorf("Wrong!!")
 		}
 	}
@@ -46,10 +40,8 @@ func TestTask1(t *testing.T) {
 		intcode2[pos] = utils.ToInt64(elem)
 	}
 	go computer.ProcessIntCode(intcode2, inputCh, outputCh)
-	for out := range outputCh {
-		output = append(output, out)
-	}
-	if len(fmt.Sprint(output[0])) != 16 {
+
+	if len(fmt.Sprint(<-outputCh)) != 16 {
 		t.Error("Wrong: ", output[0])
 	}
 }

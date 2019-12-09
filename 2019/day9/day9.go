@@ -18,18 +18,20 @@ func main() {
 	for pos, elem := range contentString {
 		intcode[pos] = utils.ToInt64(elem)
 	}
-	inputCh := make(chan int64)
-	outputCh := make(chan int64)
-
-	var output []int64
-
-	go computer.ProcessIntCode(intcode, inputCh, outputCh)
+	inputCh := make(chan int64, 1)
+	outputCh := make(chan int64, 10)
 
 	inputCh <- 1
-	//loop til channel is closed
-	for out := range outputCh {
-		output = append(output, out)
+	computer.ProcessIntCode(intcode, inputCh, outputCh)
+
+	fmt.Println("Task 7.1: ", <-outputCh)
+
+	intcode = make([]int64, len(contentString))
+	for pos, elem := range contentString {
+		intcode[pos] = utils.ToInt64(elem)
 	}
-	fmt.Println("Task 7.1: ", output)
-	//fmt.Println("Task 7.2: ", task2(intcode))
+	inputCh <- 2
+	computer.ProcessIntCode(intcode, inputCh, outputCh)
+
+	fmt.Println("Task 7.2: ", <-outputCh)
 }

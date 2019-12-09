@@ -34,7 +34,6 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 		param := memory[getMemAdd(itrPtr)+1:]
 		opCode, paramMode := parseOpcode(utils.SplitInt(int(memory[getMemAdd(itrPtr)])))
 		getParam := func(paramIdx int) int64 {
-
 			mode := paramMode[paramIdx]
 			switch mode {
 			case 0:
@@ -42,7 +41,18 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 			case 1:
 				return param[paramIdx]
 			case 2:
-				return memory[getMemAdd(param[paramIdx])+relativOffset]
+				return memory[getMemAdd(param[paramIdx]+relativOffset)]
+			default:
+				panic("wrong mode")
+			}
+		}
+		getWriteAddress := func(paramIdx int) int64 {
+			mode := paramMode[paramIdx]
+			switch mode {
+			case 0:
+				return getMemAdd(param[paramIdx])
+			case 2:
+				return getMemAdd(param[paramIdx] + relativOffset)
 			default:
 				panic("wrong mode")
 			}
@@ -50,13 +60,13 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 
 		switch opCode {
 		case 1:
-			memory[getMemAdd(param[2])] = getParam(0) + getParam(1)
+			memory[getWriteAddress(2)] = getParam(0) + getParam(1)
 			itrPtr += 4
 		case 2:
-			memory[getMemAdd(param[2])] = getParam(0) * getParam(1)
+			memory[getWriteAddress(2)] = getParam(0) * getParam(1)
 			itrPtr += 4
 		case 3:
-			memory[getMemAdd(param[0])] = <-input
+			memory[getWriteAddress(0)] = <-input
 			itrPtr += 2
 		case 4:
 			output <- getParam(0)
@@ -75,16 +85,16 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 			}
 		case 7:
 			if getParam(0) < getParam(1) {
-				memory[getMemAdd(param[2])] = 1
+				memory[getWriteAddress(2)] = 1
 			} else {
-				memory[getMemAdd(param[2])] = 0
+				memory[getWriteAddress(2)] = 0
 			}
 			itrPtr += 4
 		case 8:
 			if getParam(0) == getParam(1) {
-				memory[getMemAdd(param[2])] = 1
+				memory[getWriteAddress(2)] = 1
 			} else {
-				memory[getMemAdd(param[2])] = 0
+				memory[getWriteAddress(2)] = 0
 			}
 			itrPtr += 4
 		case 9:
