@@ -13,58 +13,52 @@ import (
 func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-chan int, output chan<- int) {
 	param := memory[*itrPtr+1:]
 
-	var input1, input2 int
-	if paramMode[0] == 0 {
-		input1 = memory[param[0]]
-	} else if paramMode[0] == 1 {
-		input1 = param[0]
-	}
-	if opcode != 3 && opcode != 4 {
-		if paramMode[1] == 0 {
-			input2 = memory[param[1]]
-		} else if paramMode[1] == 1 {
-			input2 = param[1]
+	getParam := func(paramIdx int) int {
+		mode := paramMode[paramIdx]
+		switch mode {
+		case 0:
+			return memory[param[paramIdx]]
+		case 1:
+			return param[paramIdx]
+		default:
+			panic("wrong mode")
 		}
 	}
 
 	switch opcode {
 	case 1:
-		memory[param[2]] = input1 + input2
+		memory[param[2]] = getParam(0) + getParam(1)
 		*itrPtr += 4
 	case 2:
-		memory[param[2]] = input1 * input2
+		memory[param[2]] = getParam(0) * getParam(1)
 		*itrPtr += 4
 	case 3:
 		memory[param[0]] = <-input
 		*itrPtr += 2
 	case 4:
-		if paramMode[0] == 0 {
-			output <- memory[param[0]]
-		} else if paramMode[0] == 1 {
-			output <- param[0]
-		}
+		output <- getParam(0)
 		*itrPtr += 2
 	case 5:
-		if input1 != 0 {
-			*itrPtr = input2
+		if getParam(0) != 0 {
+			*itrPtr = getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 6:
-		if input1 == 0 {
-			*itrPtr = input2
+		if getParam(0) == 0 {
+			*itrPtr = getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 7:
-		if input1 < input2 {
+		if getParam(0) < getParam(1) {
 			memory[param[2]] = 1
 		} else {
 			memory[param[2]] = 0
 		}
 		*itrPtr += 4
 	case 8:
-		if input1 == input2 {
+		if getParam(0) == getParam(1) {
 			memory[param[2]] = 1
 		} else {
 			memory[param[2]] = 0
