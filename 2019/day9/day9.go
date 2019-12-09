@@ -11,6 +11,9 @@ import (
 func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relativOffset *int64, input <-chan int64, output chan<- int64) {
 	param := (*memory)[*itrPtr+1:]
 
+	//
+	//
+	//
 	//getMemAdd := func(address int64) int64 {
 	//	if address >= int64(len((*memory))) {
 	//		for int64(len((*memory))) <= address {
@@ -20,24 +23,13 @@ func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relati
 	//	return address
 	//}
 
-	getAdressPtr := func(address int64) *int64 {
-		if address >= int64(len((*memory))) {
-			for int64(len((*memory))) <= address {
-				(*memory) = append(*memory, 0)
-			}
-		}
-		return &(*memory)[address]
-	}
-
-	getParam := func(paramIdx int64) *int64 {
+	getParam := func(paramIdx int) int {
 		mode := paramMode[paramIdx]
 		switch mode {
 		case 0:
-			return getAdressPtr(param[paramIdx])
+			return memory[param[paramIdx]]
 		case 1:
-			return &param[paramIdx]
-		case 2:
-			return getAdressPtr(param[paramIdx] + *relativOffset)
+			return param[paramIdx]
 		default:
 			panic("wrong mode")
 		}
@@ -45,41 +37,41 @@ func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relati
 
 	switch opcode {
 	case 1:
-		*getAdressPtr(param[2]) = *getParam(0) + *getParam(1)
+		memory[param[2]] = getParam(0) + getParam(1)
 		*itrPtr += 4
 	case 2:
-		*getAdressPtr(param[2]) = *getParam(0) * *getParam(1)
+		memory[param[2]] = getParam(0) * getParam(1)
 		*itrPtr += 4
 	case 3:
-		*getAdressPtr(param[2]) = <-input
+		memory[param[0]] = <-input
 		*itrPtr += 2
 	case 4:
-		output <- *getParam(0)
+		output <- getParam(0)
 		*itrPtr += 2
 	case 5:
-		if *getParam(0) != 0 {
-			*itrPtr = *getParam(1)
+		if getParam(0) != 0 {
+			*itrPtr = getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 6:
-		if *getParam(0) == 0 {
-			*itrPtr = *getParam(1)
+		if getParam(0) == 0 {
+			*itrPtr = getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 7:
-		if *getParam(0) < *getParam(1) {
-			*getAdressPtr(param[2]) = 1
+		if getParam(0) < getParam(1) {
+			memory[param[2]] = 1
 		} else {
-			*getAdressPtr(param[2]) = 0
+			memory[param[2]] = 0
 		}
 		*itrPtr += 4
 	case 8:
-		if *getParam(0) == *getParam(1) {
-			*getAdressPtr(param[2]) = 1
+		if getParam(0) == getParam(1) {
+			memory[param[2]] = 1
 		} else {
-			*getAdressPtr(param[2]) = 0
+			memory[param[2]] = 0
 		}
 		*itrPtr += 4
 	case 9:
@@ -130,7 +122,7 @@ func task1(intcode []int64) []int64 {
 
 	go processIntCode(intcode, inputCh, outputCh)
 
-	inputCh <- 1
+	//inputCh <- 1
 	//loop til channel is closed
 	for out := range outputCh {
 		output = append(output, out)
@@ -143,7 +135,7 @@ func task1(intcode []int64) []int64 {
 //}
 
 func main() {
-	content, err := ioutil.ReadFile("./input")
+	content, err := ioutil.ReadFile("./testInput1")
 	if err != nil {
 		panic(err)
 	}
