@@ -33,17 +33,17 @@ func heapPermutation(input []int) (ouput [][]int) {
 	return
 }
 
-func task1(intcode []int) int {
-	maxThruster := -math.MaxInt32
+func task1(intcode []int64) int {
+	maxThruster := int64(-math.MaxInt64)
 	var pssMax []int
-	channels := [...]chan int{make(chan int), make(chan int), make(chan int), make(chan int), make(chan int)}
+	channels := [...]chan int64{make(chan int64), make(chan int64), make(chan int64), make(chan int64), make(chan int64)}
 
 	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
 		for ampNr := 0; ampNr < 5; ampNr++ {
 			go computer.ProcessIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr])
 		}
 		for i, c := range code {
-			channels[i] <- c
+			channels[i] <- int64(c)
 		}
 		channels[4] <- 0
 
@@ -54,19 +54,19 @@ func task1(intcode []int) int {
 		}
 	}
 	fmt.Println(pssMax)
-	return maxThruster
+	return int(maxThruster)
 }
 
-func task2(intcode []int) int {
-	var ampIntcodes [5][]int
+func task2(intcode []int64) int {
+	var ampIntcodes [5][]int64
 	for i := 0; i < 5; i++ {
-		ampIntcodes[i] = make([]int, len(intcode))
+		ampIntcodes[i] = make([]int64, len(intcode))
 		copy(ampIntcodes[i], intcode)
 	}
-	maxThruster := -math.MaxInt32
+	maxThruster := int64(-math.MaxInt64)
 	///0: A->B, 1: B->C, 3: C->D, 4: D->E, 5: E->A
-	channels := [...]chan int{make(chan int), make(chan int), make(chan int), make(chan int), make(chan int, 1)}
-	var lastOutput int
+	channels := [...]chan int64{make(chan int64), make(chan int64), make(chan int64), make(chan int64), make(chan int64, 1)}
+	var lastOutput int64
 	for _, code := range heapPermutation([]int{5, 6, 7, 8, 9}) {
 		var wg sync.WaitGroup
 		for i := 0; i < 5; i++ {
@@ -80,7 +80,7 @@ func task2(intcode []int) int {
 			}(ampNr)
 		}
 		for i, c := range code {
-			channels[i] <- c
+			channels[i] <- int64(c)
 		}
 
 		channels[4] <- 0
@@ -90,7 +90,7 @@ func task2(intcode []int) int {
 			maxThruster = lastOutput
 		}
 	}
-	return maxThruster
+	return int(maxThruster)
 }
 
 func main() {
@@ -99,9 +99,9 @@ func main() {
 		panic(err)
 	}
 	contentString := strings.Split(string(content), ",")
-	intcode := make([]int, len(contentString))
+	intcode := make([]int64, len(contentString))
 	for pos, elem := range contentString {
-		intcode[pos] = utils.ToInt(elem)
+		intcode[pos] = utils.ToInt64(elem)
 	}
 	fmt.Println("Task 7.1: ", task1(intcode))
 	fmt.Println("Task 7.2: ", task2(intcode))

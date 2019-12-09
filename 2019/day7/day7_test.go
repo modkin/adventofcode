@@ -13,9 +13,9 @@ func TestTask1(t *testing.T) {
 		panic(err)
 	}
 	contentString := strings.Split(string(content), ",")
-	intcode := make([]int, len(contentString))
+	intcode := make([]int64, len(contentString))
 	for pos, elem := range contentString {
-		intcode[pos] = utils.ToInt(elem)
+		intcode[pos] = utils.ToInt64(elem)
 	}
 	task1result := task1(intcode)
 	if task1result != 18812 {

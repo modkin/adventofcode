@@ -2,67 +2,6 @@ package computer
 
 import "adventofcode/utils"
 
-func compute(opcode int, paramMode []int, memory []int, itrPtr *int, input <-chan int, output chan<- int) {
-	param := memory[*itrPtr+1:]
-
-	getParam := func(paramIdx int) int {
-		mode := paramMode[paramIdx]
-		switch mode {
-		case 0:
-			return memory[param[paramIdx]]
-		case 1:
-			return param[paramIdx]
-		default:
-			panic("wrong mode")
-		}
-	}
-
-	switch opcode {
-	case 1:
-		memory[param[2]] = getParam(0) + getParam(1)
-		*itrPtr += 4
-	case 2:
-		memory[param[2]] = getParam(0) * getParam(1)
-		*itrPtr += 4
-	case 3:
-		memory[param[0]] = <-input
-		*itrPtr += 2
-	case 4:
-		output <- getParam(0)
-		*itrPtr += 2
-	case 5:
-		if getParam(0) != 0 {
-			*itrPtr = getParam(1)
-		} else {
-			*itrPtr += 3
-		}
-	case 6:
-		if getParam(0) == 0 {
-			*itrPtr = getParam(1)
-		} else {
-			*itrPtr += 3
-		}
-	case 7:
-		if getParam(0) < getParam(1) {
-			memory[param[2]] = 1
-		} else {
-			memory[param[2]] = 0
-		}
-		*itrPtr += 4
-	case 8:
-		if getParam(0) == getParam(1) {
-			memory[param[2]] = 1
-		} else {
-			memory[param[2]] = 0
-		}
-		*itrPtr += 4
-		//case 9:
-		//	*relativOffset += getParam(0 )
-		//	*itrPtr += 2
-	}
-	return
-}
-
 func parseOpcode(input []int) (int, []int) {
 	opcode := input[len(input)-1]
 	if len(input) >= 2 {
@@ -78,16 +17,83 @@ func parseOpcode(input []int) (int, []int) {
 	return opcode, param
 }
 
-func ProcessIntCode(intcode []int, input <-chan int, output chan<- int) {
-	ownIntcode := make([]int, len(intcode))
-	copy(ownIntcode, intcode)
-	index := 0
-	for true {
-		opCode, paramMode := parseOpcode(utils.SplitInt(ownIntcode[index]))
-		if opCode == 99 {
-			return
+func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
+	memory := make([]int64, len(intcode))
+	copy(memory, intcode)
+
+	getMemAdd := func(address int64) int64 {
+		for int64(len(memory)) <= address {
+			memory = append(memory, 0)
 		}
-		compute(opCode, paramMode, ownIntcode, &index, input, output)
+		return address
+	}
+
+	itrPtr := int64(0)
+	relativOffset := int64(0)
+	for true {
+		param := memory[getMemAdd(itrPtr)+1:]
+		opCode, paramMode := parseOpcode(utils.SplitInt(int(memory[getMemAdd(itrPtr)])))
+		getParam := func(paramIdx int) int64 {
+
+			mode := paramMode[paramIdx]
+			switch mode {
+			case 0:
+				return memory[getMemAdd(param[paramIdx])]
+			case 1:
+				return param[paramIdx]
+			case 2:
+				return memory[getMemAdd(param[paramIdx])+relativOffset]
+			default:
+				panic("wrong mode")
+			}
+		}
+
+		switch opCode {
+		case 1:
+			memory[getMemAdd(param[2])] = getParam(0) + getParam(1)
+			itrPtr += 4
+		case 2:
+			memory[getMemAdd(param[2])] = getParam(0) * getParam(1)
+			itrPtr += 4
+		case 3:
+			memory[getMemAdd(param[0])] = <-input
+			itrPtr += 2
+		case 4:
+			output <- getParam(0)
+			itrPtr += 2
+		case 5:
+			if getParam(0) != 0 {
+				itrPtr = getParam(1)
+			} else {
+				itrPtr += 3
+			}
+		case 6:
+			if getParam(0) == 0 {
+				itrPtr = getParam(1)
+			} else {
+				itrPtr += 3
+			}
+		case 7:
+			if getParam(0) < getParam(1) {
+				memory[getMemAdd(param[2])] = 1
+			} else {
+				memory[getMemAdd(param[2])] = 0
+			}
+			itrPtr += 4
+		case 8:
+			if getParam(0) == getParam(1) {
+				memory[getMemAdd(param[2])] = 1
+			} else {
+				memory[getMemAdd(param[2])] = 0
+			}
+			itrPtr += 4
+		case 9:
+			relativOffset += getParam(0)
+			itrPtr += 2
+		case 99:
+			return
+
+		}
 	}
 	return
 }
