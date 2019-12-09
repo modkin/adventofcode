@@ -8,13 +8,13 @@ import (
 )
 
 /// paraMode assumed to be filled with 0s
-func compute(opcode int, paramMode []int, memory []int64, itrPtr *int64, relativOffset *int64, input <-chan int64, output chan<- int64) {
-	param := memory[*itrPtr+1:]
+func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relativOffset *int64, input <-chan int64, output chan<- int64) {
+	param := (*memory)[*itrPtr+1:]
 
 	getMemAdd := func(address int64) int64 {
-		if address >= int64(len(memory)) {
-			for int64(len(memory)) <= address {
-				memory = append(memory, 0)
+		if address >= int64(len((*memory))) {
+			for int64(len((*memory))) <= address {
+				(*memory) = append(*memory, 0)
 			}
 		}
 		return address
@@ -24,11 +24,11 @@ func compute(opcode int, paramMode []int, memory []int64, itrPtr *int64, relativ
 		mode := paramMode[paramIdx]
 		switch mode {
 		case 0:
-			return memory[getMemAdd(param[paramIdx])]
+			return (*memory)[getMemAdd(param[paramIdx])]
 		case 1:
 			return param[paramIdx]
 		case 2:
-			return memory[getMemAdd(param[paramIdx]+*relativOffset)]
+			return (*memory)[getMemAdd(param[paramIdx]+*relativOffset)]
 		default:
 			panic("wrong mode")
 		}
@@ -36,13 +36,13 @@ func compute(opcode int, paramMode []int, memory []int64, itrPtr *int64, relativ
 
 	switch opcode {
 	case 1:
-		memory[getMemAdd(param[2])] = getParam(0) + getParam(1)
+		(*memory)[getMemAdd(param[2])] = getParam(0) + getParam(1)
 		*itrPtr += 4
 	case 2:
-		memory[getMemAdd(param[2])] = getParam(0) * getParam(1)
+		(*memory)[getMemAdd(param[2])] = getParam(0) * getParam(1)
 		*itrPtr += 4
 	case 3:
-		memory[getMemAdd(param[0])] = <-input
+		(*memory)[getMemAdd(param[0])] = <-input
 		*itrPtr += 2
 	case 4:
 		output <- getParam(0)
@@ -61,16 +61,16 @@ func compute(opcode int, paramMode []int, memory []int64, itrPtr *int64, relativ
 		}
 	case 7:
 		if getParam(0) < getParam(1) {
-			memory[getMemAdd(param[2])] = 1
+			(*memory)[getMemAdd(param[2])] = 1
 		} else {
-			memory[getMemAdd(param[2])] = 0
+			(*memory)[getMemAdd(param[2])] = 0
 		}
 		*itrPtr += 4
 	case 8:
 		if getParam(0) == getParam(1) {
-			memory[getMemAdd(param[2])] = 1
+			(*memory)[getMemAdd(param[2])] = 1
 		} else {
-			memory[getMemAdd(param[2])] = 0
+			(*memory)[getMemAdd(param[2])] = 0
 		}
 		*itrPtr += 4
 	case 9:
@@ -107,7 +107,7 @@ func processIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 			close(output)
 			return
 		}
-		compute(opCode, paramMode, ownIntcode, &index, &relativOffset, input, output)
+		compute(opCode, paramMode, &ownIntcode, &index, &relativOffset, input, output)
 	}
 	return
 }
@@ -121,7 +121,7 @@ func task1(intcode []int64) []int64 {
 
 	go processIntCode(intcode, inputCh, outputCh)
 
-	//channel <- 1
+	inputCh <- 1
 	//loop til channel is closed
 	for out := range outputCh {
 		output = append(output, out)
@@ -141,7 +141,7 @@ func main() {
 	contentString := strings.Split(string(content), ",")
 	intcode := make([]int64, len(contentString))
 	for pos, elem := range contentString {
-		intcode[pos] = utils.ToInt(elem)
+		intcode[pos] = utils.ToInt64(elem)
 	}
 	output1 := task1(intcode)
 	fmt.Println("Task 7.1: ", output1)
