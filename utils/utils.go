@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-func ToInt(str string) int {
-	ret, err := strconv.Atoi(strings.TrimSpace(str))
+func ToInt(str string) int64 {
+	ret, err := strconv.ParseInt(strings.TrimSpace(str), 10, 64)
 	if err != nil {
 		panic(err)
 	}
-	return ret
+	return int64(ret)
 }
 
 func IntAbs(x int) int {
