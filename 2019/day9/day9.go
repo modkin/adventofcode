@@ -114,23 +114,24 @@ func processIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 
 func task1(intcode []int64) []int64 {
 
-	channel := make(chan int64)
+	inputCh := make(chan int64)
+	outputCh := make(chan int64)
 
 	var output []int64
 
-	go processIntCode(intcode, channel, channel)
+	go processIntCode(intcode, inputCh, outputCh)
 
 	//channel <- 1
 	//loop til channel is closed
-	for out := range channel {
+	for out := range outputCh {
 		output = append(output, out)
 	}
 	return output
 }
 
-func task2(intcode []int) int64 {
-	return 1
-}
+//func task2(intcode []int) int64 {
+//	return 1
+//}
 
 func main() {
 	content, err := ioutil.ReadFile("./input")
