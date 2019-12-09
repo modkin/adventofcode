@@ -11,24 +11,33 @@ import (
 func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relativOffset *int64, input <-chan int64, output chan<- int64) {
 	param := (*memory)[*itrPtr+1:]
 
-	getMemAdd := func(address int64) int64 {
+	//getMemAdd := func(address int64) int64 {
+	//	if address >= int64(len((*memory))) {
+	//		for int64(len((*memory))) <= address {
+	//			(*memory) = append(*memory, 0)
+	//		}
+	//	}
+	//	return address
+	//}
+
+	getAdressPtr := func(address int64) *int64 {
 		if address >= int64(len((*memory))) {
 			for int64(len((*memory))) <= address {
 				(*memory) = append(*memory, 0)
 			}
 		}
-		return address
+		return &(*memory)[address]
 	}
 
-	getParam := func(paramIdx int64) int64 {
+	getParam := func(paramIdx int64) *int64 {
 		mode := paramMode[paramIdx]
 		switch mode {
 		case 0:
-			return (*memory)[getMemAdd(param[paramIdx])]
+			return getAdressPtr(param[paramIdx])
 		case 1:
-			return param[paramIdx]
+			return &param[paramIdx]
 		case 2:
-			return (*memory)[getMemAdd(param[paramIdx]+*relativOffset)]
+			return getAdressPtr(param[paramIdx] + *relativOffset)
 		default:
 			panic("wrong mode")
 		}
@@ -36,45 +45,45 @@ func compute(opcode int, paramMode []int, memory *[]int64, itrPtr *int64, relati
 
 	switch opcode {
 	case 1:
-		(*memory)[getMemAdd(param[2])] = getParam(0) + getParam(1)
+		*getAdressPtr(param[2]) = *getParam(0) + *getParam(1)
 		*itrPtr += 4
 	case 2:
-		(*memory)[getMemAdd(param[2])] = getParam(0) * getParam(1)
+		*getAdressPtr(param[2]) = *getParam(0) * *getParam(1)
 		*itrPtr += 4
 	case 3:
-		(*memory)[getMemAdd(param[0])] = <-input
+		*getAdressPtr(param[2]) = <-input
 		*itrPtr += 2
 	case 4:
-		output <- getParam(0)
+		output <- *getParam(0)
 		*itrPtr += 2
 	case 5:
-		if getParam(0) != 0 {
-			*itrPtr = getParam(1)
+		if *getParam(0) != 0 {
+			*itrPtr = *getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 6:
-		if getParam(0) == 0 {
-			*itrPtr = getParam(1)
+		if *getParam(0) == 0 {
+			*itrPtr = *getParam(1)
 		} else {
 			*itrPtr += 3
 		}
 	case 7:
-		if getParam(0) < getParam(1) {
-			(*memory)[getMemAdd(param[2])] = 1
+		if *getParam(0) < *getParam(1) {
+			*getAdressPtr(param[2]) = 1
 		} else {
-			(*memory)[getMemAdd(param[2])] = 0
+			*getAdressPtr(param[2]) = 0
 		}
 		*itrPtr += 4
 	case 8:
-		if getParam(0) == getParam(1) {
-			(*memory)[getMemAdd(param[2])] = 1
+		if *getParam(0) == *getParam(1) {
+			*getAdressPtr(param[2]) = 1
 		} else {
-			(*memory)[getMemAdd(param[2])] = 0
+			*getAdressPtr(param[2]) = 0
 		}
 		*itrPtr += 4
 	case 9:
-		*relativOffset += getParam(0)
+		*relativOffset += *getParam(0)
 		*itrPtr += 2
 	}
 
