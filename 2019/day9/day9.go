@@ -104,6 +104,7 @@ func processIntCode(intcode []int64, input <-chan int64, output chan<- int64) {
 	for true {
 		opCode, paramMode := parseOpcode(utils.SplitInt(int(ownIntcode[index])))
 		if opCode == 99 {
+			close(output)
 			return
 		}
 		compute(opCode, paramMode, ownIntcode, &index, &relativOffset, input, output)
@@ -120,14 +121,9 @@ func task1(intcode []int64) []int64 {
 	go processIntCode(intcode, channel, channel)
 
 	//channel <- 1
-	for true {
-		out := <-channel
-		fmt.Println(out)
-		if out == 99 {
-			break
-		} else {
-			output = append(output, out)
-		}
+	//loop til channel is closed
+	for out := range channel {
+		output = append(output, out)
 	}
 	return output
 }
@@ -137,7 +133,7 @@ func task2(intcode []int) int64 {
 }
 
 func main() {
-	content, err := ioutil.ReadFile("./testInput1")
+	content, err := ioutil.ReadFile("./input")
 	if err != nil {
 		panic(err)
 	}
