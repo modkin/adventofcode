@@ -65,7 +65,7 @@ func isVisible(star [2]int, otherStar [2]int, starmap map[[2]int]int) bool {
 }
 
 func main() {
-	filename := "./testInput3"
+	filename := "./testInput2"
 	content, err := ioutil.ReadFile(filename)
 	ylist := strings.Split(string(content), "\n")
 	xlist := strings.Split(ylist[0], "")
@@ -135,7 +135,7 @@ func main() {
 		angle := math.Asin(gegenkathete / length)
 		angle = math.Mod(2*math.Pi+angle, 2*math.Pi)
 		sortedStars[angle] = append(sortedStars[angle], [2]int{star[0], star[1]})
-		//fmt.Println(star, " ", angle*(180/math.Pi))
+		fmt.Println(star, " ", angle*(180/math.Pi))
 
 	}
 
@@ -153,18 +153,21 @@ func main() {
 	}
 	sort.Float64s(sortedAngles)
 	counter := 0
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 205; i++ {
 		angle := sortedAngles[counter]
-		fmt.Println(i+1, ".: ", sortedStars[angle][0])
+		//fmt.Println(i+1, ".: ", sortedStars[angle][0])
 		sortedStars[angle] = sortedStars[angle][1:]
-		//if len(sortedStars[angle]) == 0 {
-		//	if counter == len(sortedAngles)-1 {
-		//		sortedAngles = sortedAngles[:counter]
-		//	} else {
-		//		sortedAngles = append(sortedAngles[:counter], sortedAngles[counter+1:]...)
-		//	}
-		//}
+		if len(sortedStars[angle]) == 0 {
+			delete(sortedStars, angle)
+			if counter == len(sortedAngles)-1 {
+				sortedAngles = sortedAngles[:counter]
+			} else {
+				sortedAngles = append(sortedAngles[:counter], sortedAngles[counter+1:]...)
+			}
+			counter--
+		}
 		if counter == len(sortedAngles)-1 {
+			//fmt.Println("reset")
 			counter = 0
 		} else {
 			counter++
