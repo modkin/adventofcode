@@ -52,7 +52,9 @@ func main() {
 
 		for i, task := range elem.(map[string]interface{})["completion_day_level"].(map[string]interface{}) {
 			tmp.timings[(utils.ToInt(i)-1)*2] = utils.ToInt(task.(map[string]interface{})["1"].(map[string]interface{})["get_star_ts"].(string))
-			tmp.timings[(utils.ToInt(i)-1)*2+1] = utils.ToInt(task.(map[string]interface{})["2"].(map[string]interface{})["get_star_ts"].(string))
+			if val, ok := task.(map[string]interface{})["2"].(map[string]interface{}); ok {
+				tmp.timings[(utils.ToInt(i)-1)*2+1] = utils.ToInt(val["get_star_ts"].(string))
+			}
 		}
 		allMember = append(allMember, tmp)
 
