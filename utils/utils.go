@@ -60,3 +60,11 @@ func SplitInt(input int) []int {
 	}
 	return output
 }
+
+func MaxIdx(toCheck [2]int) int {
+	if IntAbs(toCheck[0]) > IntAbs(toCheck[1]) {
+		return 0
+	} else {
+		return 1
+	}
+}
