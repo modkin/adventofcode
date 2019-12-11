@@ -41,7 +41,7 @@ func printPaintMap(paintMap map[[2]int]bool) {
 		for x := minY; x < maxX; x++ {
 			tmp := [2]int{x, y}
 			if _, ok := paintMap[tmp]; ok {
-				fmt.Print("#")
+				fmt.Print("█")
 			} else {
 				fmt.Print(" ")
 			}
@@ -51,7 +51,7 @@ func printPaintMap(paintMap map[[2]int]bool) {
 }
 
 func main() {
-	content, err := ioutil.ReadFile("./input.txt")
+	content, err := ioutil.ReadFile("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -60,56 +60,65 @@ func main() {
 	for pos, elem := range contentString {
 		intcode[pos] = utils.ToInt64(elem)
 	}
-	pos := [2]int{0, 0}
-	direction := [2]int{0, 1}
-	//
-	paintMap := make(map[[2]int]int)
-	inputCh := make(chan int64)
-	outputCh := make(chan int64)
 
-	go computer.ProcessIntCode(intcode, inputCh, outputCh, true)
+	runRobot := func(start int, print bool) int {
 
-	paintMap[pos] = 0
-	inputCh <- int64(paintMap[pos])
-	counter := 0
-	painted := make(map[[2]int]bool)
-	for true {
-		if val, ok := <-outputCh; ok {
-			if painted[pos] {
-				paintMap[pos] = int(val)
-			} else if !painted[pos] && val == 1 {
-				painted[pos] = true
-				paintMap[pos] = 1
-				counter++
-			} else if !painted[pos] && val == 0 {
-				paintMap[pos] = 0
-			} else {
-				fmt.Println("Something wrong")
-			}
+		pos := [2]int{0, 0}
+		direction := [2]int{0, 1}
+		paintMap := make(map[[2]int]int)
+		inputCh := make(chan int64, 1)
+		outputCh := make(chan int64)
+		quit := make(chan bool)
 
-			rotate := <-outputCh
-			if rotate == 0 {
-				direction = rotate90left(direction)
-			} else if rotate == 1 {
-				direction = rotate90right(direction)
-			}
-			pos[0] += direction[0]
-			pos[1] += direction[1]
+		go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
+
+		paintMap[pos] = start
+		//inputCh <- int64(paintMap[pos])
+		counter := 0
+		painted := make(map[[2]int]bool)
+		running := true
+		for running {
 			if color, ok := paintMap[pos]; ok {
 				inputCh <- int64(color)
 			} else {
 				paintMap[pos] = 0
 				inputCh <- int64(0)
 			}
-		} else {
-			break
+			select {
+			case val := <-outputCh:
+				if painted[pos] {
+					paintMap[pos] = int(val)
+				} else if !painted[pos] && val == 1 {
+					painted[pos] = true
+					paintMap[pos] = 1
+					counter++
+				} else if !painted[pos] && val == 0 {
+					paintMap[pos] = 0
+				} else {
+					fmt.Println("Something wrong")
+				}
+
+				rotate := <-outputCh
+				if rotate == 0 {
+					direction = rotate90left(direction)
+				} else if rotate == 1 {
+					direction = rotate90right(direction)
+				}
+				pos[0] += direction[0]
+				pos[1] += direction[1]
+
+			case <-quit:
+				running = false
+			}
 		}
-		fmt.Println(counter)
-		fmt.Println()
-		if counter == 95 {
+		if print == true {
 			printPaintMap(painted)
 		}
+		return counter
 	}
-	fmt.Println("Task 11.1", counter)
+	runRobot(0, false)
+	fmt.Println("Task 11.1", runRobot(0, false))
+	fmt.Println("Task 11.2")
+	runRobot(1, true)
 
 }

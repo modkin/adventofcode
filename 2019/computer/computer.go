@@ -17,7 +17,7 @@ func parseOpcode(input []int) (int, []int) {
 	return opcode, param
 }
 
-func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, closeOutput bool) {
+func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, quit chan<- bool) {
 	memory := make([]int64, len(intcode))
 	copy(memory, intcode)
 
@@ -101,9 +101,7 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, cl
 			relativOffset += getParam(0)
 			itrPtr += 2
 		case 99:
-			if closeOutput {
-				close(output)
-			}
+			quit <- true
 			return
 
 		}
