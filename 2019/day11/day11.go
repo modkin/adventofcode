@@ -5,6 +5,7 @@ import (
 	"adventofcode/utils"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strings"
 )
 
@@ -18,6 +19,35 @@ func rotate90right(vec [2]int) (ret [2]int) {
 	ret[0] = vec[1]
 	ret[1] = -1 * vec[0]
 	return
+}
+
+func printPaintMap(paintMap map[[2]int]bool) {
+	minX, minY, maxX, maxY := math.MaxInt32, math.MaxInt32, math.MinInt32, math.MinInt32
+	for pos, _ := range paintMap {
+		if pos[0] < minX {
+			minX = pos[0]
+		}
+		if pos[0] > maxX {
+			maxX = pos[0]
+		}
+		if pos[1] < minY {
+			minY = pos[1]
+		}
+		if pos[1] > maxY {
+			maxY = pos[1]
+		}
+	}
+	for y := maxY; y >= minY; y-- {
+		for x := minY; x < maxX; x++ {
+			tmp := [2]int{x, y}
+			if _, ok := paintMap[tmp]; ok {
+				fmt.Print("#")
+			} else {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println()
+	}
 }
 
 func main() {
@@ -39,8 +69,8 @@ func main() {
 
 	go computer.ProcessIntCode(intcode, inputCh, outputCh, true)
 
-	inputCh <- 0
-	paintMap[[2]int{0, 0}] = 0
+	inputCh <- 1
+	paintMap[[2]int{0, 0}] = 1
 	counter := 0
 	painted := make(map[[2]int]bool)
 	for true {
@@ -75,6 +105,10 @@ func main() {
 			break
 		}
 		fmt.Println(counter)
+		fmt.Println()
+		if counter == 95 {
+			printPaintMap(painted)
+		}
 	}
 	fmt.Println("Task 11.1", counter)
 
