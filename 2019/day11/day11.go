@@ -69,8 +69,8 @@ func main() {
 
 	go computer.ProcessIntCode(intcode, inputCh, outputCh, true)
 
-	inputCh <- 1
-	paintMap[[2]int{0, 0}] = 1
+	paintMap[pos] = 0
+	inputCh <- int64(paintMap[pos])
 	counter := 0
 	painted := make(map[[2]int]bool)
 	for true {
