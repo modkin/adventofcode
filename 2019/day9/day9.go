@@ -21,8 +21,9 @@ func main() {
 	inputCh := make(chan int64, 1)
 	outputCh := make(chan int64, 10)
 
+	quit := make(chan bool, 1)
 	inputCh <- 1
-	computer.ProcessIntCode(intcode, inputCh, outputCh)
+	computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
 
 	fmt.Println("Task 7.1: ", <-outputCh)
 
@@ -31,7 +32,7 @@ func main() {
 		intcode[pos] = utils.ToInt64(elem)
 	}
 	inputCh <- 2
-	computer.ProcessIntCode(intcode, inputCh, outputCh)
+	computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
 
 	fmt.Println("Task 7.2: ", <-outputCh)
 }

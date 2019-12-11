@@ -37,10 +37,11 @@ func task1(intcode []int64) int {
 	maxThruster := int64(-math.MaxInt64)
 	var pssMax []int
 	channels := [...]chan int64{make(chan int64), make(chan int64), make(chan int64), make(chan int64), make(chan int64)}
+	quit := make(chan bool, 1)
 
 	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
 		for ampNr := 0; ampNr < 5; ampNr++ {
-			go computer.ProcessIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr], false)
+			go computer.ProcessIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr], quit)
 		}
 		for i, c := range code {
 			channels[i] <- int64(c)
@@ -59,6 +60,7 @@ func task1(intcode []int64) int {
 
 func task2(intcode []int64) int {
 	var ampIntcodes [5][]int64
+	quit := make(chan bool, 1)
 	for i := 0; i < 5; i++ {
 		ampIntcodes[i] = make([]int64, len(intcode))
 		copy(ampIntcodes[i], intcode)
@@ -75,7 +77,7 @@ func task2(intcode []int64) int {
 		for ampNr := 0; ampNr < 5; ampNr++ {
 			wg.Add(1)
 			go func(ampNr int) {
-				computer.ProcessIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr], false)
+				computer.ProcessIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr], quit)
 				wg.Done()
 			}(ampNr)
 		}

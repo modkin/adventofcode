@@ -17,6 +17,7 @@ func TestTask1(t *testing.T) {
 
 	inputCh := make(chan int64)
 	outputCh := make(chan int64, len(test1check))
+	quit := make(chan bool, 1)
 
 	var output []int64
 
@@ -26,7 +27,7 @@ func TestTask1(t *testing.T) {
 		intcode1[pos] = utils.ToInt64(elem)
 	}
 
-	go computer.ProcessIntCode(intcode1, inputCh, outputCh)
+	go computer.ProcessIntCode(intcode1, inputCh, outputCh, quit)
 
 	for i, _ := range intcode1 {
 		if test1check[i] != <-outputCh {
@@ -39,7 +40,7 @@ func TestTask1(t *testing.T) {
 	for pos, elem := range test2Split {
 		intcode2[pos] = utils.ToInt64(elem)
 	}
-	go computer.ProcessIntCode(intcode2, inputCh, outputCh)
+	go computer.ProcessIntCode(intcode2, inputCh, outputCh, quit)
 
 	if len(fmt.Sprint(<-outputCh)) != 16 {
 		t.Error("Wrong: ", output[0])
