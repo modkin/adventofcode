@@ -78,13 +78,13 @@ func main() {
 	fmt.Println(memberPoints)
 	fmt.Printf("%-20v|", "Name")
 	for i := 0; i < daysDone*2; i++ {
-		fmt.Printf("Day %2v.%v|", (i/2)+1, i%2+1)
+		fmt.Printf("%2v.%v|", (i/2)+1, i%2+1)
 	}
 	fmt.Print(" Sum\n")
 	for _, mem := range memberPoints {
 		fmt.Printf("%-20v|", mem.Name)
 		for _, point := range mem.timings {
-			fmt.Printf(" %6v |", point)
+			fmt.Printf(" %2v |", point)
 		}
 		fmt.Print(" ", utils.SumSlice(mem.timings), "\n")
 	}
