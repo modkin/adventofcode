@@ -40,7 +40,7 @@ func task1(intcode []int64) int {
 
 	for _, code := range heapPermutation([]int{0, 1, 2, 3, 4}) {
 		for ampNr := 0; ampNr < 5; ampNr++ {
-			go computer.ProcessIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr])
+			go computer.ProcessIntCode(intcode, channels[(ampNr+4)%5], channels[ampNr], false)
 		}
 		for i, c := range code {
 			channels[i] <- int64(c)
@@ -75,7 +75,7 @@ func task2(intcode []int64) int {
 		for ampNr := 0; ampNr < 5; ampNr++ {
 			wg.Add(1)
 			go func(ampNr int) {
-				computer.ProcessIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr])
+				computer.ProcessIntCode(ampIntcodes[ampNr], channels[(ampNr+4)%5], channels[ampNr], false)
 				wg.Done()
 			}(ampNr)
 		}
