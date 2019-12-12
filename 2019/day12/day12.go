@@ -77,9 +77,9 @@ func main() {
 			}
 		}
 		states = append(states, [4]Planet{planets[0], planets[1], planets[2], planets[3]})
-		//if time % 100 == 0{
-		//	fmt.Println(time)
-		//}
+		if time%1000 == 0 {
+			fmt.Println(time)
+		}
 	}
 
 	energy = 0
