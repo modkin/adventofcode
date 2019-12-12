@@ -47,37 +47,9 @@ func calcEnergy(planets [4]Planet) (energy int) {
 	return
 }
 
-func main() {
-	file, err := os.Open("./input")
-	if err != nil {
-		panic(err)
-	}
-
-	var planets [4]Planet
-	scanner := bufio.NewScanner(file)
-	planetPos := 0
-	for scanner.Scan() {
-		coords := strings.Split(scanner.Text(), ",")
-		var pos [3]int
-		for i, planet := range coords {
-			p, _ := strconv.Atoi(strings.TrimSuffix(strings.Split(planet, "=")[1], ">"))
-			pos[i] = p
-		}
-		newPlanet := Planet{
-			pos: pos,
-			vel: [3]int{},
-		}
-		planets[planetPos] = newPlanet
-		planetPos++
-	}
-	fmt.Println(planets)
-
-	states := make(map[[4]Planet]int)
-	//timesteps := 10 * 4686774924
-	//for time := 0; time < timesteps; time++ {
+func runUniverse(stop bool, stoptime int, planets [4]Planet) ([3]int, [4]Planet) {
 	compPeriond := [3]int{0, 0, 0}
-
-	///update velocity
+	states := make(map[[4]Planet]int)
 	for component := 0; component < 3; component++ {
 		time := 0
 		for {
@@ -102,20 +74,49 @@ func main() {
 				planets[idx].pos[component] += planets[idx].vel[component]
 			}
 
-			if val, ok := states[planets]; ok {
-				fmt.Println("Time: ", val)
-				compPeriond[component] = time
-				break
+			if stop {
+				if time == stoptime {
+					break
+				}
+			} else {
+				if _, ok := states[planets]; ok {
+					compPeriond[component] = time
+					break
+				}
 			}
-			if time%10 == 0 {
-				fmt.Println(time)
-			}
+
 		}
 	}
-	fmt.Println(compPeriond)
-	fmt.Println(LCM(compPeriond[0], compPeriond[1], compPeriond[2]))
+	return compPeriond, planets
+}
 
-	fmt.Println(planets)
+func main() {
+	file, err := os.Open("./input")
+	if err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Task 12.1: ", calcEnergy(planets))
+	var planets [4]Planet
+	scanner := bufio.NewScanner(file)
+	planetPos := 0
+	for scanner.Scan() {
+		coords := strings.Split(scanner.Text(), ",")
+		var pos [3]int
+		for i, planet := range coords {
+			p, _ := strconv.Atoi(strings.TrimSuffix(strings.Split(planet, "=")[1], ">"))
+			pos[i] = p
+		}
+		newPlanet := Planet{
+			pos: pos,
+			vel: [3]int{},
+		}
+		planets[planetPos] = newPlanet
+		planetPos++
+	}
+	_, task1planet := runUniverse(true, 1000, planets)
+	fmt.Println("Task 12.1: ", calcEnergy(task1planet))
+
+	compPeriond, _ := runUniverse(false, 0, planets)
+	fmt.Println("Task 12.2: ", LCM(compPeriond[0], compPeriond[1], compPeriond[2]))
+
 }
