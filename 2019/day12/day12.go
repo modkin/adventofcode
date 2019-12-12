@@ -37,8 +37,8 @@ func main() {
 	}
 	fmt.Println(planets)
 
-	//var states []int64
-	timesteps := 1000
+	var states [][4]Planet
+	timesteps := 10 * 4686774924
 	var energy int64
 	for time := 0; time < timesteps; time++ {
 		///update velocity
@@ -62,6 +62,24 @@ func main() {
 				planets[idx].pos[i] += planets[idx].vel[i]
 			}
 		}
+		if states != nil {
+			for _, state := range states {
+				equal := 0
+				for i, curPla := range planets {
+					if state[i] == curPla {
+						equal++
+					}
+				}
+				if equal == 4 {
+					fmt.Println("time: ", time)
+					return
+				}
+			}
+		}
+		states = append(states, [4]Planet{planets[0], planets[1], planets[2], planets[3]})
+		//if time % 100 == 0{
+		//	fmt.Println(time)
+		//}
 	}
 
 	energy = 0
