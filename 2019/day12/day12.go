@@ -14,14 +14,28 @@ type Planet struct {
 	vel [3]int
 }
 
+func calcEnergy(planets [4]Planet) (energy int) {
+	energy = 0
+	for _, planet := range planets {
+		kin, pot := 0, 0
+		for i := 0; i <= 2; i++ {
+			kin += utils.IntAbs(planet.pos[i])
+			pot += utils.IntAbs(planet.vel[i])
+		}
+		energy += kin * pot
+	}
+	return
+}
+
 func main() {
-	file, err := os.Open("./input")
+	file, err := os.Open("./testInput1")
 	if err != nil {
 		panic(err)
 	}
 
-	var planets []Planet
+	var planets [4]Planet
 	scanner := bufio.NewScanner(file)
+	planetPos := 0
 	for scanner.Scan() {
 		coords := strings.Split(scanner.Text(), ",")
 		var pos [3]int
@@ -33,14 +47,15 @@ func main() {
 			pos: pos,
 			vel: [3]int{},
 		}
-		planets = append(planets, newPlanet)
+		planets[planetPos] = newPlanet
+		planetPos++
 	}
 	fmt.Println(planets)
 
-	var states [][4]Planet
-	timesteps := 10 * 4686774924
-	var energy int64
-	for time := 0; time < timesteps; time++ {
+	states := make(map[[4]Planet]bool)
+	//timesteps := 10 * 4686774924
+	//for time := 0; time < timesteps; time++ {
+	for time := 0; ; time++ {
 		///update velocity
 		for idx, _ := range planets {
 			for _, otherPlanet := range planets {
@@ -62,36 +77,18 @@ func main() {
 				planets[idx].pos[i] += planets[idx].vel[i]
 			}
 		}
-		if states != nil {
-			for _, state := range states {
-				equal := 0
-				for i, curPla := range planets {
-					if state[i] == curPla {
-						equal++
-					}
-				}
-				if equal == 4 {
-					fmt.Println("time: ", time)
-					return
-				}
-			}
+
+		if _, ok := states[planets]; ok {
+			fmt.Println("time: ", time)
+			return
 		}
-		states = append(states, [4]Planet{planets[0], planets[1], planets[2], planets[3]})
-		if time%1000 == 0 {
+		states[planets] = true
+		if time%1000000 == 0 {
 			fmt.Println(time)
 		}
 	}
 
-	energy = 0
-	for _, planet := range planets {
-		kin, pot := 0, 0
-		for i := 0; i <= 2; i++ {
-			kin += utils.IntAbs(planet.pos[i])
-			pot += utils.IntAbs(planet.vel[i])
-		}
-		energy += int64(kin) * int64(pot)
-		fmt.Println(energy)
-	}
+	fmt.Println(planets)
 
-	fmt.Println("Task 12.1: ", energy)
+	fmt.Println("Task 12.1: ", calcEnergy(planets))
 }
