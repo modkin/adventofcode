@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func printGame(game [24][42]int) {
-
+func printGame(game [24][42]int) int {
+	paddleX, ballX := 0, 0
 	for y := 0; y < 24; y++ {
 		for x := 0; x < 42; x++ {
 			switch game[y][x] {
@@ -20,13 +20,23 @@ func printGame(game [24][42]int) {
 			case 2:
 				fmt.Print("#")
 			case 3:
-				fmt.Print("_")
+				paddleX = x
+				fmt.Print("█")
 			case 4:
+				ballX = x
 				fmt.Print("*")
 			}
 		}
 		fmt.Println()
 	}
+	if paddleX < ballX {
+		return 1
+	} else if paddleX > ballX {
+		return -1
+	} else {
+		return 0
+	}
+
 }
 
 func main() {
@@ -54,6 +64,7 @@ func main() {
 	//finishFram := false
 	init := true
 	timer := 0
+	move := 0
 	for running {
 		select {
 		case x := <-outputCh:
@@ -61,7 +72,9 @@ func main() {
 			id := <-outputCh
 			if x == -1 {
 				fmt.Println("Score: ", id)
-				//inputCh <- 0
+				if init {
+					init = false
+				}
 			} else {
 				display[y][x] = int(id)
 			}
@@ -69,21 +82,22 @@ func main() {
 				blockCount++
 			}
 			if x == 41 && y == 23 && init {
-				init = false
+
 			}
-			if !init {
+			if !init && x != -1 {
+				move = printGame(display)
 				timer++
-				if timer%2 == 0 {
-					printGame(display)
-					var input int
-					fmt.Scan(&input)
-					inputCh <- int64(input)
-				}
-
 			}
 
-		case <-quit:
-			running = false
+		case waitingInput := <-quit:
+			if waitingInput == true {
+				//var input int
+				//fmt.Scan(&input)
+				//inputCh <- int64(input)
+				inputCh <- int64(move)
+			} else {
+				running = false
+			}
 		}
 	}
 	fmt.Println(blockCount)

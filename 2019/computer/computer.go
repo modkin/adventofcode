@@ -1,6 +1,8 @@
 package computer
 
-import "adventofcode/utils"
+import (
+	"adventofcode/utils"
+)
 
 func parseOpcode(input []int) (int, []int) {
 	opcode := input[len(input)-1]
@@ -66,6 +68,9 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, qu
 			memory[getWriteAddress(2)] = getParam(0) * getParam(1)
 			itrPtr += 4
 		case 3:
+			//time.Sleep(100000000)
+			//fmt.Println("input")
+			quit <- true
 			memory[getWriteAddress(0)] = <-input
 			itrPtr += 2
 		case 4:
@@ -101,7 +106,7 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, qu
 			relativOffset += getParam(0)
 			itrPtr += 2
 		case 99:
-			quit <- true
+			quit <- false
 			return
 
 		}
