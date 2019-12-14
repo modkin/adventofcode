@@ -17,36 +17,36 @@ type Recipe struct {
 func reverse(factory map[string]Recipe, pool map[string]int, material Recipe, amount int) int {
 	multiplier := amount / material.output
 	totalOre := 0
-	if amount, ok := material.input["ORE"]; ok {
-		pool[material.outputMat] -= amount * multiplier
-		return amount * multiplier
+	if ReqAmount, ok := material.input["ORE"]; ok {
+		pool[material.outputMat] -= material.output * multiplier
+		return ReqAmount * multiplier
 	} else {
-		for mat, amount := range material.input {
-			totalOre += reverse(factory, pool, factory[mat], amount)
+		for mat, InnerAmount := range material.input {
+			totalOre += reverse(factory, pool, factory[mat], InnerAmount)
 		}
 	}
-	pool[material.outputMat] -= amount * multiplier
+	pool[material.outputMat] -= material.output * multiplier
 	return totalOre
 }
 
-func produce(factory map[string]Recipe, pool map[string]int, material Recipe, required int) int {
+func produce(factory map[string]Recipe, pool map[string]int, material Recipe, required int, poolMult int) int {
 	//required -= pool[material.outputMat]
 	multiplier := (required + material.output - 1) / material.output
 	totalOre := 0
-	if amount, ok := material.input["ORE"]; ok {
-		pool[material.outputMat] += (material.output * multiplier) % required
-		return amount * multiplier
+	if ReqAmount, ok := material.input["ORE"]; ok {
+		pool[material.outputMat] += ((material.output * multiplier) - required) * poolMult
+		return ReqAmount * multiplier
 	} else {
-		for mat, amount := range material.input {
-			totalOre += produce(factory, pool, factory[mat], amount)
+		for mat, InnerAmount := range material.input {
+			totalOre += produce(factory, pool, factory[mat], InnerAmount, required)
 		}
 	}
-	pool[material.outputMat] += (material.output * multiplier) % required
-	return totalOre
+	pool[material.outputMat] += ((material.output * multiplier) - required) * poolMult
+	return totalOre * multiplier
 }
 
 func main() {
-	file, err := os.Open("./testInput")
+	file, err := os.Open("./testInput3")
 	if err != nil {
 		panic(err)
 	}
@@ -74,8 +74,8 @@ func main() {
 		pool[outEntry[1]] = 0
 	}
 
-	//fmt.Println(factory)
-	needed := produce(factory, pool, factory["FUEL"], 1)
+	fmt.Println(factory)
+	needed := produce(factory, pool, factory["FUEL"], 1, 1)
 	fix := true
 	tooMuch := 0
 	fmt.Println(pool)
