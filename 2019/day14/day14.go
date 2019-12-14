@@ -14,37 +14,6 @@ type Recipe struct {
 	output    int
 }
 
-func reverse(factory map[string]Recipe, pool map[string]int, material Recipe, amount int) int {
-	multiplier := amount / material.output
-	totalOre := 0
-	if ReqAmount, ok := material.input["ORE"]; ok {
-		pool[material.outputMat] -= material.output * multiplier
-		return ReqAmount * multiplier
-	} else {
-		for mat, InnerAmount := range material.input {
-			totalOre += reverse(factory, pool, factory[mat], InnerAmount)
-		}
-	}
-	pool[material.outputMat] -= material.output * multiplier
-	return totalOre
-}
-
-func produce(factory map[string]Recipe, pool map[string]int, material Recipe, required int, poolMult int) int {
-	//required -= pool[material.outputMat]
-	multiplier := (required + material.output - 1) / material.output
-	totalOre := 0
-	if ReqAmount, ok := material.input["ORE"]; ok {
-		pool[material.outputMat] += ((material.output * multiplier) - required) * poolMult
-		return ReqAmount * multiplier
-	} else {
-		for mat, InnerAmount := range material.input {
-			totalOre += produce(factory, pool, factory[mat], InnerAmount, required)
-		}
-	}
-	pool[material.outputMat] += ((material.output * multiplier) - required) * poolMult
-	return totalOre * multiplier
-}
-
 func main() {
 	file, err := os.Open("./input")
 	if err != nil {
@@ -53,7 +22,7 @@ func main() {
 
 	factory := make(map[string]Recipe)
 	scanner := bufio.NewScanner(file)
-	pool := make(map[string]int)
+	pool := make(map[string]int64)
 	for scanner.Scan() {
 		recipe := strings.Split(scanner.Text(), " => ")
 		outEntry := strings.Split(recipe[1], " ")
@@ -74,12 +43,7 @@ func main() {
 		pool[outEntry[1]] = 0
 	}
 
-	//needed := produce(factory, pool, factory["FUEL"], 1, 1)
-	for fuel := 2521800; fuel < 1000000000000; fuel += 1 {
-		lastOre := pool["ORE"]
-		for mat, _ := range pool {
-			pool[mat] = 0
-		}
+	getOre := func(fuel int64) int64 {
 		running := true
 		pool["FUEL"] = fuel
 		for running {
@@ -87,22 +51,41 @@ func main() {
 			for mat, amount := range pool {
 				if mat != "ORE" && amount > 0 {
 					running = true
-					amountOfOutUp := (amount + factory[mat].output + -1) / factory[mat].output
-					pool[mat] = -(amountOfOutUp*factory[mat].output - amount)
+					amountOfOutUp := (amount + int64(factory[mat].output) + -1) / int64(factory[mat].output)
+					pool[mat] = -(amountOfOutUp*int64(factory[mat].output) - amount)
 					for inputMat, inputMatAmount := range factory[mat].input {
-						pool[inputMat] += inputMatAmount * amountOfOutUp
+						pool[inputMat] += int64(inputMatAmount) * amountOfOutUp
 					}
 				}
 			}
 		}
-		if fuel == 1 {
-			fmt.Println("Task 14.1: ", pool["ORE"])
-		} else {
-			if pool["ORE"] > 1000000000000 {
-				fmt.Println("Task 14.2: ", lastOre, " fuel: ", fuel-1)
-				break
-			}
-		}
+		return pool["ORE"]
 	}
 
+	//needed := produce(factory, pool, factory["FUEL"], 1, 1)
+	fuel1 := getOre(1)
+	fmt.Println("Task 14.1: ", fuel1)
+
+	maxOre := int64(1_000_000_000_000)
+	step := maxOre / 10000
+	for fuel := fuel1; ; fuel += step {
+		for mat, _ := range pool {
+			pool[mat] = 0
+		}
+		ore := getOre(fuel1)
+		fuel += step
+		fmt.Println("fuel ", fuel)
+		fmt.Println(ore)
+		if ore > maxOre {
+			if step == 1 {
+				fmt.Println("Task 14.2: ", fuel-1)
+				break
+			} else {
+				fmt.Println("smaller")
+				fuel -= step
+				step /= 10
+			}
+		}
+
+	}
 }
