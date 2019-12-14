@@ -46,7 +46,7 @@ func produce(factory map[string]Recipe, pool map[string]int, material Recipe, re
 }
 
 func main() {
-	file, err := os.Open("./testInput3")
+	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -75,21 +75,24 @@ func main() {
 	}
 
 	fmt.Println(factory)
-	needed := produce(factory, pool, factory["FUEL"], 1, 1)
-	fix := true
-	tooMuch := 0
+	//needed := produce(factory, pool, factory["FUEL"], 1, 1)
+	running := true
+	pool["FUEL"] = 1
 	fmt.Println(pool)
-	for fix {
-		fix = false
+	fmt.Println("START")
+	for running {
+		running = false
 		for mat, amount := range pool {
-			if amount > factory[mat].output {
-				fix = true
-				tooMuch += reverse(factory, pool, factory[mat], amount)
+			if mat != "ORE" && amount > 0 {
+				running = true
+				amountOfOutUp := (amount + factory[mat].output + -1) / factory[mat].output
+				pool[mat] = -(amountOfOutUp*factory[mat].output - amount)
+				for inputMat, inputMatAmount := range factory[mat].input {
+					pool[inputMat] += inputMatAmount * amountOfOutUp
+				}
 			}
 		}
 	}
-	fmt.Println("Need ", needed)
-	fmt.Println(pool)
-	fmt.Println(needed - tooMuch)
+	fmt.Println("Task 14.1: ", pool["ORE"])
 
 }
