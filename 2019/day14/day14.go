@@ -74,25 +74,35 @@ func main() {
 		pool[outEntry[1]] = 0
 	}
 
-	fmt.Println(factory)
 	//needed := produce(factory, pool, factory["FUEL"], 1, 1)
-	running := true
-	pool["FUEL"] = 1
-	fmt.Println(pool)
-	fmt.Println("START")
-	for running {
-		running = false
-		for mat, amount := range pool {
-			if mat != "ORE" && amount > 0 {
-				running = true
-				amountOfOutUp := (amount + factory[mat].output + -1) / factory[mat].output
-				pool[mat] = -(amountOfOutUp*factory[mat].output - amount)
-				for inputMat, inputMatAmount := range factory[mat].input {
-					pool[inputMat] += inputMatAmount * amountOfOutUp
+	for fuel := 2521800; fuel < 1000000000000; fuel += 1 {
+		lastOre := pool["ORE"]
+		for mat, _ := range pool {
+			pool[mat] = 0
+		}
+		running := true
+		pool["FUEL"] = fuel
+		for running {
+			running = false
+			for mat, amount := range pool {
+				if mat != "ORE" && amount > 0 {
+					running = true
+					amountOfOutUp := (amount + factory[mat].output + -1) / factory[mat].output
+					pool[mat] = -(amountOfOutUp*factory[mat].output - amount)
+					for inputMat, inputMatAmount := range factory[mat].input {
+						pool[inputMat] += inputMatAmount * amountOfOutUp
+					}
 				}
 			}
 		}
+		if fuel == 1 {
+			fmt.Println("Task 14.1: ", pool["ORE"])
+		} else {
+			if pool["ORE"] > 1000000000000 {
+				fmt.Println("Task 14.2: ", lastOre, " fuel: ", fuel-1)
+				break
+			}
+		}
 	}
-	fmt.Println("Task 14.1: ", pool["ORE"])
 
 }
