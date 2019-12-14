@@ -63,16 +63,16 @@ func main() {
 	}
 
 	//needed := produce(factory, pool, factory["FUEL"], 1, 1)
-	fuel1 := getOre(1)
-	fmt.Println("Task 14.1: ", fuel1)
+	ore1 := getOre(1)
+	fmt.Println("Task 14.1: ", ore1)
 
 	maxOre := int64(1_000_000_000_000)
-	step := maxOre / 10000
-	for fuel := fuel1; ; fuel += step {
+	step := maxOre
+	for fuel := maxOre / ore1; ; fuel += step {
 		for mat, _ := range pool {
 			pool[mat] = 0
 		}
-		ore := getOre(fuel1)
+		ore := getOre(fuel)
 		fuel += step
 		fmt.Println("fuel ", fuel)
 		fmt.Println(ore)
