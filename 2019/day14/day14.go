@@ -73,19 +73,14 @@ func main() {
 			pool[mat] = 0
 		}
 		ore := getOre(fuel)
-		fuel += step
-		fmt.Println("fuel ", fuel)
-		fmt.Println(ore)
 		if ore > maxOre {
 			if step == 1 {
 				fmt.Println("Task 14.2: ", fuel-1)
 				break
 			} else {
-				fmt.Println("smaller")
 				fuel -= step
 				step /= 10
 			}
 		}
-
 	}
 }
