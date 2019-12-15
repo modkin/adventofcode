@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"math/rand"
 	"strings"
 )
 
@@ -26,6 +25,7 @@ func printPaintMap(paintMap map[[2]int]string) {
 			maxY = pos[1]
 		}
 	}
+	fmt.Println("==================================================")
 	for y := maxY; y >= minY; y-- {
 		for x := minX; x <= maxX; x++ {
 			tmp := [2]int{x, y}
@@ -42,6 +42,7 @@ func printPaintMap(paintMap map[[2]int]string) {
 		}
 		fmt.Println()
 	}
+	fmt.Println("==================================================")
 }
 
 func getDirection(dir int) [2]int {
@@ -59,6 +60,14 @@ func getDirection(dir int) [2]int {
 	panic("Wrong direction")
 }
 
+type Robot struct {
+	code     []int64
+	distance int
+	input    chan int64
+	output   chan int64
+	squence  []int
+}
+
 func main() {
 	content, err := ioutil.ReadFile("./input")
 	if err != nil {
@@ -69,59 +78,149 @@ func main() {
 	for pos, elem := range contentString {
 		intcode[pos] = utils.ToInt64(elem)
 	}
-	inputCh := make(chan int64)
-	outputCh := make(chan int64)
-	quit := make(chan bool)
+	//inputCh := make(chan int64)
+	//outputCh := make(chan int64)
+	//quit := make(chan bool)
 
 	shipMap := make(map[[2]int]string)
 
-	go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
+	//go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
 
-	foundOxy := false
-	currentPos := [2]int{0, 0}
-	var oxyPos [2]int
-	for foundOxy == false {
-
-		nextInput := rand.Intn(4) + 1
-		inputCh <- int64(nextInput)
-		output := <-outputCh
-		switch output {
-		//wall in front
-		case 0:
-			newWall := [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
-			shipMap[newWall] = "#" //"█"
-		case 1:
-			shipMap[currentPos] = "."
-			currentPos = [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
-		case 2:
-			shipMap[currentPos] = "."
-			oxyPos = [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
-			shipMap[oxyPos] = "D"
-			foundOxy = true
-		}
-	}
-	printPaintMap(shipMap)
+	//foundOxy := false
+	//currentPos := [2]int{0, 0}
+	//for foundOxy == false {
+	//
+	//	nextInput := rand.Intn(4) + 1
+	//	inputCh <- int64(nextInput)
+	//	output := <-outputCh
+	//	switch output {
+	//	//wall in front
+	//	case 0:
+	//		newWall := [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
+	//		shipMap[newWall] = "#" //"█"
+	//	case 1:
+	//		shipMap[currentPos] = "."
+	//		currentPos = [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
+	//	case 2:
+	//		shipMap[currentPos] = "."
+	//		oxyPos = [2]int{currentPos[0] + getDirection(nextInput)[0], currentPos[1] + getDirection(nextInput)[1]}
+	//		shipMap[oxyPos] = "D"
+	//		foundOxy = true
+	//	}
+	//}
+	//printPaintMap(shipMap)
+	var distanceToOxy int
 	lastPos := [2]int{0, 0}
-	postions := make(map[[2]int]int)
-	postions[lastPos] = 0
+	postions := make(map[[2]int]Robot)
+	postions[lastPos] = Robot{
+		code:     intcode,
+		distance: 0,
+		input:    make(chan int64),
+		output:   make(chan int64),
+		squence:  nil,
+	}
+	go computer.ProcessIntCode(postions[lastPos].code, postions[lastPos].input, postions[lastPos].output, make(chan bool))
 	looking := true
-	shortest := 0
 	for looking {
-		newPostions := make(map[[2]int]int)
-		for pos, distance := range postions {
+		looking = false
+		newPostions := make(map[[2]int]Robot)
+		for pos, robot := range postions {
 			for i := 1; i < 5; i++ {
 				dir := getDirection(i)
 				lookingAtPos := [2]int{pos[0] + dir[0], pos[1] + dir[1]}
-				if shipMap[lookingAtPos] == "." {
-					newPostions[lookingAtPos] = distance + 1
-				} else if shipMap[lookingAtPos] == "D" {
-					looking = false
-					shortest = distance + 1
+				if _, ok := shipMap[lookingAtPos]; !ok {
+					looking = true
+					newRobot := Robot{
+						code:     intcode,
+						distance: robot.distance + 1,
+						input:    make(chan int64),
+						output:   make(chan int64),
+						squence:  utils.CopyIntSlice(robot.squence),
+					}
+					go computer.ProcessIntCode(intcode, newRobot.input, newRobot.output, make(chan bool))
+					for _, step := range robot.squence {
+						newRobot.input <- int64(step)
+						<-newRobot.output
+					}
+					newRobot.input <- int64(i)
+					output := <-newRobot.output
+					switch output {
+					//wall in front
+					case 0:
+						shipMap[lookingAtPos] = "#"
+					case 1:
+						shipMap[lookingAtPos] = "."
+						newRobot.distance += 1
+						newRobot.squence = append(newRobot.squence, i)
+						newPostions[lookingAtPos] = newRobot
+					case 2:
+						shipMap[lookingAtPos] = "D"
+						if distanceToOxy == 0 {
+							distanceToOxy = robot.distance + 1
+						}
+						newRobot.distance += 1
+						newRobot.squence = append(newRobot.squence, i)
+						newPostions[lookingAtPos] = newRobot
+					}
 				}
 			}
 		}
 		postions = newPostions
 	}
+
+	printPaintMap(shipMap)
+	//fmt.Println("Task 15.1: ", distanceToOxy)
+
+	startPos := [2]int{0, 0}
+	var oxyPos [2]int
+	postions2 := make(map[[2]int]int)
+	postions2[startPos] = 0
+	looking = true
+	shortest := 0
+	for looking {
+		nextPositions := make(map[[2]int]int)
+		for pos, distance := range postions2 {
+			for i := 1; i < 5; i++ {
+				dir := getDirection(i)
+				lookingAtPos := [2]int{pos[0] + dir[0], pos[1] + dir[1]}
+				if shipMap[lookingAtPos] == "." {
+					nextPositions[lookingAtPos] = distance + 1
+				} else if shipMap[lookingAtPos] == "D" {
+					looking = false
+					oxyPos = lookingAtPos
+					shortest = distance + 1
+				}
+			}
+		}
+		postions2 = nextPositions
+	}
 	fmt.Println("Task 15.1: ", shortest)
+
+	postions3 := make(map[[2]int]int)
+	postions3[oxyPos] = 0
+	looking = true
+	longest := 0
+	for looking {
+		looking = false
+		nextPositions := make(map[[2]int]int)
+		for pos, distance := range postions3 {
+			looking = true
+			for i := 1; i < 5; i++ {
+				dir := getDirection(i)
+				lookingAtPos := [2]int{pos[0] + dir[0], pos[1] + dir[1]}
+				if shipMap[lookingAtPos] == "." || shipMap[lookingAtPos] == "x" {
+					nextPositions[lookingAtPos] = distance + 1
+					shipMap[pos] = ";"
+					if (distance + 1) > longest {
+						longest = distance + 1
+					}
+				}
+
+			}
+		}
+		postions3 = nextPositions
+	}
+	printPaintMap(shipMap)
+	fmt.Println("Task 15.2: ", longest)
 
 }
