@@ -4,7 +4,7 @@ import (
 	"adventofcode/utils"
 )
 
-func parseOpcode(input []int) (int, []int) {
+func ParseOpcode(input []int) (int, []int) {
 	opcode := input[len(input)-1]
 	if len(input) >= 2 {
 		opcode += 10 * input[len(input)-2]
@@ -34,7 +34,7 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, qu
 	relativOffset := int64(0)
 	for true {
 		param := memory[getMemAdd(itrPtr)+1:]
-		opCode, paramMode := parseOpcode(utils.SplitInt(int(memory[getMemAdd(itrPtr)])))
+		opCode, paramMode := ParseOpcode(utils.SplitInt(int(memory[getMemAdd(itrPtr)])))
 		getParam := func(paramIdx int) int64 {
 			mode := paramMode[paramIdx]
 			switch mode {
@@ -68,9 +68,6 @@ func ProcessIntCode(intcode []int64, input <-chan int64, output chan<- int64, qu
 			memory[getWriteAddress(2)] = getParam(0) * getParam(1)
 			itrPtr += 4
 		case 3:
-			//time.Sleep(100000000)
-			//fmt.Println("input")
-			quit <- true
 			memory[getWriteAddress(0)] = <-input
 			itrPtr += 2
 		case 4:

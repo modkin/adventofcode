@@ -8,6 +8,101 @@ import (
 	"strings"
 )
 
+func processIntCode(intcode []int64, input <-chan int64, output chan<- int64, quit chan<- bool) {
+	memory := make([]int64, len(intcode))
+	copy(memory, intcode)
+
+	getMemAdd := func(address int64) int64 {
+		for int64(len(memory)) <= address {
+			memory = append(memory, 0)
+		}
+		return address
+	}
+
+	itrPtr := int64(0)
+	relativOffset := int64(0)
+	for true {
+		param := memory[getMemAdd(itrPtr)+1:]
+		opCode, paramMode := computer.ParseOpcode(utils.SplitInt(int(memory[getMemAdd(itrPtr)])))
+		getParam := func(paramIdx int) int64 {
+			mode := paramMode[paramIdx]
+			switch mode {
+			case 0:
+				return memory[getMemAdd(param[paramIdx])]
+			case 1:
+				return param[paramIdx]
+			case 2:
+				return memory[getMemAdd(param[paramIdx]+relativOffset)]
+			default:
+				panic("wrong mode")
+			}
+		}
+		getWriteAddress := func(paramIdx int) int64 {
+			mode := paramMode[paramIdx]
+			switch mode {
+			case 0:
+				return getMemAdd(param[paramIdx])
+			case 2:
+				return getMemAdd(param[paramIdx] + relativOffset)
+			default:
+				panic("wrong mode")
+			}
+		}
+
+		switch opCode {
+		case 1:
+			memory[getWriteAddress(2)] = getParam(0) + getParam(1)
+			itrPtr += 4
+		case 2:
+			memory[getWriteAddress(2)] = getParam(0) * getParam(1)
+			itrPtr += 4
+		case 3:
+			//time.Sleep(100000000)
+			//fmt.Println("input")
+			quit <- true
+			memory[getWriteAddress(0)] = <-input
+			itrPtr += 2
+		case 4:
+			output <- getParam(0)
+			itrPtr += 2
+		case 5:
+			if getParam(0) != 0 {
+				itrPtr = getParam(1)
+			} else {
+				itrPtr += 3
+			}
+		case 6:
+			if getParam(0) == 0 {
+				itrPtr = getParam(1)
+			} else {
+				itrPtr += 3
+			}
+		case 7:
+			if getParam(0) < getParam(1) {
+				memory[getWriteAddress(2)] = 1
+			} else {
+				memory[getWriteAddress(2)] = 0
+			}
+			itrPtr += 4
+		case 8:
+			if getParam(0) == getParam(1) {
+				memory[getWriteAddress(2)] = 1
+			} else {
+				memory[getWriteAddress(2)] = 0
+			}
+			itrPtr += 4
+		case 9:
+			relativOffset += getParam(0)
+			itrPtr += 2
+		case 99:
+			quit <- false
+			return
+
+		}
+	}
+	return
+}
+
 func printGame(game [24][42]int) int {
 	paddleX, ballX := 0, 0
 	for y := 0; y < 24; y++ {
@@ -56,7 +151,7 @@ func main() {
 	outputCh := make(chan int64)
 	quit := make(chan bool)
 
-	go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
+	go processIntCode(intcode, inputCh, outputCh, quit)
 
 	var display [24][42]int
 	blockCount := 0
