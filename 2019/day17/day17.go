@@ -21,7 +21,7 @@ func printPaintMap(paintMap map[[2]int]string) {
 		}
 	}
 	for y := 0; y <= maxY; y++ {
-		for x := 0; x < maxX; x++ {
+		for x := 0; x <= maxX; x++ {
 			fmt.Print(paintMap[[2]int{x, y}])
 		}
 		fmt.Println()
