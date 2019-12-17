@@ -32,7 +32,6 @@ func main() {
 	}
 
 	idx := input[:7]
-	fmt.Println(idx)
 	idxStart := 0
 	for i := 0; i < 7; i++ {
 		idxStart += idx[i] * int(math.Pow(10, float64(6-i)))
@@ -54,34 +53,31 @@ func main() {
 		}
 	}
 
+	var task2 []int64
 	for i := 0; i < 8; i++ {
 		result := int64(0)
 		for j, elem := range input[idxStart+i:] {
 			result += matrix[j] * int64(elem)
 		}
-		fmt.Println(result)
+		task2 = append(task2, result%10)
+	}
+	task2String := strings.Trim(strings.Replace(fmt.Sprint(task2), " ", "", -1), "[]")
+
+	nextInput := make([]int, len(input))
+	for phase := 0; phase < 100; phase++ {
+		for digit := 0; digit < len(input)/10_000; digit++ {
+			factor := genPattern(digit + 1)
+			result := 0
+			for i := 0; i < len(input)/10_000; i++ {
+				result += input[i] * factor()
+			}
+			nextInput[digit] = utils.IntAbs(result % 10)
+		}
+		input = nextInput
 	}
 
-	//
-	//fmt.Println(idxStart)
-	//nextInput := make([]int, len(input))
-	//for phase := 0; phase < 100; phase++ {
-	//	t0 := time.Now()
-	//	for digit := idxStart; digit < len(input); digit++ {
-	//		//factor := genPattern(digit + 1)
-	//		result := 0
-	//		for i := idxStart; i < len(input); i++ {
-	//			if i >= digit {
-	//				result += input[i] * idxStart
-	//			}
-	//		}
-	//		//result *= 10_000
-	//		nextInput[digit] = utils.IntAbs(result % 10)
-	//	}
-	//	input = nextInput
-	//	fmt.Println(phase, " took: ", time.Now().Sub(t0))
-	//}
-
-	//fmt.Println(input[idxStart:idxStart+8])
+	task1 := strings.Trim(strings.Replace(fmt.Sprint(input[:8]), " ", "", -1), "[]")
+	fmt.Println("Task 16.1: ", task1)
+	fmt.Println("Task 16.2: ", task2String)
 
 }
