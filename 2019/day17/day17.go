@@ -9,6 +9,18 @@ import (
 	"strings"
 )
 
+func rotate90right(vec [2]int) (ret [2]int) {
+	ret[0] = -1 * vec[1]
+	ret[1] = vec[0]
+	return
+}
+
+func rotate90left(vec [2]int) (ret [2]int) {
+	ret[0] = vec[1]
+	ret[1] = -1 * vec[0]
+	return
+}
+
 func printPaintMap(paintMap map[[2]int]string) {
 	maxX, maxY := math.MinInt32, math.MinInt32
 	for pos, _ := range paintMap {
@@ -72,6 +84,42 @@ func runCamera(shipMap map[[2]int]string, outputCh <-chan int64, quit <-chan boo
 	}
 }
 
+func findPath(shipMap map[[2]int]string) string {
+	var pos [2]int
+
+	step := func(start [2]int, direction [2]int) [2]int {
+		return [2]int{start[0] + direction[0], start[1] + direction[1]}
+	}
+	for coords, elem := range shipMap {
+		/// this is specific for my input it might be not working with others if the robo is not facing up
+		if elem == "^" {
+			pos = coords
+		}
+	}
+	fmt.Println("Start: ", pos)
+	path := "R,"
+
+	dir := [2]int{1, 0}
+	for {
+		steplength := 0
+		for shipMap[step(pos, dir)] == "#" {
+			pos = step(pos, dir)
+			steplength++
+		}
+		path += fmt.Sprint(steplength, ",")
+		if shipMap[step(pos, rotate90left(dir))] == "#" {
+			path += "L,"
+			dir = rotate90left(dir)
+		} else if shipMap[step(pos, rotate90right(dir))] == "#" {
+			path += "R,"
+			dir = rotate90right(dir)
+		} else {
+			break
+		}
+	}
+	return path
+}
+
 func main() {
 	content, err := ioutil.ReadFile("./input")
 	if err != nil {
@@ -91,6 +139,7 @@ func main() {
 	go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
 
 	runCamera(shipMap, outputCh, quit)
+	path := findPath(shipMap)
 	task1 := findItersections(shipMap)
 	//printPaintMap(shipMap)
 	fmt.Println("Task 17.1: ", task1)
@@ -104,6 +153,20 @@ func main() {
 			maxY = pos[1]
 		}
 	}
+	printPaintMap(shipMap)
+	fmt.Println(path)
+	A := "R,8,L,10,R,8,R,12,R,8,L,8,L,12"
+	B := "L,12,L,10,L,8"
+	C := "R,8,L,10,R,8"
+	path = strings.Replace(path, A, "A", -1)
+	path = strings.Replace(path, B, "B", -1)
+	path = strings.Replace(path, C, "C", -1)
+	fmt.Println(path)
+	mainProg := strings.Trim(path, ",")
+	fmt.Println(A)
+	fmt.Println(B)
+	fmt.Println(C)
+	fmt.Println(mainProg)
 
 	intcode[0] = 2
 	go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
@@ -112,11 +175,15 @@ func main() {
 	//}
 	//runCamera(shipMap,outputCh,quit)
 
-	mainProgramm := []rune("A\n")
-	aProgramm := []rune("R,8\n8\n8\n")
+	Arune := append([]rune(A), '\n')
+	Brune := append([]rune(B), '\n')
+	Crune := append([]rune(C), '\n')
+	mainProgramm := append([]rune(mainProg), '\n')
+	functions := append(append(Arune, Brune...), Crune...)
 	videoFeed := []rune("n\n")
 	var total []rune
-	total = append(append(mainProgramm, aProgramm...), videoFeed...)
+	total = append(append(mainProgramm, functions...), videoFeed...)
+	fmt.Println(total)
 	counter := 0
 	running := true
 	for running {
@@ -125,7 +192,7 @@ func main() {
 		case <-quit:
 			running = false
 		case inputCh <- int64(total[counter]):
-			fmt.Println(string(total[counter]), ": ", total[counter])
+			fmt.Println("DEBUG: ", total[counter])
 			counter++
 			if counter == len(total) {
 				running = false
@@ -137,5 +204,5 @@ func main() {
 
 	runCamera(shipMap, outputCh, quit)
 	findItersections(shipMap)
-	printPaintMap(shipMap)
+	//printPaintMap(shipMap)
 }
