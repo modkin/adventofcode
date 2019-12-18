@@ -74,3 +74,7 @@ func MaxIdx(toCheck [2]int) int {
 		return 1
 	}
 }
+
+func Sum(one [2]int, two [2]int) [2]int {
+	return [2]int{one[0] + two[0], one[1] + two[1]}
+}
