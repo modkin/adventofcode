@@ -155,11 +155,13 @@ func main() {
 	}
 	printPaintMap(shipMap)
 	fmt.Println(path)
-	A := "R,8,L,10,R,8,R,12,R,8,L,8,L,12"
-	B := "L,12,L,10,L,8"
-	C := "R,8,L,10,R,8"
+	A := "R,8,L,10,R,8"
+	B := "R,12,R,8,L,8,L,12"
+	C := "L,12,L,10,L,8"
 	path = strings.Replace(path, A, "A", -1)
+
 	path = strings.Replace(path, B, "B", -1)
+
 	path = strings.Replace(path, C, "C", -1)
 	fmt.Println(path)
 	mainProg := strings.Trim(path, ",")
@@ -192,7 +194,7 @@ func main() {
 		case <-quit:
 			running = false
 		case inputCh <- int64(total[counter]):
-			fmt.Println("DEBUG: ", total[counter])
+			//fmt.Println("DEBUG: ", total[counter])
 			counter++
 			if counter == len(total) {
 				running = false
@@ -202,7 +204,12 @@ func main() {
 
 	shipMap = make(map[[2]int]string)
 
+	for i := 0; i < (maxX+2)*(maxY+1)+2; i++ {
+		<-outputCh
+	}
+	lastOut := <-outputCh
+	fmt.Println(lastOut)
 	runCamera(shipMap, outputCh, quit)
-	findItersections(shipMap)
-	//printPaintMap(shipMap)
+	//findItersections(shipMap)
+	printPaintMap(shipMap)
 }
