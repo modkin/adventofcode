@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -53,7 +52,7 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 					running = true
 					dungeon[newPos] = fmt.Sprint(currentDist + 1)
 					newPositions = append(newPositions, newPos)
-				} else if unicode.IsLower([]rune(lookingAt)[0]) {
+				} else {
 					keyDistance[lookingAt] = currentDist + 1
 				}
 			}
@@ -63,14 +62,25 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 	return keyDistance
 }
 
+type Destination struct {
+	dependencies []string
+	distance     int
+}
+
+type Key struct {
+	destinations map[string]Destination
+	pos          [2]int
+}
+
 func main() {
-	file, err := os.Open("./input")
+	file, err := os.Open("./testInput1")
 	if err != nil {
 		panic(err)
 	}
 
 	dungeon := make(map[[2]int]string)
-	keyMap := make(map[string][2]int)
+	keyMap := make(map[string]Key)
+
 	scanner := bufio.NewScanner(file)
 	x := 0
 	y := 0
@@ -80,7 +90,10 @@ func main() {
 		for _, char := range line {
 			dungeon[[2]int{x, y}] = char
 			if char != "#" && char != "." {
-				keyMap[char] = [2]int{x, y}
+				keyMap[char] = Key{
+					destinations: make(map[string]Destination),
+					pos:          [2]int{x, y},
+				}
 			}
 			x++
 		}
@@ -90,83 +103,132 @@ func main() {
 	for key, val := range dungeon {
 		dungeonCopy[key] = val
 	}
-	dungeon[keyMap["@"]] = "0"
+	for keyName, key := range keyMap {
+		dungeon[key.pos] = "0"
+		distances := calcDistances(dungeon, key.pos)
+		for symbol, dist := range distances {
+			newDest := Destination{
+				dependencies: nil,
+				distance:     dist,
+			}
+			key.destinations[symbol] = newDest
+		}
+
+		keyMap[keyName] = key
+		for key, val := range dungeonCopy {
+			dungeon[key] = val
+		}
+	}
+
+	for i := 0; i < 10; i++ {
+		for symbol, keyStruct := range keyMap {
+			for dstName, dst := range keyStruct.destinations {
+				newDeps := dst.dependencies
+				if unicode.IsUpper([]rune(dstName)[0]) {
+					newDeps = append(newDeps, dstName)
+					//delete(keyStruct.destinations, dstName)
+				}
+				for indirectName, indirectdst := range keyMap[dstName].destinations {
+					if _, ok := keyStruct.destinations[indirectName]; !ok && indirectName != symbol {
+						keyStruct.destinations[indirectName] = Destination{
+							dependencies: append(indirectdst.dependencies, newDeps...),
+							distance:     indirectdst.distance + dst.distance,
+						}
+					}
+				}
+			}
+			keyMap[symbol] = keyStruct
+		}
+	}
+
+	for key, keyStruct := range keyMap {
+		for symbol, _ := range keyStruct.destinations {
+			if unicode.IsUpper([]rune(symbol)[0]) {
+				delete(keyStruct.destinations, symbol)
+			}
+		}
+		keyMap[key] = keyStruct
+	}
 	printPaintMap(dungeon)
-	keyDistance := calcDistances(dungeon, keyMap["@"])
-	printPaintMap(dungeon)
-	fmt.Println(keyDistance)
+	fmt.Println(keyMap["@"])
 
 	possiblePath := make(map[string]int)
-	for key, dis := range keyDistance {
-		possiblePath[key] = dis
-	}
+
+	possiblePath["@"] = 0
+
 	running := true
 	for running {
 		running = false
 		newPossiblePath := make(map[string]int)
 
-		for keys, distance := range possiblePath {
-			//reset dungeon
-			for key, val := range dungeonCopy {
-				dungeon[key] = val
+		for keyPath, distance := range possiblePath {
+			for symbol, _ := range keyMap {
+				if !strings.Contains(keyPath, strings.ToLower(symbol)) {
+					running = true
+					break
+				}
 			}
-			dungeon[keyMap["@"]] = "."
-			if len(keys) < len(keyMap)/2 {
-				running = true
-			}
-			allKeys := strings.Split(keys, "")
-			for _, key := range allKeys {
-				dungeon[keyMap[key]] = "."
-				dungeon[keyMap[strings.ToUpper(key)]] = "."
-			}
-			startPoint := keyMap[allKeys[len(allKeys)-1]]
-			dungeon[startPoint] = "0"
-			keyDistance := calcDistances(dungeon, startPoint)
-			for newKey, newDist := range keyDistance {
-				newPossiblePath[keys+newKey] = distance + newDist
+			allKeys := strings.Split(keyPath, "")
+
+			nextPoints := keyMap[allKeys[len(allKeys)-1]].destinations
+			for newPos, newDest := range nextPoints {
+				if strings.Contains(keyPath, newPos) {
+					continue
+					/// check if newPos is upper case => door
+				}
+				allDeps := true
+				for _, dep := range newDest.dependencies {
+					if !strings.Contains(keyPath, dep) {
+						allDeps = false
+					}
+				}
+				if allDeps {
+					newPossiblePath[keyPath+newPos] = distance + newDest.distance
+				}
 			}
 		}
 		if len(newPossiblePath) != 0 {
 			possiblePath = newPossiblePath
-			counter := 0
-			duplicates := make(map[string]string)
-			for keys, _ := range possiblePath {
-				keysSplit := strings.Split(keys, "")
-				lastKey := keysSplit[len(keysSplit)-1]
-				keysSplit = keysSplit[0 : len(keysSplit)-1]
-				sort.Strings(keysSplit)
-				sortedKeys := strings.Join(keysSplit, "")
-				if dupKey, ok := duplicates[sortedKeys]; ok {
-					if dupKey == lastKey {
-						delete(possiblePath, keys)
-						counter++
-					}
-				} else {
-					duplicates[sortedKeys] = lastKey
-				}
-			}
-			min := math.MaxInt32
-			for _, dis := range possiblePath {
-				if dis < min {
-					min = dis
-				}
-			}
-			for keys, distance := range possiblePath {
-				if distance > int(float64(min)*1.7) {
-					delete(possiblePath, keys)
-					counter++
-				}
-			}
-			fmt.Println("Paths: ", len(possiblePath))
-			fmt.Println("Removed ", counter)
 		}
+		//counter := 0
+		//duplicates := make(map[string]string)
+		//for keys, _ := range possiblePath {
+		//	keysSplit := strings.Split(keys, "")
+		//	lastKey := keysSplit[len(keysSplit)-1]
+		//	keysSplit = keysSplit[0 : len(keysSplit)-1]
+		//	sort.Strings(keysSplit)
+		//	sortedKeys := strings.Join(keysSplit, "")
+		//	if dupKey, ok := duplicates[sortedKeys]; ok {
+		//		if dupKey == lastKey {
+		//			delete(possiblePath, keys)
+		//			counter++
+		//		}
+		//	} else {
+		//		duplicates[sortedKeys] = lastKey
+		//	}
+		//}
+		//min := math.MaxInt32
+		//for _, dis := range possiblePath {
+		//	if dis < min {
+		//		min = dis
+		//	}
+		//}
+		//for keys, distance := range possiblePath {
+		//	if distance > int(float64(min)*1.7) {
+		//		delete(possiblePath, keys)
+		//		counter++
+		//	}
+		//}
+		//fmt.Println("Paths: ", len(possiblePath))
+		//fmt.Println("Removed ", counter)
+
 	}
-	min := math.MaxInt32
-	for _, dis := range possiblePath {
-		if dis < min {
-			min = dis
-		}
-	}
-	fmt.Println(possiblePath)
-	fmt.Println(min)
+	//min := math.MaxInt32
+	//for _, dis := range possiblePath {
+	//	if dis < min {
+	//		min = dis
+	//	}
+	//}
+	//fmt.Println(possiblePath)
+	//fmt.Println(min)
 }
