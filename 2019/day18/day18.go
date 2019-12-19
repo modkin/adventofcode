@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -125,9 +126,39 @@ func main() {
 				newPossiblePath[keys+newKey] = distance + newDist
 			}
 		}
-		//fmt.Println(newPossiblePath)
 		if len(newPossiblePath) != 0 {
 			possiblePath = newPossiblePath
+			counter := 0
+			duplicates := make(map[string]string)
+			for keys, _ := range possiblePath {
+				keysSplit := strings.Split(keys, "")
+				lastKey := keysSplit[len(keysSplit)-1]
+				keysSplit = keysSplit[0 : len(keysSplit)-1]
+				sort.Strings(keysSplit)
+				sortedKeys := strings.Join(keysSplit, "")
+				if dupKey, ok := duplicates[sortedKeys]; ok {
+					if dupKey == lastKey {
+						delete(possiblePath, keys)
+						counter++
+					}
+				} else {
+					duplicates[sortedKeys] = lastKey
+				}
+			}
+			min := math.MaxInt32
+			for _, dis := range possiblePath {
+				if dis < min {
+					min = dis
+				}
+			}
+			for keys, distance := range possiblePath {
+				if distance > int(float64(min)*1.7) {
+					delete(possiblePath, keys)
+					counter++
+				}
+			}
+			fmt.Println("Paths: ", len(possiblePath))
+			fmt.Println("Removed ", counter)
 		}
 	}
 	min := math.MaxInt32
