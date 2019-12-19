@@ -65,15 +65,17 @@ func main() {
 			if out == 1 && beam[x+1][y] == 0 {
 				xUpper = x + 5
 			}
-			if x >= 99 {
+			if x >= 99 && out == 1 && beam[x+1][y] == 0 {
 				if beam[x-99][y] == 1 {
 					possibleStarts[[2]int{x - 99, y}] = true
 				}
 			}
-			if _, ok := possibleStarts[[2]int{x, y - 00}]; ok {
-				fmt.Println(x, " ", y)
-				stop = true
-				break
+			if x >= 99 && beam[x-1][y] == 0 && out == 1 {
+				if _, ok := possibleStarts[[2]int{x, y - 99}]; ok {
+					fmt.Println(x, " ", y-99)
+					stop = true
+					break
+				}
 			}
 			//fmt.Print(out)
 		}
