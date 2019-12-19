@@ -139,7 +139,9 @@ func main() {
 			}
 			keyMap[symbol] = keyStruct
 		}
+		fmt.Println(keyMap["@"])
 	}
+	fmt.Println("done")
 
 	for key, keyStruct := range keyMap {
 		for symbol, _ := range keyStruct.destinations {
@@ -150,7 +152,8 @@ func main() {
 		keyMap[key] = keyStruct
 	}
 	printPaintMap(dungeon)
-	fmt.Println(keyMap["@"])
+
+	fmt.Println(keyMap["a"])
 
 	possiblePath := make(map[string]int)
 
@@ -178,7 +181,7 @@ func main() {
 				}
 				allDeps := true
 				for _, dep := range newDest.dependencies {
-					if !strings.Contains(keyPath, dep) {
+					if !strings.Contains(keyPath, strings.ToLower(dep)) {
 						allDeps = false
 					}
 				}
@@ -223,12 +226,12 @@ func main() {
 		//fmt.Println("Removed ", counter)
 
 	}
-	//min := math.MaxInt32
-	//for _, dis := range possiblePath {
-	//	if dis < min {
-	//		min = dis
-	//	}
-	//}
-	//fmt.Println(possiblePath)
-	//fmt.Println(min)
+	min := math.MaxInt32
+	for _, dis := range possiblePath {
+		if dis < min {
+			min = dis
+		}
+	}
+	fmt.Println(possiblePath)
+	fmt.Println(min)
 }
