@@ -63,7 +63,7 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 }
 
 func main() {
-	file, err := os.Open("./testInput1")
+	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -85,13 +85,57 @@ func main() {
 		}
 		y++
 	}
-	dungenCopy := make(map[[2]int]string)
+	dungeonCopy := make(map[[2]int]string)
 	for key, val := range dungeon {
-		dungenCopy[key] = val
+		dungeonCopy[key] = val
 	}
 	dungeon[keyMap["@"]] = "0"
 	printPaintMap(dungeon)
 	keyDistance := calcDistances(dungeon, keyMap["@"])
 	printPaintMap(dungeon)
 	fmt.Println(keyDistance)
+
+	possiblePath := make(map[string]int)
+	for key, dis := range keyDistance {
+		possiblePath[key] = dis
+	}
+	running := true
+	for running {
+		running = false
+		newPossiblePath := make(map[string]int)
+
+		for keys, distance := range possiblePath {
+			//reset dungeon
+			for key, val := range dungeonCopy {
+				dungeon[key] = val
+			}
+			dungeon[keyMap["@"]] = "."
+			if len(keys) < len(keyMap)/2 {
+				running = true
+			}
+			allKeys := strings.Split(keys, "")
+			for _, key := range allKeys {
+				dungeon[keyMap[key]] = "."
+				dungeon[keyMap[strings.ToUpper(key)]] = "."
+			}
+			startPoint := keyMap[allKeys[len(allKeys)-1]]
+			dungeon[startPoint] = "0"
+			keyDistance := calcDistances(dungeon, startPoint)
+			for newKey, newDist := range keyDistance {
+				newPossiblePath[keys+newKey] = distance + newDist
+			}
+		}
+		//fmt.Println(newPossiblePath)
+		if len(newPossiblePath) != 0 {
+			possiblePath = newPossiblePath
+		}
+	}
+	min := math.MaxInt32
+	for _, dis := range possiblePath {
+		if dis < min {
+			min = dis
+		}
+	}
+	fmt.Println(possiblePath)
+	fmt.Println(min)
 }
