@@ -85,10 +85,16 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	x := 0
 	y := 0
+	counterLowerCaseLetter := 0
+	var keyList []string
 	for scanner.Scan() {
 		x = 0
 		line := strings.Split(scanner.Text(), "")
 		for _, char := range line {
+			if unicode.IsLower([]rune(char + ".")[0]) {
+				counterLowerCaseLetter++
+				keyList = append(keyList, char)
+			}
 			dungeon[[2]int{x, y}] = char
 			if char != "#" && char != "." {
 				keyMap[char] = Key{
@@ -100,6 +106,7 @@ func main() {
 		}
 		y++
 	}
+	fmt.Println("Number of keys: ", counterLowerCaseLetter)
 	dungeonCopy := make(map[[2]int]string)
 	for key, val := range dungeon {
 		dungeonCopy[key] = val
@@ -121,7 +128,9 @@ func main() {
 		}
 	}
 
-	for i := 0; i < 10; i++ {
+	running := true
+	for running {
+		running = false
 		newKeyMap := make(map[string]Key)
 		for symbol, keyStruct := range keyMap {
 			newKeyStruct := Key{
@@ -152,6 +161,18 @@ func main() {
 			newKeyMap[symbol] = newKeyStruct
 		}
 		keyMap = newKeyMap
+		for key, destinations := range keyMap {
+			if unicode.IsLower([]rune(key)[0]) {
+				for _, allKey := range keyList {
+					if allKey != key {
+						if _, ok := destinations.destinations[allKey]; !ok {
+							running = true
+							break
+						}
+					}
+				}
+			}
+		}
 	}
 
 	var deleteKeys []string
@@ -172,17 +193,27 @@ func main() {
 		delete(keyMap, key)
 	}
 
-	printPaintMap(dungeon)
-	fmt.Println(keyMap)
-	fmt.Println(keyMap["@"])
+	//printPaintMap(dungeon)
+	//fmt.Println(keyMap)
+	//fmt.Println(keyMap["@"])
 
 	possiblePath := make(map[string]int)
 
 	possiblePath["@"] = 0
 
-	running := true
+	running = true
 	for running {
 		running = false
+		/// find shortest path
+		var minPath string
+		min := math.MaxInt32
+		for path, dis := range possiblePath {
+			if dis < min {
+				min = dis
+				minPath = path
+			}
+		}
+
 		newPossiblePath := make(map[string]int)
 
 		for keyPath, distance := range possiblePath {
