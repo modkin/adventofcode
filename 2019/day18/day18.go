@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -121,7 +122,6 @@ func main() {
 	}
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(keyMap["@"])
 		newKeyMap := make(map[string]Key)
 		for symbol, keyStruct := range keyMap {
 			newKeyStruct := Key{
@@ -151,24 +151,30 @@ func main() {
 			}
 			newKeyMap[symbol] = newKeyStruct
 		}
-		fmt.Println(keyMap["@"])
 		keyMap = newKeyMap
-		fmt.Println(keyMap["@"])
-		fmt.Println("new")
 	}
-	fmt.Println("done")
 
+	var deleteKeys []string
 	for key, keyStruct := range keyMap {
-		for symbol, _ := range keyStruct.destinations {
-			if unicode.IsUpper([]rune(symbol)[0]) {
-				delete(keyStruct.destinations, symbol)
+		if unicode.IsUpper([]rune(key)[0]) {
+			deleteKeys = append(deleteKeys, key)
+		} else {
+			for symbol, _ := range keyStruct.destinations {
+				if unicode.IsUpper([]rune(symbol)[0]) {
+					delete(keyStruct.destinations, symbol)
+				}
 			}
+			keyMap[key] = keyStruct
 		}
-		keyMap[key] = keyStruct
 	}
-	printPaintMap(dungeon)
 
-	fmt.Println(keyMap["a"])
+	for _, key := range deleteKeys {
+		delete(keyMap, key)
+	}
+
+	printPaintMap(dungeon)
+	fmt.Println(keyMap)
+	fmt.Println(keyMap["@"])
 
 	possiblePath := make(map[string]int)
 
@@ -208,37 +214,25 @@ func main() {
 		if len(newPossiblePath) != 0 {
 			possiblePath = newPossiblePath
 		}
-		//counter := 0
-		//duplicates := make(map[string]string)
-		//for keys, _ := range possiblePath {
-		//	keysSplit := strings.Split(keys, "")
-		//	lastKey := keysSplit[len(keysSplit)-1]
-		//	keysSplit = keysSplit[0 : len(keysSplit)-1]
-		//	sort.Strings(keysSplit)
-		//	sortedKeys := strings.Join(keysSplit, "")
-		//	if dupKey, ok := duplicates[sortedKeys]; ok {
-		//		if dupKey == lastKey {
-		//			delete(possiblePath, keys)
-		//			counter++
-		//		}
-		//	} else {
-		//		duplicates[sortedKeys] = lastKey
-		//	}
-		//}
-		//min := math.MaxInt32
-		//for _, dis := range possiblePath {
-		//	if dis < min {
-		//		min = dis
-		//	}
-		//}
-		//for keys, distance := range possiblePath {
-		//	if distance > int(float64(min)*1.7) {
-		//		delete(possiblePath, keys)
-		//		counter++
-		//	}
-		//}
-		//fmt.Println("Paths: ", len(possiblePath))
-		//fmt.Println("Removed ", counter)
+		counter := 0
+		duplicates := make(map[string]string)
+		for keys, _ := range possiblePath {
+			keysSplit := strings.Split(keys, "")
+			lastKey := keysSplit[len(keysSplit)-1]
+			keysSplit = keysSplit[0 : len(keysSplit)-1]
+			sort.Strings(keysSplit)
+			sortedKeys := strings.Join(keysSplit, "")
+			if dupKey, ok := duplicates[sortedKeys]; ok {
+				if dupKey == lastKey {
+					delete(possiblePath, keys)
+					counter++
+				}
+			} else {
+				duplicates[sortedKeys] = lastKey
+			}
+		}
+		fmt.Println("Paths: ", len(possiblePath))
+		fmt.Println("Removed ", counter)
 
 	}
 	min := math.MaxInt32
