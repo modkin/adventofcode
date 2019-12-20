@@ -29,7 +29,14 @@ func printPaintMap(paintMap map[[2]int]string) {
 		fmt.Println()
 	}
 }
-
+func find(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
 func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 	keyDistance := make(map[string]int)
 	directions := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
@@ -201,49 +208,57 @@ func main() {
 
 	possiblePath["@"] = 0
 
+	var min int
+	var minPath string
 	running = true
+	var cantReach []string
 	for running {
 		running = false
 		/// find shortest path
-		var minPath string
-		min := math.MaxInt32
+		min = math.MaxInt32
 		for path, dis := range possiblePath {
-			if dis < min {
-				min = dis
-				minPath = path
+			if !find(cantReach, path) {
+				if dis < min {
+					min = dis
+					minPath = path
+				}
+			}
+		}
+		fmt.Println(min)
+		fmt.Println(minPath)
+		for _, keyToCheck := range keyList {
+			if !strings.Contains(minPath, strings.ToLower(keyToCheck)) {
+				running = true
+				break
 			}
 		}
 
-		newPossiblePath := make(map[string]int)
+		allKeys := strings.Split(minPath, "")
 
-		for keyPath, distance := range possiblePath {
-			for symbol, _ := range keyMap {
-				if !strings.Contains(keyPath, strings.ToLower(symbol)) {
-					running = true
+		nextPoints := keyMap[allKeys[len(allKeys)-1]].destinations
+		cantProgress := true
+		for newPos, newDest := range nextPoints {
+			/// skip self
+			if strings.Contains(minPath, newPos) {
+				continue
+				/// check if newPos is upper case => door
+			}
+			allDeps := true
+			for _, dep := range newDest.dependencies {
+				if !strings.Contains(minPath, strings.ToLower(dep)) {
+					allDeps = false
 					break
 				}
 			}
-			allKeys := strings.Split(keyPath, "")
-
-			nextPoints := keyMap[allKeys[len(allKeys)-1]].destinations
-			for newPos, newDest := range nextPoints {
-				if strings.Contains(keyPath, newPos) {
-					continue
-					/// check if newPos is upper case => door
-				}
-				allDeps := true
-				for _, dep := range newDest.dependencies {
-					if !strings.Contains(keyPath, strings.ToLower(dep)) {
-						allDeps = false
-					}
-				}
-				if allDeps {
-					newPossiblePath[keyPath+newPos] = distance + newDest.distance
-				}
+			if allDeps {
+				possiblePath[minPath+newPos] = min + newDest.distance
+				delete(possiblePath, minPath)
+				cantProgress = false
+				cantReach = nil
 			}
 		}
-		if len(newPossiblePath) != 0 {
-			possiblePath = newPossiblePath
+		if cantProgress {
+			cantReach = append(cantReach, minPath)
 		}
 		counter := 0
 		duplicates := make(map[string]string)
@@ -262,16 +277,10 @@ func main() {
 				duplicates[sortedKeys] = lastKey
 			}
 		}
-		fmt.Println("Paths: ", len(possiblePath))
-		fmt.Println("Removed ", counter)
+	}
+	//fmt.Println("Paths: ", len(possiblePath))
+	//fmt.Println("Removed ", counter)
 
-	}
-	min := math.MaxInt32
-	for _, dis := range possiblePath {
-		if dis < min {
-			min = dis
-		}
-	}
-	fmt.Println(possiblePath)
+	fmt.Println(minPath)
 	fmt.Println(min)
 }
