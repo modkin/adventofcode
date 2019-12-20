@@ -73,7 +73,7 @@ type Key struct {
 }
 
 func main() {
-	file, err := os.Open("./testInput1")
+	file, err := os.Open("./testInput2")
 	if err != nil {
 		panic(err)
 	}
@@ -121,25 +121,40 @@ func main() {
 	}
 
 	for i := 0; i < 10; i++ {
+		fmt.Println(keyMap["@"])
+		newKeyMap := make(map[string]Key)
 		for symbol, keyStruct := range keyMap {
+			newKeyStruct := Key{
+				destinations: make(map[string]Destination),
+				pos:          keyStruct.pos,
+			}
 			for dstName, dst := range keyStruct.destinations {
-				newDeps := dst.dependencies
+				newDeps := make([]string, len(dst.dependencies))
+				copy(newDeps, dst.dependencies)
 				if unicode.IsUpper([]rune(dstName)[0]) {
 					newDeps = append(newDeps, dstName)
 					//delete(keyStruct.destinations, dstName)
 				}
+				newKeyStruct.destinations[dstName] = Destination{
+					dependencies: newDeps,
+					distance:     dst.distance,
+				}
+
 				for indirectName, indirectdst := range keyMap[dstName].destinations {
 					if _, ok := keyStruct.destinations[indirectName]; !ok && indirectName != symbol {
-						keyStruct.destinations[indirectName] = Destination{
-							dependencies: append(indirectdst.dependencies, newDeps...),
+						newKeyStruct.destinations[indirectName] = Destination{
+							dependencies: append(newDeps, indirectdst.dependencies...),
 							distance:     indirectdst.distance + dst.distance,
 						}
 					}
 				}
 			}
-			keyMap[symbol] = keyStruct
+			newKeyMap[symbol] = newKeyStruct
 		}
 		fmt.Println(keyMap["@"])
+		keyMap = newKeyMap
+		fmt.Println(keyMap["@"])
+		fmt.Println("new")
 	}
 	fmt.Println("done")
 
