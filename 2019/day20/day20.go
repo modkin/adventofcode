@@ -31,7 +31,7 @@ func printPaintMap(paintMap map[[2]int]string) {
 }
 
 func main() {
-	file, err := os.Open("./testInput1")
+	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -104,6 +104,9 @@ func main() {
 		if portal != "AA" && portal != "ZZ" {
 			jumpMap[coords[0]] = coords[1]
 			jumpMap[coords[1]] = coords[0]
+		}
+		if len(coords) != 2 {
+			fmt.Println("ERROR ", portal)
 		}
 	}
 	fmt.Println(jumpMap)
