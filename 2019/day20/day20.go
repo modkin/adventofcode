@@ -31,14 +31,15 @@ func printPaintMap(paintMap map[[2]int]string) {
 }
 
 func main() {
-	file, err := os.Open("./input")
+	file, err := os.Open("./testInput2")
 	if err != nil {
 		panic(err)
 	}
 
 	dungeon := make(map[[2]int]string)
 	portalMap := make(map[string][][2]int)
-	jumpMap := make(map[[2]int][2]int)
+	jumpLevelOut := make(map[[2]int][2]int)
+	jumpLevelIn := make(map[[2]int][2]int)
 
 	scanner := bufio.NewScanner(file)
 	x := 0
@@ -53,7 +54,14 @@ func main() {
 		y++
 	}
 
-	printPaintMap(dungeon)
+	createDungeonCopy := func() map[[2]int]string {
+		dungeonCopy := make(map[[2]int]string)
+		for key, val := range dungeon {
+			dungeonCopy[key] = val
+		}
+		return dungeonCopy
+	}
+
 	maxX, maxY := math.MinInt32, math.MinInt32
 	for pos := range dungeon {
 		if pos[0] > maxX {
@@ -75,22 +83,29 @@ func main() {
 			north := dungeon[[2]int{pos[0], pos[1] - 1}]
 			south := dungeon[[2]int{pos[0], pos[1] + 1}]
 
-			//// ?X.
+			// ?X.
 			if unicode.IsLetter([]rune(west + "?")[0]) && east == "." {
 				newPortal := []string{char, west}
 				sort.Strings(newPortal)
 				newPos := [2]int{pos[0] + 1, pos[1]}
 				portalMap[strings.Join(newPortal, "")] = append(portalMap[strings.Join(newPortal, "")], newPos)
+				// .X?
 			} else if unicode.IsLetter([]rune(east + "?")[0]) && west == "." {
 				newPortal := []string{char, east}
 				sort.Strings(newPortal)
 				newPos := [2]int{pos[0] - 1, pos[1]}
 				portalMap[strings.Join(newPortal, "")] = append(portalMap[strings.Join(newPortal, "")], newPos)
+				// ?
+				// X
+				// .
 			} else if unicode.IsLetter([]rune(north + "?")[0]) && south == "." {
 				newPortal := []string{char, north}
 				sort.Strings(newPortal)
 				newPos := [2]int{pos[0], pos[1] + 1}
 				portalMap[strings.Join(newPortal, "")] = append(portalMap[strings.Join(newPortal, "")], newPos)
+				// .
+				// X
+				// ?
 			} else if unicode.IsLetter([]rune(south + "?")[0]) && north == "." {
 				newPortal := []string{char, south}
 				sort.Strings(newPortal)
@@ -102,38 +117,66 @@ func main() {
 
 	for portal, coords := range portalMap {
 		if portal != "AA" && portal != "ZZ" {
-			jumpMap[coords[0]] = coords[1]
-			jumpMap[coords[1]] = coords[0]
+			if coords[0][0] == 2 || coords[0][0] == maxX-2 || coords[0][1] == 2 || coords[0][1] == maxY-1 {
+				jumpLevelOut[coords[0]] = coords[1]
+			} else {
+				jumpLevelIn[coords[0]] = coords[1]
+			}
+			if coords[1][0] == 2 || coords[1][0] == maxX-2 || coords[1][1] == 2 || coords[1][1] == maxY-1 {
+				jumpLevelOut[coords[1]] = coords[0]
+			} else {
+				jumpLevelIn[coords[1]] = coords[0]
+			}
 		}
 		if len(coords) != 2 {
 			fmt.Println("ERROR ", portal)
 		}
 	}
-	fmt.Println(jumpMap)
+	fmt.Println("Out: ", jumpLevelOut)
+	fmt.Println("In: ", jumpLevelIn)
+
+	dungeonsMap := make(map[int]map[[2]int]string)
+	dungeonsMap[0] = createDungeonCopy()
 
 	start := portalMap["AA"][0]
-	dungeon[start] = "0"
+	dungeonsMap[0][start] = "0"
 	directions := [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
-	positions := [][2]int{start}
+	positions := [][3]int{{start[0], start[1], 0}}
 	running := true
 	for running {
 		running = false
-		var newPositions [][2]int
+		var newPositions [][3]int
 		for _, pos := range positions {
+			if pos[2] > 8 {
+				continue
+			}
+			twoDpos := [2]int{pos[0], pos[1]}
 			for _, dir := range directions {
-				currentDist, _ := strconv.Atoi(dungeon[pos])
-				newPos := utils.Sum(pos, dir)
-				lookingAt := dungeon[newPos]
+				currentDist, _ := strconv.Atoi(dungeonsMap[pos[2]][twoDpos])
+				twoDnewPos := utils.Sum(twoDpos, dir)
+				newPos := [3]int{twoDnewPos[0], twoDnewPos[1], pos[2]}
+				lookingAt := dungeonsMap[pos[2]][twoDnewPos]
 
 				if lookingAt == "#" {
 					continue
 				}
 				if unicode.IsLetter([]rune(lookingAt)[0]) {
-					if nP, ok := jumpMap[pos]; ok {
-						newPos = nP
+					if nP, ok := jumpLevelOut[twoDpos]; ok {
+						newPos[2]--
+						newPos[0], newPos[1] = nP[0], nP[1]
+					} else if nP, ok := jumpLevelIn[twoDpos]; ok {
+						newPos[2]++
+						running = true
+						newPos[0], newPos[1] = nP[0], nP[1]
 					} else {
 						//AA or ZZ
 						continue
+					}
+					if newPos[2] == -1 {
+						continue
+					}
+					if _, ok := dungeonsMap[newPos[2]]; !ok {
+						dungeonsMap[newPos[2]] = createDungeonCopy()
 					}
 				}
 
@@ -148,13 +191,15 @@ func main() {
 					running = true
 				}
 
-				dungeon[newPos] = fmt.Sprint(currentDist + 1)
+				dungeonsMap[newPos[2]][twoDnewPos] = fmt.Sprint(currentDist + 1)
 				newPositions = append(newPositions, newPos)
 			}
 		}
 		positions = newPositions
 	}
-	fmt.Println(portalMap)
-	fmt.Println(dungeon[portalMap["ZZ"][0]])
+	//fmt.Println(dungeonsMap)
+	//fmt.Println(portalMap)
+	printPaintMap(dungeonsMap[1])
+	fmt.Println(dungeonsMap[0][portalMap["ZZ"][0]])
 
 }
