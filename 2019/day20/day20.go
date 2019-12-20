@@ -31,7 +31,7 @@ func printPaintMap(paintMap map[[2]int]string) {
 }
 
 func main() {
-	file, err := os.Open("./testInput2")
+	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -117,12 +117,12 @@ func main() {
 
 	for portal, coords := range portalMap {
 		if portal != "AA" && portal != "ZZ" {
-			if coords[0][0] == 2 || coords[0][0] == maxX-2 || coords[0][1] == 2 || coords[0][1] == maxY-1 {
+			if coords[0][0] == 2 || coords[0][0] == maxX-2 || coords[0][1] == 2 || coords[0][1] == maxY-2 {
 				jumpLevelOut[coords[0]] = coords[1]
 			} else {
 				jumpLevelIn[coords[0]] = coords[1]
 			}
-			if coords[1][0] == 2 || coords[1][0] == maxX-2 || coords[1][1] == 2 || coords[1][1] == maxY-1 {
+			if coords[1][0] == 2 || coords[1][0] == maxX-2 || coords[1][1] == 2 || coords[1][1] == maxY-2 {
 				jumpLevelOut[coords[1]] = coords[0]
 			} else {
 				jumpLevelIn[coords[1]] = coords[0]
@@ -144,12 +144,13 @@ func main() {
 	positions := [][3]int{{start[0], start[1], 0}}
 	running := true
 	for running {
+		if dungeonsMap[0][portalMap["ZZ"][0]] != "." {
+			fmt.Println(dungeonsMap[0][portalMap["ZZ"][0]])
+			break
+		}
 		running = false
 		var newPositions [][3]int
 		for _, pos := range positions {
-			if pos[2] > 8 {
-				continue
-			}
 			twoDpos := [2]int{pos[0], pos[1]}
 			for _, dir := range directions {
 				currentDist, _ := strconv.Atoi(dungeonsMap[pos[2]][twoDpos])
@@ -163,11 +164,19 @@ func main() {
 				if unicode.IsLetter([]rune(lookingAt)[0]) {
 					if nP, ok := jumpLevelOut[twoDpos]; ok {
 						newPos[2]--
+						if newPos[2] == -1 {
+							continue
+						}
 						newPos[0], newPos[1] = nP[0], nP[1]
+						lookingAt = dungeonsMap[newPos[2]][[2]int{newPos[0], newPos[1]}]
 					} else if nP, ok := jumpLevelIn[twoDpos]; ok {
 						newPos[2]++
+						//if newPos[2] > 1{
+						//	continue
+						//}
 						running = true
 						newPos[0], newPos[1] = nP[0], nP[1]
+						lookingAt = dungeonsMap[newPos[2]][[2]int{newPos[0], newPos[1]}]
 					} else {
 						//AA or ZZ
 						continue
@@ -176,6 +185,7 @@ func main() {
 						continue
 					}
 					if _, ok := dungeonsMap[newPos[2]]; !ok {
+						fmt.Println("Creating level ", newPos[2])
 						dungeonsMap[newPos[2]] = createDungeonCopy()
 					}
 				}
@@ -191,11 +201,21 @@ func main() {
 					running = true
 				}
 
-				dungeonsMap[newPos[2]][twoDnewPos] = fmt.Sprint(currentDist + 1)
+				dungeonsMap[newPos[2]][[2]int{newPos[0], newPos[1]}] = fmt.Sprint(currentDist + 1)
+				for _, tmpPos := range newPositions {
+					if newPos == tmpPos {
+						fmt.Println("duplicate")
+					}
+				}
 				newPositions = append(newPositions, newPos)
 			}
 		}
 		positions = newPositions
+		//fmt.Println("=========================================")
+		//printPaintMap(dungeonsMap[0])
+		//fmt.Println("=========================================")
+		//printPaintMap(dungeonsMap[1])
+		//fmt.Println("====================XX===================")
 	}
 	//fmt.Println(dungeonsMap)
 	//fmt.Println(portalMap)
