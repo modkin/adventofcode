@@ -89,9 +89,9 @@ func main() {
 	go computer.ProcessIntCode(intcode, inputCh, outputCh, quit)
 
 	runCamera2(shipMap, outputCh, quit)
-	printPaintMap(shipMap)
+	//printPaintMap(shipMap)
 	//:= []rune("NOT A J\nWALK\n")
-	walk := []rune("NOT A J\nNOT B T\nOR T J\nNOT C T\nOR T J\nAND D J\nWALK\n")
+	walk := []rune("NOT A J\nNOT B T\nOR T J\nNOT C T\nOR T J\nAND D J\nAND E T\nOR H T\nAND T J\nRUN\n")
 	for _, char := range walk {
 		inputCh <- int64(char)
 	}
@@ -99,6 +99,6 @@ func main() {
 	fmt.Println("DONE")
 
 	runCamera(shipMap, outputCh, quit)
-	//printPaintMap(shipMap)
+	printPaintMap(shipMap)
 
 }
