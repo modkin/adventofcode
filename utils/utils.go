@@ -57,6 +57,14 @@ func ReverseSlice(a []string) {
 	}
 }
 
+func ReverseIntSlice(a []int) []int {
+	for i := len(a)/2 - 1; i >= 0; i-- {
+		opp := len(a) - 1 - i
+		a[i], a[opp] = a[opp], a[i]
+	}
+	return a
+}
+
 ///split integer into integer slice of the digits
 func SplitInt(input int) []int {
 	count := len(fmt.Sprint(input))
