@@ -5,6 +5,7 @@ import (
 	"adventofcode/utils"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strings"
 	"time"
 )
@@ -44,28 +45,34 @@ func main() {
 	}
 
 	var messages [50][][2]int64
+	var nat [2]int64
 
+	lastY := int64(math.MaxInt64)
 	running := true
+	idleCounter := 0
 	for running {
+		allIdle := true
 		for i := 0; i < 50; i++ {
 			time.Sleep(100000)
 			select {
 			case address := <-network[i].output:
+				allIdle = false
 				x := <-network[i].output
 				y := <-network[i].output
 				if address == 255 {
-					fmt.Println(y)
-					running = false
-					break
+					nat[0] = x
+					nat[1] = y
+				} else {
+					newMessage := [2]int64{x, y}
+					messages[address] = append(messages[address], newMessage)
 				}
-				newMessage := [2]int64{x, y}
-				messages[address] = append(messages[address], newMessage)
 			default:
 				if len(messages[i]) > 0 {
 					message := messages[i][0]
 					messages[i] = messages[i][1:]
 					network[i].input <- message[0]
 					network[i].input <- message[1]
+					allIdle = false
 				} else {
 					network[i].input <- -1
 				}
@@ -73,6 +80,22 @@ func main() {
 				fmt.Println("is this supposed to happen?")
 				running = false
 			}
+		}
+		if idleCounter > 100 {
+			if nat[1] == lastY {
+				fmt.Println(nat[1])
+				running = false
+				break
+			}
+			lastY = nat[1]
+			network[0].input <- nat[0]
+			network[0].input <- nat[1]
+			idleCounter = 0
+		}
+		if allIdle {
+			idleCounter++
+		} else {
+			idleCounter = 0
 		}
 	}
 }
