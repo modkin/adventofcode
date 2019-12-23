@@ -34,6 +34,10 @@ func IntAbs(x int) int {
 	return int(math.Abs(float64(x)))
 }
 
+func Int64Abs(x int64) int64 {
+	return int64(math.Abs(float64(x)))
+}
+
 func OpenFile(filePath string) *os.File {
 	file, err := os.Open(filePath)
 	if err != nil {
