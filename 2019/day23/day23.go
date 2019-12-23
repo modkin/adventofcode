@@ -47,13 +47,14 @@ func main() {
 	var messages [50][][2]int64
 	var nat [2]int64
 
+	firstY := true
 	lastY := int64(math.MaxInt64)
 	running := true
 	idleCounter := 0
 	for running {
 		allIdle := true
 		for i := 0; i < 50; i++ {
-			time.Sleep(100000)
+			time.Sleep(10000)
 			select {
 			case address := <-network[i].output:
 				allIdle = false
@@ -62,6 +63,10 @@ func main() {
 				if address == 255 {
 					nat[0] = x
 					nat[1] = y
+					if firstY {
+						fmt.Println("Task 23.1: ", y)
+						firstY = false
+					}
 				} else {
 					newMessage := [2]int64{x, y}
 					messages[address] = append(messages[address], newMessage)
@@ -83,7 +88,7 @@ func main() {
 		}
 		if idleCounter > 100 {
 			if nat[1] == lastY {
-				fmt.Println(nat[1])
+				fmt.Println("Task 23.2: ", nat[1])
 				running = false
 				break
 			}
