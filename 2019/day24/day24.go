@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-func printMap(bugMap [7][7]bool) {
+func printMap(bugMap [5][5]bool) {
 	fmt.Println("=============")
-	for y := 0; y < 7; y++ {
-		for x := 0; x < 7; x++ {
+	for y := 0; y < 5; y++ {
+		for x := 0; x < 5; x++ {
 			if bugMap[x][y] {
 				fmt.Print("#")
 			} else {
@@ -22,10 +22,10 @@ func printMap(bugMap [7][7]bool) {
 	fmt.Println("=============")
 }
 
-func calcBioDiff(bugMap [7][7]bool) (bioDiff int64) {
+func calcBioDiff(bugMap [5][5]bool) (bioDiff int64) {
 	bioPoints := int64(1)
-	for y := 1; y < 6; y++ {
-		for x := 1; x < 6; x++ {
+	for y := 0; y < 5; y++ {
+		for x := 0; x < 5; x++ {
 			if bugMap[x][y] {
 				bioDiff += bioPoints
 			}
@@ -35,26 +35,102 @@ func calcBioDiff(bugMap [7][7]bool) (bioDiff int64) {
 	return
 }
 
+type recBugMap struct {
+	bugMap [5][5]bool
+	inner  *recBugMap
+	outer  *recBugMap
+}
+
+func updateBugMap(currentMap *recBugMap) {
+	bugMap := currentMap.bugMap
+	var newBugMap [5][5]bool
+	hasOuter := true
+	if currentMap.outer == nil {
+		hasOuter = false
+	}
+	for y := 0; y < 5; y++ {
+		for x := 0; x < 5; x++ {
+			bugCount := 0
+			if x == 0 {
+				if hasOuter {
+					if currentMap.outer.bugMap[2][3] {
+						bugCount++
+					}
+				}
+			} else if bugMap[x-1][y] {
+				bugCount++
+			}
+
+			if x == 4 {
+				if hasOuter {
+					if currentMap.outer.bugMap[4][3] {
+						bugCount++
+					}
+				}
+			} else if bugMap[x+1][y] {
+				bugCount++
+			}
+
+			if y == 0 {
+				if hasOuter {
+					if currentMap.outer.bugMap[3][2] {
+						bugCount++
+					}
+				}
+			} else if bugMap[x][y-1] {
+				bugCount++
+			}
+
+			if y == 4 {
+				if hasOuter {
+					if currentMap.outer.bugMap[3][4] {
+						bugCount++
+					}
+				}
+			} else if bugMap[x][y+1] {
+				bugCount++
+			}
+
+			if bugMap[x][y] {
+				// bug
+				if bugCount != 1 {
+					// dies if there is one around
+					newBugMap[x][y] = false
+				} else {
+					newBugMap[x][y] = true
+				}
+			} else {
+				// empty
+				if bugCount == 1 || bugCount == 2 {
+					newBugMap[x][y] = true
+				} else {
+					newBugMap[x][y] = false
+				}
+			}
+		}
+	}
+	currentMap.bugMap = newBugMap
+}
+
 func main() {
 	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
 
-	var bugMap [7][7]bool
-	var newBugMap [7][7]bool
+	var bugMap [5][5]bool
 
 	bioDiffs := make(map[int64]bool)
 	scanner := bufio.NewScanner(file)
 
-	y := 1
+	y := 0
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), "")
 		for x, elem := range line {
 			if elem == "#" {
-				bugMap[x+1][y] = true
+				bugMap[x][y] = true
 			} else if elem == "." {
-				bugMap[x+1][y] = false
+				bugMap[x][y] = false
 			} else {
 				fmt.Println("ERROR")
 			}
@@ -62,43 +138,18 @@ func main() {
 		y++
 	}
 
+	initMap := recBugMap{
+		bugMap: bugMap,
+		inner:  nil,
+		outer:  nil,
+	}
 	printMap(bugMap)
 	for true {
-		for y := 1; y < 6; y++ {
-			for x := 1; x < 6; x++ {
-				bugCount := 0
-				if bugMap[x+1][y] {
-					bugCount++
-				}
-				if bugMap[x-1][y] {
-					bugCount++
-				}
-				if bugMap[x][y+1] {
-					bugCount++
-				}
-				if bugMap[x][y-1] {
-					bugCount++
-				}
-				if bugMap[x][y] {
-					// bug
-					if bugCount != 1 {
-						// dies if there is one around
-						newBugMap[x][y] = false
-					} else {
-						newBugMap[x][y] = true
-					}
-				} else {
-					// empty
-					if bugCount == 1 || bugCount == 2 {
-						newBugMap[x][y] = true
-					} else {
-						newBugMap[x][y] = false
-					}
-				}
-			}
-		}
-		bugMap = newBugMap
-		newBioDiff := calcBioDiff(bugMap)
+
+		newBioDiff := calcBioDiff(initMap.bugMap)
+		updateBugMap(&initMap)
+		printMap(initMap.bugMap)
+
 		if _, ok := bioDiffs[newBioDiff]; ok {
 			fmt.Println("Task 24.1: ", newBioDiff)
 			break
