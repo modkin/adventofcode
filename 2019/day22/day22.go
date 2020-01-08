@@ -154,6 +154,7 @@ func compact(shuffles [][]int64, cards int64) [][]int64 {
 		case 2:
 			increment.Mul(increment, big.NewInt(shuffle[1]))
 			increment.Mod(increment, big.NewInt(cards))
+			//dealWithIncInserted = false
 		default:
 			if !dealWithIncInserted {
 				compacted = append(compacted, []int64{2, increment.Int64()})
@@ -220,29 +221,39 @@ func main() {
 		}
 	}
 
-	pos := int64(2019)
-	length := int64(10007)
+	pos := int64(2020)
+	//length := int64(10007)
 	//pos = int64(2020)
-	//length = int64(119315717514047)
+	length := int64(119315717514047)
 	iterations := int64(101741582076661)
 
-	iterations = 1
+	//iterations = 1
 
-	funcs = compact(funcs, length)
+	factor := compact(funcs, length)
+	funcs = make([][]int64, 0)
 
-	for i := int64(0); i < iterations; i++ {
-		for _, inst := range funcs {
-			switch inst[0] {
-			case 0:
-				pos = trackCut(inst[1], pos, length)
-			case 1:
-				pos = trackReverse(pos, length)
-			case 2:
-				pos = trackdealWithInc(inst[1], pos, length)
-			}
+	for iterLeft := length - iterations - 1; iterLeft != 0; iterLeft /= 2 {
+		if iterLeft%2 == 1 {
+			funcs = append(funcs, factor...)
+			funcs = compact(funcs, length)
 		}
+		factor = append(factor, factor...)
+		factor = compact(factor, length)
 	}
 
-	fmt.Println("Task 22.1: ", pos)
+	//for i := int64(0); i < iterations; i++ {
+	for _, inst := range funcs {
+		switch inst[0] {
+		case 0:
+			pos = trackCut(inst[1], pos, length)
+		case 1:
+			pos = trackReverse(pos, length)
+		case 2:
+			pos = trackdealWithInc(inst[1], pos, length)
+		}
+	}
+	//}
+
+	fmt.Println("Task 22.2: ", pos)
 
 }
