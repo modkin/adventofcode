@@ -95,6 +95,81 @@ func trackCut(cut int64, idx int64, len int64) int64 {
 	}
 }
 
+func compact(shuffles [][]int64, cards int64) [][]int64 {
+	var compacted [][]int64
+	reverse := false
+	for _, shuffle := range shuffles {
+		if shuffle[0] == 1 {
+			reverse = !reverse
+			continue
+		}
+		if shuffle[0] != 1 && !reverse {
+			compacted = append(compacted, shuffle)
+		} else {
+			if shuffle[0] == 0 {
+				cut := (shuffle[1] + cards) % cards
+				cut = cards - cut
+				compacted = append(compacted, []int64{0, cut})
+			} else if shuffle[0] == 2 {
+				compacted = append(compacted, shuffle)
+				compacted = append(compacted, []int64{0, cards + 1 - shuffle[1]})
+			}
+		}
+	}
+	if reverse {
+		compacted = append(compacted, []int64{1})
+	}
+	shuffles = compacted
+
+	compacted = make([][]int64, 0)
+	cut := big.NewInt(0)
+	cutInserted := false
+	for _, shuffle := range shuffles {
+		switch shuffle[0] {
+		case 0:
+			cut.Add(cut, big.NewInt(shuffle[1]))
+			cut.Mod(cut, big.NewInt(cards))
+		case 1:
+			/// this might be wrong
+			compacted = append(compacted, []int64{0, cut.Int64()})
+			compacted = append(compacted, shuffle)
+			cutInserted = true
+		case 2:
+			compacted = append(compacted, shuffle)
+			cut.Mul(cut, big.NewInt(shuffle[1]))
+			cut.Mod(cut, big.NewInt(cards))
+		}
+	}
+	if !cutInserted {
+		compacted = append(compacted, []int64{0, cut.Int64()})
+	}
+
+	shuffles = compacted
+
+	compacted = make([][]int64, 0)
+	increment := big.NewInt(1)
+	dealWithIncInserted := false
+	for _, shuffle := range shuffles {
+		switch shuffle[0] {
+		case 2:
+			increment.Mul(increment, big.NewInt(shuffle[1]))
+			increment.Mod(increment, big.NewInt(cards))
+		default:
+			if !dealWithIncInserted {
+				compacted = append(compacted, []int64{2, increment.Int64()})
+				dealWithIncInserted = true
+			}
+			compacted = append(compacted, shuffle)
+
+		}
+	}
+	if !dealWithIncInserted {
+		compacted = append(compacted, []int64{2, increment.Int64()})
+	}
+
+	return compacted
+}
+
 func main() {
 	var deck []int
 	for i := 0; i < 10007; i++ {
@@ -149,11 +224,13 @@ func main() {
 	length := int64(10007)
 	//pos = int64(2020)
 	//length = int64(119315717514047)
-	count := 101741582076661
+	iterations := int64(101741582076661)
 
-	count = 1
+	iterations = 1
 
-	for i := 0; i < count; i++ {
+	funcs = compact(funcs, length)
+
+	for i := int64(0); i < iterations; i++ {
 		for _, inst := range funcs {
 			switch inst[0] {
 			case 0:
