@@ -39,45 +39,6 @@ func trackdealWithInc(inc int64, idx int64, len int64) int64 {
 	mult.Mul(prod1, prod2)
 	mult.Mod(mult, lenB)
 	return mult.Int64()
-
-	//pos := int64(0)
-	//for i := int64(0); i < idx; i++{
-	//	pos += inc
-	//	pos = pos%len
-	//}
-	//
-	//return pos
-	//remainderidx := idx%inc
-	//remainderLength := len%inc
-	//period := len/inc
-	//if idx <= period {
-	//	return idx * inc
-	//}
-	//
-	//preOffset := int64(0)
-	//var offset int64
-	//for i := int64(0); i < idx/period; i++ {
-	//	preOffset = offset
-	//	if offset > remainderLength{
-	//		offset = offset - remainderLength
-	//	} else {
-	//		offset = (offset + inc) - remainderLength
-	//	}
-	//	//offset = (preOffset + inc)%remainderLength - remainderLength
-	//}
-	//groupStart := remainderidx * inc
-	//if groupStart == 0 {
-	//	return (period -1) * inc + preOffset
-	//}
-	//if groupStart == 1 {
-	//	if preOffset <= remainderLength {
-	//		return period * inc + preOffset
-	//	} else {
-	//		return offset
-	//	}
-	//}
-	//return (groupStart - inc) + offset
-
 }
 
 func trackReverse(idx int64, len int64) int64 {
