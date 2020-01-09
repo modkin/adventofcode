@@ -97,7 +97,7 @@ type Key struct {
 }
 
 func main() {
-	file, err := os.Open("./testInput3")
+	file, err := os.Open("./input")
 	if err != nil {
 		panic(err)
 	}
@@ -239,40 +239,39 @@ func main() {
 	var minDist int
 	var minKeys uint32
 	running = true
+	//history := make(map[string]map[uint32]int)
 
-	var cantReach []posKey
 	for running {
-		running = false
+		//running = false
 		/// find shortest path
 		minDist = math.MaxInt32
 		minKeys = uint32(0)
 		for pos, posProp := range possiblePath {
 			for keys, dist := range posProp {
-				if !find(cantReach, posKey{
-					pos:  pos,
-					keys: keys,
-				}) {
-					if dist < minDist {
-						minPos = pos
-						minDist = dist
-						minKeys = keys
-					}
+				if dist < minDist {
+					minPos = pos
+					minDist = dist
+					minKeys = keys
 				}
 			}
 		}
 
-		if bits.OnesCount32(minKeys) != counterLowerCaseLetter-1 {
-			running = true
+		//if bits.OnesCount32(minKeys) != counterLowerCaseLetter-1 {
+		//	running = true
+		//} else {
+		//	break
+		//}
+		if bits.OnesCount32(minKeys|keyToUint32(minPos)) == counterLowerCaseLetter {
+			break
 		}
+		fmt.Println(minDist)
 
 		nextPoints := keyMap[minPos].destinations
-		cantProgress := true
-		noShorterPathFound := true
 		for newPos, newDest := range nextPoints {
 			/// skip self
-			if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
-				continue
-			}
+			//if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
+			//	continue
+			//}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
 				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
@@ -281,53 +280,60 @@ func main() {
 				}
 			}
 			if allDeps {
-				//delete(possiblePath[minPos], )
-				//if !unicode.IsLower([]rune(newPos)[0]) {
-				//	fmt.Println(newPos)
-				//	panic("non lowercase newPos")
-				//}
-				newEntry := false
+				addNew := true
+				//check if all current keys are contained in another former position
 				if dist, ok := possiblePath[newPos][minKeys|keyToUint32(minPos)]; ok {
 					if dist <= minDist+newDest.distance {
-						fmt.Println("old distance is smaller", dist)
-					} else {
-						newEntry = true
-					}
-				} else {
-					if _, ok := possiblePath[newPos][minKeys]; !ok {
-						newEntry = true
+						addNew = false
 					}
 				}
-				if newEntry {
+				//if otherPath, ok := possiblePath[newPos]; ok {
+				//	for keys, dist := range otherPath {
+				//		if bits.OnesCount32(minKeys & keys) == bits.OnesCount32(minKeys) {
+				//			if dist > minDist + newDest.distance {
+				//				possiblePath[newPos][keys] = minDist + newDest.distance
+				//			}
+				//			addNew = false
+				//		}
+				//	}
+				//}
+				if addNew {
 					if _, ok := possiblePath[newPos]; !ok {
 						possiblePath[newPos] = make(map[uint32]int)
 					}
 					possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
-					noShorterPathFound = false
 				}
-				//possiblePath[newPos] = map[uint32]int{minKeys | keyToUint32(minPos) : minDist + newDest.distance }
-				//delete(possiblePath, minPath)
-				cantProgress = false
-				cantReach = nil
+				//newEntry := false
+				//if dist, ok := possiblePath[newPos][minKeys|keyToUint32(minPos)]; ok {
+				//	if dist <= minDist+newDest.distance {
+				//		fmt.Println("old distance is smaller", dist)
+				//	} else {
+				//		newEntry = true
+				//	}
+				//} else {
+				//	newEntry = true
+				//}
+				//if newEntry {
+				//	if _, ok := possiblePath[newPos]; !ok {
+				//		possiblePath[newPos] = make(map[uint32]int)
+				//	}
+				//	possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
+				//}
+
 			}
 		}
-		if cantProgress {
-			cantReach = append(cantReach, posKey{
-				pos:  minPos,
-				keys: minKeys,
-			})
-		} else {
-			if noShorterPathFound {
-				delete(possiblePath[minPos], minKeys)
-			}
+		if minDist%10 == 0 {
+			fmt.Println(minDist)
 		}
-		//counter := 0
+		delete(possiblePath[minPos], minKeys)
 
 	}
 	//fmt.Println("Paths: ", len(possiblePath))
 	//fmt.Println("Removed ", counter)
 
 	fmt.Println(minDist)
+	fmt.Printf("%032b\n", keyToUint32(minPos))
+	fmt.Printf("%032b\n", minKeys)
 	fmt.Println(minKeys)
 	fmt.Println(minPos)
 }
