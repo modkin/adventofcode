@@ -7,7 +7,6 @@ import (
 	"math"
 	"math/bits"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -30,7 +29,13 @@ func printPaintMap(paintMap map[[2]int]string) {
 		fmt.Println()
 	}
 }
-func find(slice []string, val string) bool {
+
+type posKey struct {
+	pos  string
+	keys uint32
+}
+
+func find(slice []posKey, val posKey) bool {
 	for _, item := range slice {
 		if item == val {
 			return true
@@ -72,6 +77,9 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 }
 
 func keyToUint32(key string) (ret uint32) {
+	if key == "@" {
+		return 0
+	}
 	pos := int([]rune(key)[0]) - 97
 	ret |= 1 << pos
 	return
@@ -89,7 +97,7 @@ type Key struct {
 }
 
 func main() {
-	file, err := os.Open("./testInput2")
+	file, err := os.Open("./testInput3")
 	if err != nil {
 		panic(err)
 	}
@@ -221,110 +229,105 @@ func main() {
 		delete(keyMap, key)
 	}
 
-	//printPaintMap(dungeon)
-	//fmt.Println(keyMap)
-	//fmt.Println(keyMap["@"])
+	possiblePath := make(map[string]map[uint32]int)
 
-	type position struct {
-		distance int
-		keys     uint32
-	}
+	possiblePath["@"] = map[uint32]int{0: 0}
+	//possiblePath := make(map[string]int)
+	//possiblePath["@"] = 0
 
-	//possiblePath := make(map[string]position)
-	//
-	//possiblePath["@"] = position{
-	//	distance: 0,
-	//	keys:     0,
-	//}
-	possiblePath := make(map[string]int)
-	possiblePath["@"] = 0
-
-	var min int
-	var minPath string
+	var minPos string
+	var minDist int
+	var minKeys uint32
 	running = true
-	var cantReach []string
+
+	var cantReach []posKey
 	for running {
 		running = false
 		/// find shortest path
-		min = math.MaxInt32
-		for path, dis := range possiblePath {
-			if !find(cantReach, path) {
-				if dis < min {
-					min = dis
-					minPath = path
+		minDist = math.MaxInt32
+		minKeys = uint32(0)
+		for pos, posProp := range possiblePath {
+			for keys, dist := range posProp {
+				if !find(cantReach, posKey{
+					pos:  pos,
+					keys: keys,
+				}) {
+					if dist < minDist {
+						minPos = pos
+						minDist = dist
+						minKeys = keys
+					}
 				}
 			}
 		}
 
-		fmt.Println(min)
-		fmt.Println(minPath)
-
-		for _, keyToCheck := range keyList {
-			if !strings.Contains(minPath, strings.ToLower(keyToCheck)) {
-				running = true
-				break
-			}
+		if bits.OnesCount32(minKeys) != counterLowerCaseLetter-1 {
+			running = true
 		}
 
-		allKeys := strings.Split(minPath, "")
-
-		nextPoints := keyMap[allKeys[len(allKeys)-1]].destinations
+		nextPoints := keyMap[minPos].destinations
 		cantProgress := true
+		noShorterPathFound := true
 		for newPos, newDest := range nextPoints {
 			/// skip self
-			if strings.Contains(minPath, newPos) {
+			if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
 				continue
-				/// check if newPos is upper case => door
 			}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
-				if !strings.Contains(minPath, strings.ToLower(dep)) {
+				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
 					allDeps = false
 					break
 				}
 			}
 			if allDeps {
-				possiblePath[minPath+strings.Join(newDest.keysOnTheWay, "")+newPos] = min + newDest.distance
-				delete(possiblePath, minPath)
+				//delete(possiblePath[minPos], )
+				//if !unicode.IsLower([]rune(newPos)[0]) {
+				//	fmt.Println(newPos)
+				//	panic("non lowercase newPos")
+				//}
+				newEntry := false
+				if dist, ok := possiblePath[newPos][minKeys|keyToUint32(minPos)]; ok {
+					if dist <= minDist+newDest.distance {
+						fmt.Println("old distance is smaller", dist)
+					} else {
+						newEntry = true
+					}
+				} else {
+					if _, ok := possiblePath[newPos][minKeys]; !ok {
+						newEntry = true
+					}
+				}
+				if newEntry {
+					if _, ok := possiblePath[newPos]; !ok {
+						possiblePath[newPos] = make(map[uint32]int)
+					}
+					possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
+					noShorterPathFound = false
+				}
+				//possiblePath[newPos] = map[uint32]int{minKeys | keyToUint32(minPos) : minDist + newDest.distance }
+				//delete(possiblePath, minPath)
 				cantProgress = false
 				cantReach = nil
 			}
 		}
 		if cantProgress {
-			cantReach = append(cantReach, minPath)
-		}
-		//counter := 0
-		type keyDist struct {
-			key      string
-			distance int
-			orig     string
-		}
-		duplicates := make(map[string]keyDist)
-		for keys, dis := range possiblePath {
-			keysSplit := strings.Split(keys, "")
-			lastKey := keysSplit[len(keysSplit)-1]
-			keysSplit = keysSplit[0 : len(keysSplit)-1]
-			sort.Strings(keysSplit)
-			sortedKeys := strings.Join(keysSplit, "")
-			if dupKey, ok := duplicates[sortedKeys]; ok {
-				if dupKey.key == lastKey {
-					delete(possiblePath, keys)
-					if dis < dupKey.distance {
-						possiblePath[dupKey.orig] = dis
-					}
-				}
-			} else {
-				duplicates[sortedKeys] = keyDist{
-					key:      lastKey,
-					distance: dis,
-					orig:     keys,
-				}
+			cantReach = append(cantReach, posKey{
+				pos:  minPos,
+				keys: minKeys,
+			})
+		} else {
+			if noShorterPathFound {
+				delete(possiblePath[minPos], minKeys)
 			}
 		}
+		//counter := 0
+
 	}
 	//fmt.Println("Paths: ", len(possiblePath))
 	//fmt.Println("Removed ", counter)
 
-	fmt.Println(minPath)
-	fmt.Println(min)
+	fmt.Println(minDist)
+	fmt.Println(minKeys)
+	fmt.Println(minPos)
 }
