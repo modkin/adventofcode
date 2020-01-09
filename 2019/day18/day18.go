@@ -71,6 +71,7 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 }
 
 type Destination struct {
+	keysOnTheWay []string
 	dependencies []string
 	distance     int
 }
@@ -152,13 +153,19 @@ func main() {
 					//delete(keyStruct.destinations, dstName)
 				}
 				newKeyStruct.destinations[dstName] = Destination{
+					keysOnTheWay: utils.CopyStringSlice(dst.keysOnTheWay),
 					dependencies: newDeps,
 					distance:     dst.distance,
 				}
 
 				for indirectName, indirectdst := range keyMap[dstName].destinations {
 					if _, ok := keyStruct.destinations[indirectName]; !ok && indirectName != symbol {
+						newKeysOnTheWay := append(utils.CopyStringSlice(dst.keysOnTheWay), indirectdst.keysOnTheWay...)
+						if unicode.IsLower([]rune(dstName)[0]) {
+							newKeysOnTheWay = append(newKeysOnTheWay, dstName)
+						}
 						newKeyStruct.destinations[indirectName] = Destination{
+							keysOnTheWay: newKeysOnTheWay,
 							dependencies: append(newDeps, indirectdst.dependencies...),
 							distance:     indirectdst.distance + dst.distance,
 						}
@@ -224,8 +231,10 @@ func main() {
 				}
 			}
 		}
+
 		fmt.Println(min)
 		fmt.Println(minPath)
+
 		for _, keyToCheck := range keyList {
 			if !strings.Contains(minPath, strings.ToLower(keyToCheck)) {
 				running = true
@@ -251,7 +260,7 @@ func main() {
 				}
 			}
 			if allDeps {
-				possiblePath[minPath+newPos] = min + newDest.distance
+				possiblePath[minPath+strings.Join(newDest.keysOnTheWay, "")+newPos] = min + newDest.distance
 				delete(possiblePath, minPath)
 				cantProgress = false
 				cantReach = nil
@@ -260,21 +269,33 @@ func main() {
 		if cantProgress {
 			cantReach = append(cantReach, minPath)
 		}
-		counter := 0
-		duplicates := make(map[string]string)
-		for keys, _ := range possiblePath {
+		//counter := 0
+		type keyDist struct {
+			key      string
+			distance int
+		}
+		duplicates := make(map[string]keyDist)
+		for keys, dis := range possiblePath {
 			keysSplit := strings.Split(keys, "")
 			lastKey := keysSplit[len(keysSplit)-1]
 			keysSplit = keysSplit[0 : len(keysSplit)-1]
 			sort.Strings(keysSplit)
 			sortedKeys := strings.Join(keysSplit, "")
 			if dupKey, ok := duplicates[sortedKeys]; ok {
-				if dupKey == lastKey {
+				if dupKey.key == lastKey {
 					delete(possiblePath, keys)
-					counter++
+					if dis < dupKey.distance {
+						duplicates[sortedKeys] = keyDist{
+							key:      lastKey,
+							distance: dis,
+						}
+					}
 				}
 			} else {
-				duplicates[sortedKeys] = lastKey
+				duplicates[sortedKeys] = keyDist{
+					key:      lastKey,
+					distance: dis,
+				}
 			}
 		}
 	}

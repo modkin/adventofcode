@@ -14,6 +14,12 @@ func CopyIntSlice(input []int) []int {
 	return sliceCopy
 }
 
+func CopyStringSlice(input []string) []string {
+	sliceCopy := make([]string, len(input))
+	copy(sliceCopy, input)
+	return sliceCopy
+}
+
 func ToInt64(str string) int64 {
 	ret, err := strconv.ParseInt(strings.TrimSpace(str), 10, 64)
 	if err != nil {
