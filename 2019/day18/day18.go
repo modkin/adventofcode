@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"math"
+	"math/bits"
 	"os"
 	"sort"
 	"strconv"
@@ -68,6 +69,12 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 		positions = newPositions
 	}
 	return keyDistance
+}
+
+func keyToUint32(key string) (ret uint32) {
+	pos := int([]rune(key)[0]) - 97
+	ret |= 1 << pos
+	return
 }
 
 type Destination struct {
@@ -135,6 +142,13 @@ func main() {
 			dungeon[key] = val
 		}
 	}
+
+	var total uint32
+	for _, key := range keyList {
+		fmt.Printf("%s == %032b\n", key, keyToUint32(key))
+		total = total | keyToUint32(key)
+	}
+	fmt.Printf("%d== %032b\n", bits.OnesCount32(total), total)
 
 	running := true
 	for running {
@@ -211,8 +225,18 @@ func main() {
 	//fmt.Println(keyMap)
 	//fmt.Println(keyMap["@"])
 
-	possiblePath := make(map[string]int)
+	type position struct {
+		distance int
+		keys     uint32
+	}
 
+	//possiblePath := make(map[string]position)
+	//
+	//possiblePath["@"] = position{
+	//	distance: 0,
+	//	keys:     0,
+	//}
+	possiblePath := make(map[string]int)
 	possiblePath["@"] = 0
 
 	var min int
@@ -273,6 +297,7 @@ func main() {
 		type keyDist struct {
 			key      string
 			distance int
+			orig     string
 		}
 		duplicates := make(map[string]keyDist)
 		for keys, dis := range possiblePath {
@@ -285,16 +310,14 @@ func main() {
 				if dupKey.key == lastKey {
 					delete(possiblePath, keys)
 					if dis < dupKey.distance {
-						duplicates[sortedKeys] = keyDist{
-							key:      lastKey,
-							distance: dis,
-						}
+						possiblePath[dupKey.orig] = dis
 					}
 				}
 			} else {
 				duplicates[sortedKeys] = keyDist{
 					key:      lastKey,
 					distance: dis,
+					orig:     keys,
 				}
 			}
 		}
