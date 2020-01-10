@@ -77,7 +77,7 @@ func calcDistances(dungeon map[[2]int]string, start [2]int) map[string]int {
 }
 
 func keyToUint32(key string) (ret uint32) {
-	if key == "@" {
+	if key == "@" || key == "*" || key == "+" || key == "-" {
 		return 0
 	}
 	pos := int([]rune(key)[0]) - 97
@@ -229,13 +229,13 @@ func runTask(filename string) int {
 		delete(keyMap, key)
 	}
 
-	possiblePath := make(map[string]map[uint32]int)
+	possiblePath := make(map[[4]string]map[uint32]int)
 
-	possiblePath["@"] = map[uint32]int{0: 0}
+	possiblePath[[4]string{"@", "*", "-", "+"}] = map[uint32]int{0: 0}
 	//possiblePath := make(map[string]int)
 	//possiblePath["@"] = 0
 
-	var minPos string
+	var allMinPos [4]string
 	var minDist int
 	var minKeys uint32
 	running = true
@@ -247,61 +247,68 @@ func runTask(filename string) int {
 		for pos, posProp := range possiblePath {
 			for keys, dist := range posProp {
 				if dist < minDist {
-					minPos = pos
+					allMinPos = pos
 					minDist = dist
 					minKeys = keys
 				}
 			}
 		}
-
-		if bits.OnesCount32(minKeys|keyToUint32(minPos)) == counterLowerCaseLetter {
+		var allCurPos uint32
+		for _, key := range allMinPos {
+			allCurPos = allCurPos | keyToUint32(key)
+		}
+		if bits.OnesCount32(minKeys|allCurPos) == counterLowerCaseLetter {
 			break
 		}
 
-		nextPoints := keyMap[minPos].destinations
-		for newPos, newDest := range nextPoints {
-			if minKeys&keyToUint32(newPos) == keyToUint32(newPos) {
-				continue
-			}
-			allDeps := true
-			for _, dep := range newDest.dependencies {
-				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
-					allDeps = false
-					break
+		for idx, minPos := range allMinPos {
+			nextPoints := keyMap[minPos].destinations
+			for newPos, newDest := range nextPoints {
+				if minKeys&keyToUint32(newPos) == keyToUint32(newPos) {
+					continue
 				}
-			}
-			if allDeps {
-				addNew := true
-				//check if all current keys are contained in another former position
-				if dist, ok := possiblePath[newPos][minKeys|keyToUint32(minPos)]; ok {
-					if dist <= minDist+newDest.distance {
-						addNew = false
+				allDeps := true
+				for _, dep := range newDest.dependencies {
+					if (minKeys|allCurPos)&keyToUint32(strings.ToLower(dep)) == 0 {
+						allDeps = false
+						break
 					}
 				}
+				if allDeps {
+					addNew := true
+					//check if all current keys are contained in another former position
+					newAllPos := allMinPos
+					newAllPos[idx] = newPos
+					if dist, ok := possiblePath[newAllPos][minKeys|keyToUint32(minPos)]; ok {
+						if dist <= minDist+newDest.distance {
+							addNew = false
+						}
+					}
 
-				if addNew {
-					if _, ok := possiblePath[newPos]; !ok {
-						possiblePath[newPos] = make(map[uint32]int)
+					if addNew {
+						if _, ok := possiblePath[newAllPos]; !ok {
+							possiblePath[newAllPos] = make(map[uint32]int)
+						}
+						possiblePath[newAllPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
 					}
-					possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
 				}
 			}
 		}
-		delete(possiblePath[minPos], minKeys)
+		delete(possiblePath[allMinPos], minKeys)
 
 	}
 	//fmt.Println("Paths: ", len(possiblePath))
 	//fmt.Println("Removed ", counter)
 
 	fmt.Println("MinDist: ", minDist)
-	fmt.Printf("%032b\n", keyToUint32(minPos))
+	//fmt.Printf("%032b\n", keyToUint32(minPos))
 	fmt.Printf("%032b\n", minKeys)
 	fmt.Println(minKeys)
-	fmt.Println(minPos)
+	//fmt.Println(minPos)
 
 	return minDist
 }
 
 func main() {
-	runTask("./input")
+	runTask("./testInput6")
 }
