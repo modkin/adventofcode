@@ -268,9 +268,9 @@ func runTask(filename string) int {
 		nextPoints := keyMap[minPos].destinations
 		for newPos, newDest := range nextPoints {
 			// skip self
-			if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
-				continue
-			}
+			//if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
+			//	continue
+			//}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
 				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
