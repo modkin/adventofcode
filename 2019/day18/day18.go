@@ -295,7 +295,7 @@ func runTask(filename string) int {
 			}
 		}
 		delete(possiblePath[allMinPos], minKeys)
-
+		fmt.Println(minDist)
 	}
 	//fmt.Println("Paths: ", len(possiblePath))
 	//fmt.Println("Removed ", counter)
@@ -310,5 +310,5 @@ func runTask(filename string) int {
 }
 
 func main() {
-	runTask("./testInput6")
+	runTask("./input2")
 }
