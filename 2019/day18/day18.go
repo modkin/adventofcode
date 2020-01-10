@@ -159,7 +159,7 @@ func runTask(filename string) int {
 	fmt.Printf("%d== %032b\n", bits.OnesCount32(total), total)
 
 	running := true
-	for i := 0; i < 60; i++ {
+	for i := 0; i < 120; i++ {
 		running = false
 		newKeyMap := make(map[string]Key)
 		for symbol, keyStruct := range keyMap {
