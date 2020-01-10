@@ -260,6 +260,9 @@ func runTask(filename string) int {
 
 		nextPoints := keyMap[minPos].destinations
 		for newPos, newDest := range nextPoints {
+			if minKeys&keyToUint32(newPos) == keyToUint32(newPos) {
+				continue
+			}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
 				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
@@ -300,5 +303,5 @@ func runTask(filename string) int {
 }
 
 func main() {
-	runTask("./testInput4")
+	runTask("./input")
 }
