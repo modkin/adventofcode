@@ -159,7 +159,7 @@ func runTask(filename string) int {
 	fmt.Printf("%d== %032b\n", bits.OnesCount32(total), total)
 
 	running := true
-	for running {
+	for i := 0; i < 60; i++ {
 		running = false
 		newKeyMap := make(map[string]Key)
 		for symbol, keyStruct := range keyMap {
@@ -197,18 +197,18 @@ func runTask(filename string) int {
 			newKeyMap[symbol] = newKeyStruct
 		}
 		keyMap = newKeyMap
-		for key, destinations := range keyMap {
-			if unicode.IsLower([]rune(key)[0]) {
-				for _, allKey := range keyList {
-					if allKey != key {
-						if _, ok := destinations.destinations[allKey]; !ok {
-							running = true
-							break
-						}
-					}
-				}
-			}
-		}
+		//for key, destinations := range keyMap {
+		//	if unicode.IsLower([]rune(key)[0]) {
+		//		for _, allKey := range keyList {
+		//			if allKey != key {
+		//				if _, ok := destinations.destinations[allKey]; !ok {
+		//					running = true
+		//					break
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 	}
 
 	var deleteKeys []string
@@ -242,8 +242,6 @@ func runTask(filename string) int {
 	//history := make(map[string]map[uint32]int)
 
 	for running {
-		//running = false
-		/// find shortest path
 		minDist = math.MaxInt32
 		minKeys = uint32(0)
 		for pos, posProp := range possiblePath {
@@ -256,21 +254,12 @@ func runTask(filename string) int {
 			}
 		}
 
-		//if bits.OnesCount32(minKeys) != counterLowerCaseLetter-1 {
-		//	running = true
-		//} else {
-		//	break
-		//}
 		if bits.OnesCount32(minKeys|keyToUint32(minPos)) == counterLowerCaseLetter {
 			break
 		}
 
 		nextPoints := keyMap[minPos].destinations
 		for newPos, newDest := range nextPoints {
-			// skip self
-			//if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
-			//	continue
-			//}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
 				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
@@ -286,39 +275,13 @@ func runTask(filename string) int {
 						addNew = false
 					}
 				}
-				//if otherPath, ok := possiblePath[newPos]; ok {
-				//	for keys, dist := range otherPath {
-				//		if bits.OnesCount32(minKeys & keys) == bits.OnesCount32(minKeys) {
-				//			if dist > minDist + newDest.distance {
-				//				possiblePath[newPos][keys] = minDist + newDest.distance
-				//			}
-				//			addNew = false
-				//		}
-				//	}
-				//}
+
 				if addNew {
 					if _, ok := possiblePath[newPos]; !ok {
 						possiblePath[newPos] = make(map[uint32]int)
 					}
 					possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
 				}
-				//newEntry := false
-				//if dist, ok := possiblePath[newPos][minKeys|keyToUint32(minPos)]; ok {
-				//	if dist <= minDist+newDest.distance {
-				//		fmt.Println("old distance is smaller", dist)
-				//	} else {
-				//		newEntry = true
-				//	}
-				//} else {
-				//	newEntry = true
-				//}
-				//if newEntry {
-				//	if _, ok := possiblePath[newPos]; !ok {
-				//		possiblePath[newPos] = make(map[uint32]int)
-				//	}
-				//	possiblePath[newPos][minKeys|keyToUint32(minPos)] = minDist + newDest.distance
-				//}
-
 			}
 		}
 		delete(possiblePath[minPos], minKeys)
@@ -337,5 +300,5 @@ func runTask(filename string) int {
 }
 
 func main() {
-	runTask("./input")
+	runTask("./testInput4")
 }
