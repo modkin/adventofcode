@@ -96,8 +96,8 @@ type Key struct {
 	pos          [2]int
 }
 
-func main() {
-	file, err := os.Open("./input")
+func runTask(filename string) int {
+	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
@@ -264,14 +264,13 @@ func main() {
 		if bits.OnesCount32(minKeys|keyToUint32(minPos)) == counterLowerCaseLetter {
 			break
 		}
-		fmt.Println(minDist)
 
 		nextPoints := keyMap[minPos].destinations
 		for newPos, newDest := range nextPoints {
-			/// skip self
-			//if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
-			//	continue
-			//}
+			// skip self
+			if minKeys&keyToUint32(newPos) != 0 || newPos == "@" {
+				continue
+			}
 			allDeps := true
 			for _, dep := range newDest.dependencies {
 				if (minKeys|keyToUint32(minPos))&keyToUint32(strings.ToLower(dep)) == 0 {
@@ -322,18 +321,21 @@ func main() {
 
 			}
 		}
-		if minDist%10 == 0 {
-			fmt.Println(minDist)
-		}
 		delete(possiblePath[minPos], minKeys)
 
 	}
 	//fmt.Println("Paths: ", len(possiblePath))
 	//fmt.Println("Removed ", counter)
 
-	fmt.Println(minDist)
+	fmt.Println("MinDist: ", minDist)
 	fmt.Printf("%032b\n", keyToUint32(minPos))
 	fmt.Printf("%032b\n", minKeys)
 	fmt.Println(minKeys)
 	fmt.Println(minPos)
+
+	return minDist
+}
+
+func main() {
+	runTask("./input")
 }
