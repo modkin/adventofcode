@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math"
 	"sort"
-	"time"
 )
 
 type member struct {
@@ -44,8 +43,8 @@ func main() {
 	//	tmp := member{name.(string), genEmptyTimings()}
 	//	allMember = append(allMember, tmp)
 	//}
-	timestamp := time.Now()
-	daysDone := timestamp.Day()
+	//timestamp := time.Now()
+	daysDone := 25
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2)}
@@ -76,15 +75,15 @@ func main() {
 		}
 	}
 	fmt.Println(memberPoints)
-	fmt.Printf("%-20v|", "Name")
+	fmt.Printf("%-15v|", "Name")
 	for i := 0; i < daysDone*2; i++ {
-		fmt.Printf("%2v.%v|", (i/2)+1, i%2+1)
+		fmt.Printf("%2v|", (i/2)+1)
 	}
 	fmt.Print(" Sum\n")
 	for _, mem := range memberPoints {
-		fmt.Printf("%-20v|", mem.Name)
+		fmt.Printf("%-15v|", mem.Name)
 		for _, point := range mem.timings {
-			fmt.Printf(" %2v |", point)
+			fmt.Printf("%2v|", point)
 		}
 		fmt.Print(" ", utils.SumSlice(mem.timings), "\n")
 	}
