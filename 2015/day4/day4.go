@@ -2,18 +2,23 @@ package main
 
 import (
 	"crypto/md5"
-	"encoding/hex"
 	"fmt"
+	"strconv"
 )
 
 func main() {
-	input := []byte("abcdef")
-	//salt := 1
-	//for true {
-	salt := 609043
-		input = append(input, []byte()
-	hash := md5.Sum(input)
-	//}
-	fmt.Println(hash)
-	fmt.Println(hex.EncodeToString(hash[:]))
+
+	input := []byte("ckczppom")
+	salt := 1
+	for true {
+		testInput := append(input, []byte(strconv.Itoa(salt))...)
+		hash := md5.Sum(testInput)
+		if hash[0] == byte(0) && hash[1] == byte(0) && hash[2] < uint8(16) {
+
+			fmt.Println("Task 4.1:", salt)
+			//fmt.Println(hex.EncodeToString(hash[:]))
+			break
+		}
+		salt += 1
+	}
 }
