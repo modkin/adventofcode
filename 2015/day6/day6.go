@@ -14,6 +14,7 @@ func main() {
 		panic(err)
 	}
 	grid := [1000][1000]bool{}
+	brightnessGrid := [1000][1000]int{}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -33,11 +34,16 @@ func main() {
 				if instruction[0] == "turn" {
 					if instruction[1] == "on" {
 						grid[x][y] = true
+						brightnessGrid[x][y] += 1
 					} else {
 						grid[x][y] = false
+						if brightnessGrid[x][y] > 0 {
+							brightnessGrid[x][y] -= 1
+						}
 					}
 				} else {
 					grid[x][y] = !grid[x][y]
+					brightnessGrid[x][y] += 2
 				}
 			}
 		}
@@ -50,5 +56,12 @@ func main() {
 			}
 		}
 	}
+	brightnessCount := 0
+	for _, x := range brightnessGrid {
+		for _, y := range x {
+			brightnessCount += y
+		}
+	}
 	fmt.Println("Task 6.1:", count)
+	fmt.Println("Task 6.2:", brightnessCount)
 }
