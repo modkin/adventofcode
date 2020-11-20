@@ -100,5 +100,12 @@ func main() {
 	//for key, val := range wires {
 	//	fmt.Println(key, val())
 	//}
-	fmt.Println("Task 7.1:", wires["a"]())
+	aOne := wires["a"]()
+	fmt.Println("Task 7.1:", aOne)
+	wireCache = make(map[string]uint16)
+	tmp := func() uint16 {
+		return aOne
+	}
+	wires["b"] = tmp
+	fmt.Println("Task 7.2:", wires["a"]())
 }
