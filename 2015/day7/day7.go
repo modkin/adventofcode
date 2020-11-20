@@ -25,21 +25,29 @@ func main() {
 		inst := strings.Split(line, " ")
 		if strings.Contains(line, "RSHIFT") {
 			tmp := func() uint16 {
-				if val, ok := wireCache[inst[0]]; ok {
-					return val >> uint(utils.ToInt(inst[2]))
-				} else {
-					return wires[inst[0]]() >> uint(utils.ToInt(inst[2]))
+				if _, ok := wireCache[inst[0]]; !ok {
+					wireCache[inst[0]] = wires[inst[0]]()
 				}
+				return wires[inst[0]]() >> uint(utils.ToInt(inst[2]))
 			}
 			wires[inst[4]] = tmp
 		} else if strings.Contains(line, "LSHIFT") {
 			tmp := func() uint16 {
-				return wires[inst[0]]() << uint(utils.ToInt(inst[2]))
+				if _, ok := wireCache[inst[0]]; !ok {
+					wireCache[inst[0]] = wires[inst[0]]()
+				}
+				return wireCache[inst[0]] << uint(utils.ToInt(inst[2]))
 			}
 			wires[inst[4]] = tmp
 		} else if strings.Contains(line, "OR") {
 			tmp := func() uint16 {
-				return wires[inst[0]]() | wires[inst[2]]()
+				if _, ok := wireCache[inst[0]]; !ok {
+					wireCache[inst[0]] = wires[inst[0]]()
+				}
+				if _, ok := wireCache[inst[2]]; !ok {
+					wireCache[inst[2]] = wires[inst[2]]()
+				}
+				return wireCache[inst[0]] | wireCache[inst[2]]
 			}
 			wires[inst[4]] = tmp
 		} else if strings.Contains(line, "AND") {
@@ -47,18 +55,30 @@ func main() {
 			var tmp func() uint16
 			if err == nil {
 				tmp = func() uint16 {
-					return uint16(val) & wires[inst[2]]()
+					if _, ok := wireCache[inst[2]]; !ok {
+						wireCache[inst[2]] = wires[inst[2]]()
+					}
+					return uint16(val) & wireCache[inst[2]]
 				}
 			} else {
 				tmp = func() uint16 {
-					return wires[inst[0]]() & wires[inst[2]]()
+					if _, ok := wireCache[inst[2]]; !ok {
+						wireCache[inst[2]] = wires[inst[2]]()
+					}
+					if _, ok := wireCache[inst[0]]; !ok {
+						wireCache[inst[0]] = wires[inst[0]]()
+					}
+					return wireCache[inst[0]] & wireCache[inst[2]]
 				}
 			}
 
 			wires[inst[4]] = tmp
 		} else if strings.Contains(line, "NOT") {
 			tmp := func() uint16 {
-				return ^wires[inst[1]]()
+				if _, ok := wireCache[inst[1]]; !ok {
+					wireCache[inst[1]] = wires[inst[1]]()
+				}
+				return ^wireCache[inst[1]]
 			}
 			wires[inst[3]] = tmp
 		} else {
@@ -67,7 +87,10 @@ func main() {
 				if err == nil {
 					return uint16(val)
 				} else {
-					return wires[inst[0]]()
+					if _, ok := wireCache[inst[0]]; !ok {
+						wireCache[inst[0]] = wires[inst[0]]()
+					}
+					return wireCache[inst[0]]
 				}
 			}
 			wires[inst[2]] = tmp
@@ -77,6 +100,5 @@ func main() {
 	//for key, val := range wires {
 	//	fmt.Println(key, val())
 	//}
-	//fmt.Println(wires["z"]())
 	fmt.Println("Task 7.1:", wires["a"]())
 }
