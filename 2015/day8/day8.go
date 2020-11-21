@@ -15,9 +15,12 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(file)
-	var stringlen, reallen int
+	var stringlen, reallen, escapelen int
 	for scanner.Scan() {
 		line := scanner.Text()
+		escapeLine := strings.ReplaceAll(line, `\`, `\\`)
+		escapeLine = strings.ReplaceAll(escapeLine, `"`, `\"`)
+		escapelen += len(escapeLine) + 2
 		stringlen += len(line)
 		lineTrim := strings.TrimPrefix(line, `"`)
 		lineTrim = strings.TrimSuffix(lineTrim, `"`)
@@ -25,4 +28,5 @@ func main() {
 		reallen += len(lineUnquote)
 	}
 	fmt.Println("Task 8.1:", stringlen-reallen)
+	fmt.Println("Task 8.2:", escapelen-stringlen)
 }
