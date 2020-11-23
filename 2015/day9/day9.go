@@ -38,36 +38,26 @@ func main() {
 	cityCount := len(allCities)
 
 	allRoutes := make([][]string, 0)
-	var nextCity func(current string, visited []string, distance int) int
-	nextCity = func(current string, visited []string, distance int) int {
-		minLen := math.MaxInt32
+	var nextCity func(current string, visited []string)
+	nextCity = func(current string, visited []string) {
 		for dst := range allCities {
 			if utils.SliceContains(visited, dst) {
 				continue
 			}
-			distance += distances[current][dst]
 			newVisited := utils.CopyStringSlice(visited)
 			newVisited = append(newVisited, dst)
 			if len(newVisited) == cityCount {
 				allRoutes = append(allRoutes, newVisited)
-				return distance
 
 			} else {
-				if newDst := nextCity(dst, newVisited, distance); newDst < minLen {
-					minLen = newDst
-				}
+				nextCity(dst, newVisited)
 			}
 		}
-		//fmt.Println(minLen)
-		return minLen
 	}
 	minimalLength := math.MaxInt32
 
 	for start := range allCities {
-		if newDst := nextCity(start, []string{start}, 0); newDst < minimalLength {
-			minimalLength = newDst
-		}
-		fmt.Println(len(allRoutes))
+		nextCity(start, []string{start})
 	}
 	minimalLength = math.MaxInt32
 	for _, route := range allRoutes {
