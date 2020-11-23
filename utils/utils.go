@@ -96,3 +96,12 @@ func MaxIdx(toCheck [2]int) int {
 func Sum(one [2]int, two [2]int) [2]int {
 	return [2]int{one[0] + two[0], one[1] + two[1]}
 }
+
+func SliceContains(list []string, s string) bool {
+	for _, elem := range list {
+		if s == elem {
+			return true
+		}
+	}
+	return false
+}
