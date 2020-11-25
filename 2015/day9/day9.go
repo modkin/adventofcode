@@ -54,21 +54,24 @@ func main() {
 			}
 		}
 	}
-	minimalLength := math.MaxInt32
-
 	for start := range allCities {
 		nextCity(start, []string{start})
 	}
-	minimalLength = math.MaxInt32
+	minimalLength := math.MaxInt32
+	maximalLength := 0
 	for _, route := range allRoutes {
-		lenght := 0
+		length := 0
 		for i := 0; i < len(route)-1; i++ {
-			lenght += distances[route[i]][route[i+1]]
+			length += distances[route[i]][route[i+1]]
 		}
-		if lenght < minimalLength {
-			minimalLength = lenght
+		if length < minimalLength {
+			minimalLength = length
+		}
+		if length > maximalLength {
+			maximalLength = length
 		}
 	}
 
 	fmt.Println("Task 9.1: ", minimalLength)
+	fmt.Println("Task 9.2: ", maximalLength)
 }
