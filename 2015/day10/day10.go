@@ -2,10 +2,10 @@ package main
 
 import "fmt"
 
-func main() {
+func solve(steps int) int {
 	start := []int{1, 3, 2, 1, 1, 3, 1, 1, 1, 2}
 	//start = []int{2, 1}
-	for i := 0; i < 40; i++ {
+	for i := 0; i < steps; i++ {
 		current := start[0]
 		counter := 1
 		nextStep := make([]int, 0)
@@ -23,5 +23,11 @@ func main() {
 		}
 		start = nextStep
 	}
-	fmt.Println("Task 10.1:", len(start))
+	return len(start)
+}
+
+func main() {
+
+	fmt.Println("Task 10.1:", solve(40))
+	fmt.Println("Task 10.2:", solve(50))
 }
