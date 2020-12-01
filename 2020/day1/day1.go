@@ -10,7 +10,7 @@ import (
 func main() {
 
 	numbers := make([]int, 0)
-	file, err := os.Open("2020/input")
+	file, err := os.Open("2020/day1/input")
 	if err != nil {
 		panic(err)
 	}
