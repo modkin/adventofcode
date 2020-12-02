@@ -16,6 +16,7 @@ func main() {
 	}
 	scanner := bufio.NewScanner(file)
 	validPasswords := 0
+	validPasswords2 := 0
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
 		min, _ := strconv.Atoi(strings.Split(line[0], "-")[0])
@@ -23,10 +24,16 @@ func main() {
 		require := strings.Split(line[1], "")[0]
 		password := line[2]
 		amount := strings.Count(password, require)
-		//fmt.Println(min, max, require, password, amount)
 		if amount >= min && amount <= max {
 			validPasswords++
 		}
+		passwordSplit := strings.Split(password, "")
+		first := passwordSplit[min-1] == require
+		second := passwordSplit[max-1] == require
+		if (first || second) && !(first && second) {
+			validPasswords2++
+		}
 	}
-	fmt.Println(validPasswords)
+	fmt.Println("Task 2.1: ", validPasswords)
+	fmt.Println("Task 2.2: ", validPasswords2)
 }
