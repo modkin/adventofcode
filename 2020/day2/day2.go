@@ -28,9 +28,7 @@ func main() {
 			validPasswords++
 		}
 		passwordSplit := strings.Split(password, "")
-		first := passwordSplit[min-1] == require
-		second := passwordSplit[max-1] == require
-		if (first || second) && !(first && second) {
+		if (passwordSplit[min-1] == require) != (passwordSplit[max-1] == require) {
 			validPasswords2++
 		}
 	}
