@@ -15,8 +15,7 @@ func main() {
 		panic(err)
 	}
 	scanner := bufio.NewScanner(file)
-	validPasswords := 0
-	validPasswords2 := 0
+	validPasswords, validPasswords2 := 0, 0
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
 		min, _ := strconv.Atoi(strings.Split(line[0], "-")[0])
