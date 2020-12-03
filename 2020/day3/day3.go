@@ -7,19 +7,16 @@ import (
 )
 
 func main() {
-	var grid []string
+	grid := make([]string, 0)
 	file, err := os.Open("2020/day3/input")
 	if err != nil {
 		panic(err)
 	}
 	scanner := bufio.NewScanner(file)
-	maxX := 0
 	for scanner.Scan() {
 		grid = append(grid, scanner.Text())
-		if length := len(grid[len(grid)-1]); length > maxX {
-			maxX = length
-		}
 	}
+	maxX := len(grid[0])
 
 	slope := func(xStep int, yStep int) int {
 		x, trees := 0, 0
