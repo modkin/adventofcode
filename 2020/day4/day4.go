@@ -16,24 +16,30 @@ func main() {
 		panic(err)
 	}
 	required := []string{"byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"}
-	var fields []string
-	var fields2 []string
+
 	valid := 0
 	valid2 := 0
 	scanner := bufio.NewScanner(file)
+	checkForAll := func(fields []string) {
+		all := true
+		for _, r := range required {
+			if !utils.SliceContains(fields, r) {
+				all = false
+			}
+		}
+		if all {
+			valid++
+		}
+
+	}
+	var fields []string
+	var fields2 []string
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
 		if line[0] == "" {
-			all := true
-			for _, r := range required {
-				if !utils.SliceContains(fields, r) {
-					all = false
-				}
-			}
-			if all {
-				valid++
-			}
+			checkForAll(fields)
 			fields = []string{}
+
 			all2 := true
 			for _, r := range required {
 				if !utils.SliceContains(fields2, r) {
