@@ -24,7 +24,7 @@ func main() {
 			}
 		}
 		for i := 0; i < 3; i++ {
-			if string(directions[7+i]) == "R" {
+			if directions[7+i] == "R" {
 				column |= 1 << (2 - i)
 			}
 		}
