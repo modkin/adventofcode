@@ -117,6 +117,6 @@ func main() {
 		}
 
 	}
-	fmt.Println(valid)
-	fmt.Println(valid2)
+	fmt.Println("Task 4.1:", valid)
+	fmt.Println("Task 4.2:", valid2)
 }

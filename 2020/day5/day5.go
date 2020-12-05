@@ -42,7 +42,7 @@ func main() {
 	fmt.Println("Task 5.1:", maxId)
 	for i := minId; i <= maxId; i++ {
 		if !seatList[i] {
-			fmt.Println("Task 5.2", i)
+			fmt.Println("Task 5.2:", i)
 			break
 		}
 	}
