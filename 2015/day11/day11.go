@@ -31,20 +31,24 @@ func passwordValid(password []byte) bool {
 func main() {
 	password := []byte("cqjxjnds")
 	fmt.Println(passwordValid(password))
-	for {
-		pos := len(password) - 1
+	nextPass := func(password []byte) []byte {
 		for {
-			password[pos]++
-			if password[pos] == 'z'+1 {
-				password[pos] = 'a'
-				pos--
-			} else {
+			pos := len(password) - 1
+			for {
+				password[pos]++
+				if password[pos] == 'z'+1 {
+					password[pos] = 'a'
+					pos--
+				} else {
+					break
+				}
+			}
+			if passwordValid(password) {
 				break
 			}
 		}
-		if passwordValid(password) {
-			break
-		}
+		return password
 	}
-	fmt.Println(string(password[:]))
+	fmt.Println("Task 11.1:", string(nextPass(password[:])[:]))
+	fmt.Println("Task 11.2:", string(nextPass(password[:])[:]))
 }
