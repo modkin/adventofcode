@@ -4,32 +4,33 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type multipleBags struct {
+	color  string
 	amount int
-	color  rune
 }
 
-func search_gold(bags []string, possible map[string][]string, found int) int {
-	for _, elem := range bags {
-		if elem == "shiny gold" {
-			found++
-		} else {
-			found += search_gold(possible[elem], possible, found)
+func countInsideBags(bag multipleBags, possible map[string][]multipleBags, total int) int {
+	for _, value := range possible[bag.color] {
+		tmp := countInsideBags(value, possible, 0)
+		total += value.amount
+		if tmp != 0 {
+			total += tmp * value.amount
 		}
 	}
-	return found
+	return total
 }
 
-func find_shiny(bags []string, possible map[string][]string) bool {
+func findShiny(bags []multipleBags, possible map[string][]multipleBags) bool {
 	tmp := false
 	for _, elem := range bags {
-		if elem == "shiny gold" {
+		if elem.color == "shiny gold" {
 			tmp = true
 		} else {
-			tmp = tmp || find_shiny(possible[elem], possible)
+			tmp = tmp || findShiny(possible[elem.color], possible)
 		}
 	}
 	return tmp
@@ -41,37 +42,33 @@ func main() {
 		panic(err)
 	}
 
-	possbile := make(map[string][]string)
+	possbile := make(map[string][]multipleBags)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " bags contain ")
 		bag := line[0]
 		contents := strings.Split(line[1], ",")
-		inside := make([]string, 0)
+		inside := make([]multipleBags, 0)
 		for _, c := range contents {
 			tmp := strings.Split(strings.TrimSpace(c), " ")
 			if tmp[1] != "other" {
-				inside = append(inside, tmp[1]+" "+tmp[2])
+				amount, err := strconv.Atoi(tmp[0])
+				if err != nil {
+					panic(err)
+				}
+				inside = append(inside, multipleBags{tmp[1] + " " + tmp[2], amount})
 			}
 		}
 		possbile[bag] = inside
 	}
-	//fmt.Println(possbile)
-	all_bags := make([]string, 0)
-	for keys, _ := range possbile {
-		all_bags = append(all_bags, keys)
-	}
-	//fmt.Println(all_bags)
-	total_red := 0
+
+	totalRed := 0
 	for _, content := range possbile {
-		//if search_gold(possbile[color],possbile,0) > 0 {
-		//	total_red++
-		//	fmt.Println(color)
-		//}
-		if find_shiny(content, possbile) {
-			total_red++
+		if findShiny(content, possbile) {
+			totalRed++
 		}
 	}
-	fmt.Println(total_red)
+	fmt.Println("Task 7.1:", totalRed)
+	fmt.Println("Task 7.2:", countInsideBags(multipleBags{"shiny gold", 0}, possbile, 0))
 }
