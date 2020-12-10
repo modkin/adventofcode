@@ -24,15 +24,12 @@ func main() {
 	diffs[2]++
 	fmt.Println("Task 10.1:", diffs[0]*diffs[2])
 
-	foo := []int{0}
-	bar := []int{adapters[len(adapters)-1] + 1}
-	adapters = append(foo, adapters...)
-	adapters = append(adapters, bar...)
+	adapters = append([]int{0}, adapters...)
 	targetJolt := adapters[len(adapters)-1] + 3
-	numberOfArrangements := 1
-	index := 0
+	adapters = append(adapters, targetJolt)
+	numberOfArrangements, index := 1, 0
 	currentJolt = 0
-outer:
+
 	for {
 		offset := 0
 		for {
@@ -65,7 +62,7 @@ outer:
 			numberOfArrangements *= 7
 		}
 		if adapters[index]+3 == targetJolt {
-			break outer
+			break
 		}
 	}
 	fmt.Println("Task 10.2:", numberOfArrangements)
