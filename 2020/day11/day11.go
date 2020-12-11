@@ -8,10 +8,9 @@ import (
 )
 
 func printFloorplan(floorplan [][]string) {
-	for i, line := range floorplan {
-		if i < 3 {
-			fmt.Println(line)
-		}
+	for _, line := range floorplan {
+		fmt.Println(line)
+
 	}
 }
 
@@ -58,6 +57,109 @@ func update(floorplan [][]string) bool {
 	return change
 }
 
+func update2(floorplan [][]string) bool {
+	change := false
+	floorplanCopy := make([][]string, len(floorplan))
+	for i, _ := range floorplanCopy {
+		floorplanCopy[i] = utils.CopyStringSlice(floorplan[i])
+	}
+	for i := 0; i < len(floorplan); i++ {
+		for j := 0; j < len(floorplan[0]); j++ {
+			occupied := 0
+
+			for dir := i - 1; dir >= 0; dir-- {
+				if floorplanCopy[dir][j] == "L" {
+					break
+				}
+				if floorplanCopy[dir][j] == "#" {
+					occupied++
+					break
+				}
+			}
+			for dir := i + 1; dir < len(floorplan); dir++ {
+				if floorplanCopy[dir][j] == "L" {
+					break
+				}
+				if floorplanCopy[dir][j] == "#" {
+					occupied++
+					break
+				}
+			}
+
+			for dir := j - 1; dir >= 0; dir-- {
+				if floorplanCopy[i][dir] == "L" {
+					break
+				}
+				if floorplanCopy[i][dir] == "#" {
+					occupied++
+					break
+				}
+			}
+			for dir := j + 1; dir < len(floorplan[0]); dir++ {
+				if floorplanCopy[i][dir] == "L" {
+					break
+				}
+				if floorplanCopy[i][dir] == "#" {
+					occupied++
+					break
+				}
+			}
+
+			for dirRow, dirCol := i-1, j-1; dirRow >= 0 && dirCol >= 0; dirRow, dirCol = dirRow-1, dirCol-1 {
+				if floorplanCopy[dirRow][dirCol] == "L" {
+					break
+				}
+				if floorplanCopy[dirRow][dirCol] == "#" {
+					occupied++
+					break
+				}
+			}
+			for dirRow, dirCol := i+1, j+1; dirRow < len(floorplan) && dirCol < len(floorplan[0]); dirRow, dirCol = dirRow+1, dirCol+1 {
+				if floorplanCopy[dirRow][dirCol] == "L" {
+					break
+				}
+				if floorplanCopy[dirRow][dirCol] == "#" {
+					occupied++
+					break
+				}
+			}
+
+			for dirRow, dirCol := i-1, j+1; dirRow >= 0 && dirCol < len(floorplan[0]); dirRow, dirCol = dirRow-1, dirCol+1 {
+				if floorplanCopy[dirRow][dirCol] == "L" {
+					break
+				}
+				if floorplanCopy[dirRow][dirCol] == "#" {
+					occupied++
+					break
+				}
+			}
+			for dirRow, dirCol := i+1, j-1; dirRow < len(floorplan) && dirCol >= 0; dirRow, dirCol = dirRow+1, dirCol-1 {
+				if floorplanCopy[dirRow][dirCol] == "L" {
+					break
+				}
+				if floorplanCopy[dirRow][dirCol] == "#" {
+					occupied++
+					break
+				}
+			}
+
+			if floorplanCopy[i][j] == "L" {
+				if occupied == 0 {
+					floorplan[i][j] = "#"
+					change = true
+				}
+			}
+			if floorplanCopy[i][j] == "#" {
+				if occupied >= 5 {
+					floorplan[i][j] = "L"
+					change = true
+				}
+			}
+		}
+	}
+	return change
+}
+
 func main() {
 	floorplanMap := make(map[[2]int]string)
 
@@ -79,13 +181,16 @@ func main() {
 		}
 	}
 	//fmt.Println(getNeighbors(floorplan,len(floorplan)-1,len(floorplan[0])-1))
-	fmt.Println(getNeighbors(floorplan, 10, len(floorplan[0])-1))
-	fmt.Println(getNeighbors(floorplan, 0, len(floorplan[0])-1))
-	fmt.Println(getNeighbors(floorplan, len(floorplan)-1, 0))
-	fmt.Println(getNeighbors(floorplan, len(floorplan)-2, len(floorplan[0])-2))
-	for update(floorplan) {
-	}
 
+	//for update2(floorplan) {
+	//}
+	update2(floorplan)
+	update2(floorplan)
+	printFloorplan(floorplan)
+	fmt.Println()
+	for update2(floorplan) {
+	}
+	printFloorplan(floorplan)
 	seats := 0
 	for i := range floorplan {
 		for j := range floorplan[0] {
@@ -95,6 +200,6 @@ func main() {
 		}
 	}
 	fmt.Println(seats)
-	main2()
+	//main2()
 
 }
