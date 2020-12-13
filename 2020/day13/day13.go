@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	scanner := bufio.NewScanner(utils.OpenFile("2020/day13/testinput"))
+	scanner := bufio.NewScanner(utils.OpenFile("2020/day13/input"))
 	scanner.Scan()
 	earliest := utils.ToInt(scanner.Text())
 	scanner.Scan()
@@ -29,31 +29,38 @@ func main() {
 		}
 	}
 	fmt.Println("Task 13.1:", min*busID)
-	multiplier := make([]int, 0)
-	//currentStep := 1
-	for i := 0; i < len(buses)-1; i++ {
-		bus1, _ := strconv.Atoi(buses[i])
-		var bus2 int
-		for {
-			var err2 error
-			bus2, err2 = strconv.Atoi(buses[i+1])
-			if err2 != nil {
-				i++
-			} else {
-				break
-			}
-		}
-		for number := bus1; ; number += bus1 {
-			if (number+1)%bus2 == 0 {
-				multiplier = append(multiplier, number)
-				break
-			}
+	targets := make([][2]int, 0)
+	for i, busString := range buses {
+		bus, err := strconv.Atoi(busString)
+		if err == nil {
+			targets = append(targets, [2]int{bus, i})
 		}
 	}
-	result := 1
-	for _, mult := range multiplier {
-		result *= mult
+	first := 0
+	for i := targets[0][0]; ; i += targets[0][0] {
+		if (i+targets[1][1])%targets[1][0] == 0 {
+			first = i
+			break
+		}
 	}
-	fmt.Println(multiplier)
-	fmt.Println(result)
+	step := targets[0][0] * targets[1][0]
+	fmt.Println("First:", first)
+	//foundStart := make([]int,len(targets)-1)
+
+outer:
+	for {
+		for _, elem := range targets {
+			if (first+elem[1])%elem[0] != 0 {
+				first += step
+				//fmt.Println(first)
+				continue outer
+			}
+		}
+		fmt.Println("Done:", first)
+		break outer
+
+	}
+
+	fmt.Println(targets)
+
 }
