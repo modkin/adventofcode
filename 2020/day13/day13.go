@@ -34,34 +34,20 @@ func main() {
 			targets = append(targets, [2]int{bus, i})
 		}
 	}
-	startTime := 0
-	for i := targets[0][0]; ; i += targets[0][0] {
-		if (i+targets[1][1])%targets[1][0] == 0 {
-			startTime = i
-			break
-		}
-	}
-	step := targets[0][0] * targets[1][0]
-	pos := 2
-	multiplier := 1
+	startTime, pos := 0, 1
+	step := targets[0][0]
 outer:
-	for {
+	for pos != len(targets) {
 		for i := pos; i < len(targets); i++ {
 			elem := targets[i]
 			if (startTime+elem[1])%elem[0] != 0 {
 				startTime += step
-				multiplier++
 				continue outer
 			} else {
 				step = step * targets[i][0]
-				multiplier = 1
 				pos++
 			}
-			if pos == len(targets) {
-				break
-			}
 		}
-		break outer
 	}
 	fmt.Println("Task 13.2:", startTime)
 }
