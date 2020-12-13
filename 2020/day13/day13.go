@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	scanner := bufio.NewScanner(utils.OpenFile("2020/day13/input"))
+	scanner := bufio.NewScanner(utils.OpenFile("2020/day13/testinput"))
 	scanner.Scan()
 	earliest := utils.ToInt(scanner.Text())
 	scanner.Scan()
@@ -28,37 +28,32 @@ func main() {
 			busID = utils.ToInt(bus)
 		}
 	}
-	fmt.Println(min * busID)
-	for _, busString := range buses {
-		bus, err := strconv.Atoi(busString)
-		if err != nil {
-			continue
-		}
-		fmt.Println(bus)
-	}
-	start := 1
-while:
-	for {
-		difference := 0
-		for _, busString := range buses {
-			bus, err := strconv.Atoi(busString)
-			if err != nil {
-				difference++
-				continue
-			}
-			if (start+difference)%bus != 0 {
-				break
+	fmt.Println("Task 13.1:", min*busID)
+	multiplier := make([]int, 0)
+	//currentStep := 1
+	for i := 0; i < len(buses)-1; i++ {
+		bus1, _ := strconv.Atoi(buses[i])
+		var bus2 int
+		for {
+			var err2 error
+			bus2, err2 = strconv.Atoi(buses[i+1])
+			if err2 != nil {
+				i++
 			} else {
-				difference++
+				break
 			}
 		}
-		if difference == len(buses) {
-			fmt.Println(start)
-			break while
-		}
-		start++
-		if start%1000000000 == 0 {
-			fmt.Println(start)
+		for number := bus1; ; number += bus1 {
+			if (number+1)%bus2 == 0 {
+				multiplier = append(multiplier, number)
+				break
+			}
 		}
 	}
+	result := 1
+	for _, mult := range multiplier {
+		result *= mult
+	}
+	fmt.Println(multiplier)
+	fmt.Println(result)
 }
