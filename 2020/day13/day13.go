@@ -15,8 +15,6 @@ func main() {
 	earliest := utils.ToInt(scanner.Text())
 	scanner.Scan()
 	buses := strings.Split(scanner.Text(), ",")
-	fmt.Println(earliest)
-	fmt.Println(buses)
 	min, busID := math.MaxInt64, 0
 	for _, bus := range buses {
 		if bus == "x" {
@@ -36,31 +34,34 @@ func main() {
 			targets = append(targets, [2]int{bus, i})
 		}
 	}
-	first := 0
+	startTime := 0
 	for i := targets[0][0]; ; i += targets[0][0] {
 		if (i+targets[1][1])%targets[1][0] == 0 {
-			first = i
+			startTime = i
 			break
 		}
 	}
 	step := targets[0][0] * targets[1][0]
-	fmt.Println("First:", first)
-	//foundStart := make([]int,len(targets)-1)
-
+	pos := 2
+	multiplier := 1
 outer:
 	for {
-		for _, elem := range targets {
-			if (first+elem[1])%elem[0] != 0 {
-				first += step
-				//fmt.Println(first)
+		for i := pos; i < len(targets); i++ {
+			elem := targets[i]
+			if (startTime+elem[1])%elem[0] != 0 {
+				startTime += step
+				multiplier++
 				continue outer
+			} else {
+				step = step * targets[i][0]
+				multiplier = 1
+				pos++
+			}
+			if pos == len(targets) {
+				break
 			}
 		}
-		fmt.Println("Done:", first)
 		break outer
-
 	}
-
-	fmt.Println(targets)
-
+	fmt.Println("Task 13.2:", startTime)
 }
