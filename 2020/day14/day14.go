@@ -9,25 +9,45 @@ import (
 )
 
 func applyMask(value int, mask []int) int {
-	//fmt.Println(value)
 	//fmt.Printf("%036b\n", value)
 	for i, elem := range mask {
 		if elem == 0 {
-			//fmt.Printf("%036b\n", (math.MaxInt64) ^ 1  << (35-i))
 			value = value & ((math.MaxInt64) ^ 1<<(35-i))
-			//fmt.Printf("%036b\n", value)
 		} else if elem == 1 {
 			value = value | 1<<(35-i)
-			//fmt.Printf("%036b\n", value)
 		}
 	}
-	//fmt.Println(value)
 	return value
+}
+
+func applyMemoryMask(address int, mask []int) []int {
+	ret := make([]int, 0)
+	for i, elem := range mask {
+		if elem == 1 {
+			address = address | 1<<(35-i)
+		}
+	}
+	var permutate func(int, int)
+	permutate = func(address int, i int) {
+		if i == 36 {
+			return
+		}
+		if mask[i] == 4 {
+			ret = append(ret, address)
+			addressTmp := address ^ 1<<(35-i)
+			ret = append(ret, addressTmp)
+			permutate(addressTmp, i+1)
+		}
+		permutate(address, i+1)
+	}
+	permutate(address, 0)
+	return ret
 }
 
 func main() {
 
 	memory := make(map[int]int)
+	memory2 := make(map[int]int)
 	var mask [36]int
 
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day14/input"))
@@ -48,11 +68,20 @@ func main() {
 			value = applyMask(value, mask[0:])
 			address := strings.TrimSuffix(strings.Split(line[0], "mem[")[1], "]")
 			memory[utils.ToInt(address)] = value
+			multipleAdr := applyMemoryMask(utils.ToInt(address), mask[0:])
+			for _, adr := range multipleAdr {
+				memory2[adr] = utils.ToInt(line[1])
+			}
 		}
 	}
 	sum := 0
 	for _, elem := range memory {
 		sum += elem
 	}
-	fmt.Println(sum)
+	fmt.Println("Task 14.1:", sum)
+	sum2 := 0
+	for _, elem := range memory2 {
+		sum2 += elem
+	}
+	fmt.Println("Task 14.2:", sum2)
 }
