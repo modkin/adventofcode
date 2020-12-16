@@ -16,6 +16,20 @@ func checkValid(field int, validFields map[string]map[int]bool) bool {
 	return false
 }
 
+func findValidCategories(numbers []int, validFields map[string]map[int]bool) map[string]bool {
+	ret := make(map[string]bool)
+outer:
+	for c, cat := range validFields {
+		for _, elem := range numbers {
+			if !cat[elem] {
+				continue outer
+			}
+		}
+		ret[c] = true
+	}
+	return ret
+}
+
 func main() {
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day16/input"))
 
@@ -40,6 +54,8 @@ func main() {
 		}
 
 	}
+	var numberOfCategories int
+	ownTicket := make([]string, 0)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "nearby tickets:" {
@@ -48,17 +64,53 @@ func main() {
 		if line == "" {
 			continue
 		}
+		ownTicket = strings.Split(line, ",")
+		numberOfCategories = len(ownTicket)
 	}
 
 	countInvalid := 0
-
+	numbersInCategory := make([][]int, numberOfCategories)
+scan:
 	for scanner.Scan() {
 		fieldSlice := strings.Split(scanner.Text(), ",")
 		for _, elem := range fieldSlice {
 			if !checkValid(utils.ToInt(elem), fields) {
 				countInvalid += utils.ToInt(elem)
+				continue scan
 			}
 		}
+
+		for i, f := range fieldSlice {
+			numbersInCategory[i] = append(numbersInCategory[i], utils.ToInt(f))
+		}
 	}
-	fmt.Println(countInvalid)
+	fmt.Println("Task 16.1:", countInvalid)
+	dep := 1
+	categoryToPos := make(map[string]int)
+	allPossibleCat := make([]map[string]bool, 0)
+	for _, elem := range numbersInCategory {
+		tmp := findValidCategories(elem, fields)
+		allPossibleCat = append(allPossibleCat, tmp)
+	}
+	for i := 0; i < len(ownTicket); i++ {
+		var currentCat string
+		for i, elem := range allPossibleCat {
+			if len(elem) == 1 {
+				for k := range elem {
+					// only one iteration
+					currentCat = k
+					categoryToPos[k] = i
+				}
+			}
+		}
+		for _, elem := range allPossibleCat {
+			delete(elem, currentCat)
+		}
+	}
+	for cat, pos := range categoryToPos {
+		if strings.Split(cat, " ")[0] == "departure" {
+			dep *= utils.ToInt(ownTicket[pos])
+		}
+	}
+	fmt.Println("Task 16.2:", dep)
 }
