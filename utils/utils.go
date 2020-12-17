@@ -105,3 +105,20 @@ func SliceContains(list []string, s string) bool {
 	}
 	return false
 }
+
+func print3DGrid(grid map[[3]int]bool, max int) {
+	for z := -max; z < max; z++ {
+		fmt.Println("z=", z)
+		for y := -max; y < max+2; y++ {
+			for x := -max; x < max+2; x++ {
+				if grid[[3]int{x, y, z}] {
+					fmt.Print("#")
+				} else {
+					fmt.Print(".")
+				}
+			}
+			fmt.Println()
+		}
+
+	}
+}

@@ -7,21 +7,25 @@ import (
 	"strings"
 )
 
-func printGrid(grid map[[3]int]bool, max int) {
-	for z := -max; z < max; z++ {
-		fmt.Println("z=", z)
-		for y := -max; y < max+2; y++ {
-			for x := -max; x < max+2; x++ {
-				if grid[[3]int{x, y, z}] {
-					fmt.Print("#")
-				} else {
-					fmt.Print(".")
-				}
-			}
-			fmt.Println()
-		}
-
+func getNeighbors(coord [4]int, fourD bool) [][4]int {
+	max := 27
+	if fourD {
+		max = 81
 	}
+	ret := make([][4]int, max)
+	for i := 0; i < max; i++ {
+		dw := 1 - i/27
+		dz := 1 - i%27/9
+		dy := 1 - i%27%9/3
+		dx := 1 - i%27%3
+		//fmt.Println(dx, dy, dz)
+		if !fourD {
+			dw = 0
+		}
+		nbr := [4]int{coord[0] + dx, coord[1] + dy, coord[2] + dz, coord[3] + dw}
+		ret[i] = nbr
+	}
+	return ret
 }
 
 func main() {
@@ -29,6 +33,7 @@ func main() {
 
 	grid := make(map[[4]int]bool)
 	grid2 := make(map[[4]int]bool)
+	backupGrid := make(map[[4]int]bool)
 
 	y := 0
 	for scanner.Scan() {
@@ -42,16 +47,9 @@ func main() {
 		}
 		y++
 	}
-	fmt.Println(grid)
-	iterate := func() {
+	iterate := func(fourD bool) {
 		for coord := range grid {
-			for i := 0; i < 81; i++ {
-				dw := 1 - i/27
-				dz := 1 - i%27/9
-				dy := 1 - i%27%9/3
-				dx := 1 - i%27%3
-				//fmt.Println(dx, dy, dz)
-				nbr := [4]int{coord[0] + dx, coord[1] + dy, coord[2] + dz, coord[3] + dw}
+			for _, nbr := range getNeighbors(coord, fourD) {
 				if check := grid[nbr]; !check {
 					grid[nbr] = false
 				}
@@ -59,13 +57,7 @@ func main() {
 		}
 		for coord, value := range grid {
 			countActive := 0
-			for i := 0; i < 81; i++ {
-				dw := 1 - i/27
-				dz := 1 - i%27/9
-				dy := 1 - i%27%9/3
-				dx := 1 - i%27%3
-				//fmt.Println(dx, dy, dz)
-				nbr := [4]int{coord[0] + dx, coord[1] + dy, coord[2] + dz, coord[3] + dw}
+			for _, nbr := range getNeighbors(coord, fourD) {
 				if grid[nbr] {
 					countActive++
 				}
@@ -85,22 +77,40 @@ func main() {
 			}
 		}
 	}
+	countGrid := func() int {
+		count := 0
+		for _, value := range grid {
+			if value {
+				count++
+			}
+		}
+		return count
+	}
 
 	//print(grid,2)
+	for key, value := range grid {
+		backupGrid[key] = value
+	}
 	for i := 0; i < 6; i++ {
 		//fmt.Println(grid)
-		iterate()
+		iterate(true)
 		for key, value := range grid2 {
 			grid[key] = value
 		}
-
 	}
-	//print(grid,2)
-	count := 0
-	for _, value := range grid {
-		if value {
-			count++
+	fmt.Println("Task 17.1:", countGrid())
+	grid = make(map[[4]int]bool)
+	grid2 = make(map[[4]int]bool)
+	for key, value := range backupGrid {
+		grid[key] = value
+	}
+	grid2 = make(map[[4]int]bool)
+	for i := 0; i < 6; i++ {
+		//fmt.Println(grid)
+		iterate(false)
+		for key, value := range grid2 {
+			grid[key] = value
 		}
 	}
-	fmt.Println(count)
+	fmt.Println("Task 17.2:", countGrid())
 }
