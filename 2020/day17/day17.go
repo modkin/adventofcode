@@ -27,17 +27,17 @@ func printGrid(grid map[[3]int]bool, max int) {
 func main() {
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day17/input"))
 
-	grid := make(map[[3]int]bool)
-	grid2 := make(map[[3]int]bool)
+	grid := make(map[[4]int]bool)
+	grid2 := make(map[[4]int]bool)
 
 	y := 0
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), "")
 		for x, elem := range line {
 			if elem == "#" {
-				grid[[3]int{x, y, 0}] = true
+				grid[[4]int{x, y, 0, 0}] = true
 			} else {
-				grid[[3]int{x, y, 0}] = false
+				grid[[4]int{x, y, 0, 0}] = false
 			}
 		}
 		y++
@@ -45,12 +45,13 @@ func main() {
 	fmt.Println(grid)
 	iterate := func() {
 		for coord := range grid {
-			for i := 0; i < 27; i++ {
-				dz := 1 - int(i/9)
-				dy := 1 - (i%9)/3
-				dx := 1 - i%3
+			for i := 0; i < 81; i++ {
+				dw := 1 - i/27
+				dz := 1 - i%27/9
+				dy := 1 - i%27%9/3
+				dx := 1 - i%27%3
 				//fmt.Println(dx, dy, dz)
-				nbr := [3]int{coord[0] + dx, coord[1] + dy, coord[2] + dz}
+				nbr := [4]int{coord[0] + dx, coord[1] + dy, coord[2] + dz, coord[3] + dw}
 				if check := grid[nbr]; !check {
 					grid[nbr] = false
 				}
@@ -58,12 +59,13 @@ func main() {
 		}
 		for coord, value := range grid {
 			countActive := 0
-			for i := 0; i < 27; i++ {
-				dz := 1 - int(i/9)
-				dy := 1 - (i%9)/3
-				dx := 1 - i%3
+			for i := 0; i < 81; i++ {
+				dw := 1 - i/27
+				dz := 1 - i%27/9
+				dy := 1 - i%27%9/3
+				dx := 1 - i%27%3
 				//fmt.Println(dx, dy, dz)
-				nbr := [3]int{coord[0] + dx, coord[1] + dy, coord[2] + dz}
+				nbr := [4]int{coord[0] + dx, coord[1] + dy, coord[2] + dz, coord[3] + dw}
 				if grid[nbr] {
 					countActive++
 				}
