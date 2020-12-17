@@ -48,7 +48,13 @@ func main() {
 		y++
 	}
 	iterate := func(fourD bool) {
-		for coord := range grid {
+		for coord, val := range grid {
+			if val == false {
+				delete(grid, coord)
+				delete(grid2, coord)
+			}
+		}
+		for coord := range grid2 {
 			for _, nbr := range getNeighbors(coord, fourD) {
 				if check := grid[nbr]; !check {
 					grid[nbr] = false
@@ -90,6 +96,7 @@ func main() {
 	//print(grid,2)
 	for key, value := range grid {
 		backupGrid[key] = value
+		grid2[key] = value
 	}
 	for i := 0; i < 6; i++ {
 		//fmt.Println(grid)
@@ -103,8 +110,8 @@ func main() {
 	grid2 = make(map[[4]int]bool)
 	for key, value := range backupGrid {
 		grid[key] = value
+		grid2[key] = value
 	}
-	grid2 = make(map[[4]int]bool)
 	for i := 0; i < 6; i++ {
 		//fmt.Println(grid)
 		iterate(false)
