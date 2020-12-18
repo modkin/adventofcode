@@ -8,6 +8,20 @@ import (
 	"strings"
 )
 
+func AddFirst(line string) string {
+	ret := make([]string, 0)
+	splitString := strings.Split(line, "*")
+	for _, multiplication := range splitString {
+		splitMult := strings.Split(strings.TrimSpace(multiplication), " ")
+		current := utils.ToInt(splitMult[0])
+		for i := 0; i < len(splitMult)-2; i += 2 {
+			current += utils.ToInt(splitMult[i+2])
+		}
+		ret = append(ret, strconv.Itoa(current))
+	}
+	return strings.Join(ret, " * ")
+}
+
 func solveBlock(line string) string {
 
 	for {
@@ -18,6 +32,8 @@ func solveBlock(line string) string {
 		openBrace := strings.LastIndex(line[:closeBrace], "(")
 		line = line[:openBrace] + solveBlock(line[openBrace+1:closeBrace]) + line[closeBrace+1:]
 	}
+	line = AddFirst(line)
+
 	splitLine := strings.Split(line, " ")
 	current := utils.ToInt(splitLine[0])
 	for i := 0; i < len(splitLine)-2; i += 2 {
