@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	scanner := bufio.NewScanner(utils.OpenFile("2020/day19/testinput"))
+	scanner := bufio.NewScanner(utils.OpenFile("2020/day19/input"))
 	//var regex string
 	rules := make(map[int]string)
 	messages := make([]string, 0)
@@ -21,9 +21,18 @@ func main() {
 			messages = append(messages, line[0])
 		}
 	}
+	rules[8] = "42 | 42 8"
+	rules[11] = "42 31 | 42 11 31"
+
 	var isChar = regexp.MustCompile("[a-z]")
 	zeroRule := strings.Split(rules[0], " ")
+	counter := 0
 	substitude := func() bool {
+		if counter == 100 {
+			return false
+		} else {
+			counter++
+		}
 		newZeroRule := make([]string, 0)
 		changes := false
 		for _, elem := range zeroRule {
@@ -38,31 +47,16 @@ func main() {
 			tmp := rules[utils.ToInt(elem)]
 			tmpSplit := strings.Split(tmp, " ")
 			var newRule = tmpSplit
-			if elem == "8" {
-				newRule = []string{"(", "42", ")*"}
-			} else if elem == "11" {
-				//newRule = []string{"(", "42", ")*", "(", "31", ")*"}
+			if strings.Contains(tmp, "|") {
 				newRule = []string{"("}
-				for i := 1; i < 100; i++ {
-					tmp1 := make([]string, 0)
-					tmp2 := make([]string, 0)
-					for count := 1; count <= i; count++ {
-						tmp1 = append(tmp1, "42")
-						tmp2 = append(tmp2, "31")
-					}
-					newRule = append(newRule, tmp1...)
-					newRule = append(newRule, tmp2...)
-					if i != 99 {
+				for _, elem2 := range tmpSplit {
+					if elem2 == "|" {
 						newRule = append(newRule, "|")
+					} else {
+						newRule = append(newRule, elem2)
 					}
 				}
 				newRule = append(newRule, ")")
-			} else if strings.Contains(tmp, "|") {
-				if len(tmpSplit) == 5 {
-					newRule = []string{"(", tmpSplit[0], tmpSplit[1], "|", tmpSplit[3], tmpSplit[4], ")"}
-				} else {
-					newRule = []string{"(", tmpSplit[0], "|", tmpSplit[2], ")"}
-				}
 			}
 			newZeroRule = append(newZeroRule, newRule...)
 		}
