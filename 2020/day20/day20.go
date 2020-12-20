@@ -171,18 +171,18 @@ func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRo
 
 func main() {
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/input"))
-	tiles := make([][10][10]string, 0)
-	ids := make([]int, 0)
+	allTiles := make(map[int][10][10]string)
 	var newTile [10][10]string
 	y := 0
+	newTileId := 0
 	for scanner.Scan() {
 		if scanner.Text() == "" {
-			tiles = append(tiles, newTile)
+			allTiles[newTileId] = newTile
 			newTile = [10][10]string{}
 			y = 0
 		} else if strings.Contains(scanner.Text(), "Tile") {
 			tmp := strings.Trim(strings.Split(scanner.Text(), " ")[1], ":")
-			ids = append(ids, utils.ToInt(tmp))
+			newTileId = utils.ToInt(tmp)
 		} else {
 			for x, elem := range strings.Split(scanner.Text(), "") {
 				newTile[x][y] = elem
@@ -190,84 +190,48 @@ func main() {
 			y++
 		}
 	}
-	//add last tile
-	//tiles = append(tiles, newTile)
-	//fmt.Println(len(tiles))
+	//fmt.Println(allTiles)
+	neighbors := make(map[int][]int)
+	for tileId, tile := range allTiles {
+		for otherTileId, otherTile := range allTiles {
+			if otherTileId == tileId {
+				continue
+			}
 
-	possibleStarts := make([][10][10]string, 0)
-	cornerIdx := make([]int, 0)
-	//mult := 1
-	//for i, tile := range tiles {
-	//	//fmt.Println("Tile:,",ids[i])
-	//	tmp := possibleNeighbors(tiles, &tile, ids)
-	//	max := 0
-	//	for _, nbrs := range tmp {
-	//		tmpMap := make(map[int]bool)
-	//		for _, elem := range nbrs {
-	//			tmpMap[elem] = true
-	//		}
-	//		if len(tmpMap) > max {
-	//			max = len(tmpMap)
-	//		}
-	//	}
-	//	if max == 2 {
-	//		possibleStarts = append(possibleStarts, tile)
-	//		cornerIdx = append(cornerIdx, i)
-	//		mult *= ids[i]
-	//	}
-	//}
-	cornerIdx = []int{10, 48, 64, 69}
-	//fmt.Println("Task 1:",mult)
-	if len(possibleStarts) != 4 || len(cornerIdx) != 4 {
-		//fmt.Println("ERROR")
-	}
-
-	fmt.Println("Corners:", cornerIdx)
-
-	//alreadyUsed := make([]int, 4)
-	//copy(alreadyUsed, cornerIdx)
-
-	firstRow := []int{10, 101, 29, 108, 97, 73, 2, 26, 96, 67, 80, 64}
-	//possibleFirstRow := make([][]int, 0)
-
-	firstRowTiles := make([][][10][10]string, 8)
-	for firstRowCount := 0; firstRowCount < 8; firstRowCount++ {
-		skip := 0
-		for i, currentTileID := range firstRow {
-		curRot:
-			for _, current := range getAllVariants(&tiles[currentTileID]) {
-				if i == 0 {
-					firstRowTiles[firstRowCount] = [][10][10]string{current}
-					if skip < firstRowCount {
-						skip++
-						continue curRot
-
+			for _, rotation := range getAllVariants(&otherTile) {
+				if checkTopBot(tile, rotation) {
+					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
+						neighbors[tileId] = append(neighbors[tileId], otherTileId)
 					}
-
 				}
-				for _, rotation := range getAllVariants(&tiles[firstRow[i+1]]) {
-					if sameStringSlice(current[9][:], rotation[0][:]) {
-						firstRowTiles[firstRowCount] = append(firstRowTiles[firstRowCount], rotation)
-						break curRot
+				if checkTopBot(rotation, tile) {
+					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
+						neighbors[tileId] = append(neighbors[tileId], otherTileId)
+					}
+				}
+				if sameStringSlice(rotation[9][:], tile[0][:]) {
+					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
+						neighbors[tileId] = append(neighbors[tileId], otherTileId)
+					}
+				}
+				if sameStringSlice(rotation[0][:], tile[9][:]) {
+					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
+						neighbors[tileId] = append(neighbors[tileId], otherTileId)
 					}
 				}
 			}
-			if i == len(firstRow)-2 {
-				break
-			}
 		}
 	}
-	fmt.Println(len(firstRowTiles))
-	//for _, elem := range firstRowTiles {
-	//	printRow(elem)
-	//	fmt.Println("================================================================================")
-	//}
-	for _, toptile := range getAllVariants(&firstRowTiles[0][2]) {
-		for j, bottile := range tiles {
-			if checkTopBot(toptile, bottile) {
-				fmt.Println("muh", j)
-			}
+	fmt.Println(neighbors)
+	cornerIds, edgeIds := make([]int, 0), make([]int, 0)
+	for tileId, neighborIds := range neighbors {
+		if len(neighborIds) == 2 {
+			cornerIds = append(cornerIds, tileId)
+		} else if len(neighborIds) == 3 {
+			edgeIds = append(edgeIds, tileId)
 		}
 	}
+	solutionOne := cornerIds[0] * cornerIds[1] * cornerIds[2] * cornerIds[3]
+	fmt.Println("Task 1:", solutionOne)
 
 }
