@@ -106,6 +106,15 @@ func SliceContains(list []string, s string) bool {
 	return false
 }
 
+func IntSliceContains(list []int, s int) bool {
+	for _, elem := range list {
+		if s == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func Print1010Grid(mapToPrint [10][10]string) {
 	fmt.Println("=============")
 	for y := 0; y < 10; y++ {

@@ -107,6 +107,44 @@ func possibleNeighbors(tiles [][10][10]string, inputTile *[10][10]string, ids []
 	return neighborsAtOrientation
 }
 
+func findPossibleNextLeft(current [10][10]string, tiles [][10][10]string, alreadyUsed []int) []int {
+	ret := make([]int, 0)
+	for i, nextTile := range tiles {
+		if utils.IntSliceContains(alreadyUsed, i) {
+			continue
+		}
+		for _, rotatedNexTile := range getAllVariants(&nextTile) {
+			if sameStringSlice(current[9][:], rotatedNexTile[0][:]) {
+				ret = append(ret, i)
+			}
+		}
+	}
+	return ret
+}
+
+func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRow []int, ret *[][]int, rowLength int) {
+	currentRow = append(currentRow, startId)
+	if len(currentRow) == rowLength {
+		*ret = append(*ret, utils.CopyIntSlice(currentRow))
+	} else {
+		for _, rotation := range getAllVariants(&tiles[startId]) {
+			possibleNextLeft := findPossibleNextLeft(rotation, tiles, alreadyUsed)
+			if len(possibleNextLeft) == 0 {
+				continue
+			} else {
+				possibleNextLeftMap := make(map[int]bool)
+				for _, nextID := range possibleNextLeft {
+					possibleNextLeftMap[nextID] = true
+				}
+				for key := range possibleNextLeftMap {
+					alreadyUsed = append(alreadyUsed, key)
+					createRow(key, tiles, utils.CopyIntSlice(alreadyUsed), utils.CopyIntSlice(currentRow), ret, rowLength)
+				}
+			}
+		}
+	}
+}
+
 func main() {
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/input"))
 	tiles := make([][10][10]string, 0)
@@ -129,39 +167,68 @@ func main() {
 		}
 	}
 	//add last tile
-	tiles = append(tiles, newTile)
+	//tiles = append(tiles, newTile)
+	fmt.Println(len(tiles))
 
+	possibleStarts := make([][10][10]string, 0)
+	cornerIdx := make([]int, 0)
 	mult := 1
-	for i, tile := range tiles {
-		//fmt.Println("Tile:,",ids[i])
-		tmp := possibleNeighbors(tiles, &tile, ids)
-		max := 0
-		for _, nbrs := range tmp {
-			tmpMap := make(map[int]bool)
-			for _, elem := range nbrs {
-				tmpMap[elem] = true
-			}
-			if len(tmpMap) > max {
-				max = len(tmpMap)
-			}
-		}
-		if max == 2 {
-			mult *= ids[i]
-		}
-	}
-	fmt.Println(mult)
-
-	//mult := 1
 	//for i, tile := range tiles {
-	//	if possibleNeighbors(tiles, &tile, ids) {
+	//	//fmt.Println("Tile:,",ids[i])
+	//	tmp := possibleNeighbors(tiles, &tile, ids)
+	//	max := 0
+	//	for _, nbrs := range tmp {
+	//		tmpMap := make(map[int]bool)
+	//		for _, elem := range nbrs {
+	//			tmpMap[elem] = true
+	//		}
+	//		if len(tmpMap) > max {
+	//			max = len(tmpMap)
+	//		}
+	//	}
+	//	if max == 2 {
+	//		possibleStarts = append(possibleStarts, tile)
+	//		cornerIdx = append(cornerIdx, i)
 	//		mult *= ids[i]
-	//		fmt.Println("True:",ids[i])
-	//	} else {
-	//		//fmt.Println("False:", ids[i])
 	//	}
 	//}
+	cornerIdx = []int{10, 48, 64, 69}
+	fmt.Println(mult)
+	if len(possibleStarts) != 4 || len(cornerIdx) != 4 {
+		fmt.Println("ERROR")
+	}
 
-	//for _, tile := range getVariants(&tiles[0]) {
-	//	utils.Print1010Grid(tile)
-	//}
+	fmt.Println("Corners:", cornerIdx)
+	for i, id := range ids {
+		fmt.Print(i, ":", id, " ")
+	}
+	fmt.Println()
+	alreadyUsed := make([]int, 4)
+	copy(alreadyUsed, cornerIdx)
+
+	firstRow := []int{10, 101, 29, 108, 97, 73, 2, 26, 96, 67, 80, 64}
+	alreadyUsed = []int{cornerIdx[0]}
+	possibleFirstRow := make([][]int, 0)
+	createRow(cornerIdx[0], tiles, alreadyUsed, []int{}, &possibleFirstRow, 7)
+	firstLast := make(map[int]bool)
+	for _, elem := range possibleFirstRow {
+		firstLast[elem[6]] = true
+		if elem[6] == 2 {
+			fmt.Println(elem)
+		}
+	}
+	fmt.Println(firstLast)
+
+	alreadyUsed = []int{cornerIdx[2]}
+	possibleFirstRow = make([][]int, 0)
+	createRow(cornerIdx[2], tiles, alreadyUsed, []int{}, &possibleFirstRow, 6)
+	firstLast = make(map[int]bool)
+	for _, elem := range possibleFirstRow {
+		firstLast[elem[5]] = true
+		if elem[5] == 2 {
+			fmt.Println(elem)
+		}
+	}
+	fmt.Println(firstLast)
+
 }
