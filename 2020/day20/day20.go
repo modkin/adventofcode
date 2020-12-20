@@ -7,6 +7,18 @@ import (
 	"strings"
 )
 
+func printRow(row [][10][10]string) {
+	for y := 0; y < 10; y++ {
+		for tileNr := 0; tileNr < 12; tileNr++ {
+			for x := 0; x < 10; x++ {
+				fmt.Print(row[tileNr][x][y])
+			}
+			fmt.Print(" ")
+		}
+		fmt.Println()
+	}
+}
+
 func rotateTile90(tile *[10][10]string) [10][10]string {
 	var rotate90 [10][10]string
 	for y := 0; y < 10; y++ {
@@ -122,12 +134,24 @@ func findPossibleNextLeft(current [10][10]string, tiles [][10][10]string, alread
 	return ret
 }
 
-func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRow []int, ret *[][]int, rowLength int) {
+func checkTopBot(upper [10][10]string, lower [10][10]string) bool {
+	for i := 0; i < 10; i++ {
+		if upper[i][9] != lower[i][0] {
+			return false
+		}
+	}
+	return true
+}
+
+func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRow []int, ret *[][]int, rowLength int, previousRow [][10][10]string) {
 	currentRow = append(currentRow, startId)
 	if len(currentRow) == rowLength {
 		*ret = append(*ret, utils.CopyIntSlice(currentRow))
 	} else {
 		for _, rotation := range getAllVariants(&tiles[startId]) {
+			if !checkTopBot(previousRow[len(currentRow)-1], rotation) {
+				continue
+			}
 			possibleNextLeft := findPossibleNextLeft(rotation, tiles, alreadyUsed)
 			if len(possibleNextLeft) == 0 {
 				continue
@@ -138,7 +162,7 @@ func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRo
 				}
 				for key := range possibleNextLeftMap {
 					alreadyUsed = append(alreadyUsed, key)
-					createRow(key, tiles, utils.CopyIntSlice(alreadyUsed), utils.CopyIntSlice(currentRow), ret, rowLength)
+					createRow(key, tiles, utils.CopyIntSlice(alreadyUsed), utils.CopyIntSlice(currentRow), ret, rowLength, previousRow)
 				}
 			}
 		}
@@ -168,11 +192,11 @@ func main() {
 	}
 	//add last tile
 	//tiles = append(tiles, newTile)
-	fmt.Println(len(tiles))
+	//fmt.Println(len(tiles))
 
 	possibleStarts := make([][10][10]string, 0)
 	cornerIdx := make([]int, 0)
-	mult := 1
+	//mult := 1
 	//for i, tile := range tiles {
 	//	//fmt.Println("Tile:,",ids[i])
 	//	tmp := possibleNeighbors(tiles, &tile, ids)
@@ -193,42 +217,57 @@ func main() {
 	//	}
 	//}
 	cornerIdx = []int{10, 48, 64, 69}
-	fmt.Println(mult)
+	//fmt.Println("Task 1:",mult)
 	if len(possibleStarts) != 4 || len(cornerIdx) != 4 {
-		fmt.Println("ERROR")
+		//fmt.Println("ERROR")
 	}
 
 	fmt.Println("Corners:", cornerIdx)
-	for i, id := range ids {
-		fmt.Print(i, ":", id, " ")
-	}
-	fmt.Println()
-	alreadyUsed := make([]int, 4)
-	copy(alreadyUsed, cornerIdx)
+
+	//alreadyUsed := make([]int, 4)
+	//copy(alreadyUsed, cornerIdx)
 
 	firstRow := []int{10, 101, 29, 108, 97, 73, 2, 26, 96, 67, 80, 64}
-	alreadyUsed = []int{cornerIdx[0]}
-	possibleFirstRow := make([][]int, 0)
-	createRow(cornerIdx[0], tiles, alreadyUsed, []int{}, &possibleFirstRow, 7)
-	firstLast := make(map[int]bool)
-	for _, elem := range possibleFirstRow {
-		firstLast[elem[6]] = true
-		if elem[6] == 2 {
-			fmt.Println(elem)
-		}
-	}
-	fmt.Println(firstLast)
+	//possibleFirstRow := make([][]int, 0)
 
-	alreadyUsed = []int{cornerIdx[2]}
-	possibleFirstRow = make([][]int, 0)
-	createRow(cornerIdx[2], tiles, alreadyUsed, []int{}, &possibleFirstRow, 6)
-	firstLast = make(map[int]bool)
-	for _, elem := range possibleFirstRow {
-		firstLast[elem[5]] = true
-		if elem[5] == 2 {
-			fmt.Println(elem)
+	firstRowTiles := make([][][10][10]string, 8)
+	for firstRowCount := 0; firstRowCount < 8; firstRowCount++ {
+		skip := 0
+		for i, currentTileID := range firstRow {
+		curRot:
+			for _, current := range getAllVariants(&tiles[currentTileID]) {
+				if i == 0 {
+					firstRowTiles[firstRowCount] = [][10][10]string{current}
+					if skip < firstRowCount {
+						skip++
+						continue curRot
+
+					}
+
+				}
+				for _, rotation := range getAllVariants(&tiles[firstRow[i+1]]) {
+					if sameStringSlice(current[9][:], rotation[0][:]) {
+						firstRowTiles[firstRowCount] = append(firstRowTiles[firstRowCount], rotation)
+						break curRot
+					}
+				}
+			}
+			if i == len(firstRow)-2 {
+				break
+			}
 		}
 	}
-	fmt.Println(firstLast)
+	fmt.Println(len(firstRowTiles))
+	//for _, elem := range firstRowTiles {
+	//	printRow(elem)
+	//	fmt.Println("================================================================================")
+	//}
+	for _, toptile := range getAllVariants(&firstRowTiles[0][2]) {
+		for j, bottile := range tiles {
+			if checkTopBot(toptile, bottile) {
+				fmt.Println("muh", j)
+			}
+		}
+	}
 
 }
