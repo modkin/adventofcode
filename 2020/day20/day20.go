@@ -143,6 +143,15 @@ func checkTopBot(upper [10][10]string, lower [10][10]string) bool {
 	return true
 }
 
+func checkLeftRight(left [10][10]string, right [10][10]string) bool {
+	for i := 0; i < 10; i++ {
+		if left[9][i] != right[0][i] {
+			return false
+		}
+	}
+	return true
+}
+
 func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRow []int, ret *[][]int, rowLength int, previousRow [][10][10]string) {
 	currentRow = append(currentRow, startId)
 	if len(currentRow) == rowLength {
@@ -190,8 +199,6 @@ func main() {
 			y++
 		}
 	}
-	allTiles[newTileId] = newTile
-	//fmt.Println(allTiles)
 	neighbors := make(map[int][]int)
 	for tileId, tile := range allTiles {
 		for otherTileId, otherTile := range allTiles {
@@ -210,12 +217,12 @@ func main() {
 						neighbors[tileId] = append(neighbors[tileId], otherTileId)
 					}
 				}
-				if sameStringSlice(rotation[9][:], tile[0][:]) {
+				if checkLeftRight(rotation, tile) {
 					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
 						neighbors[tileId] = append(neighbors[tileId], otherTileId)
 					}
 				}
-				if sameStringSlice(rotation[0][:], tile[9][:]) {
+				if checkLeftRight(tile, rotation) {
 					if !utils.IntSliceContains(neighbors[tileId], otherTileId) {
 						neighbors[tileId] = append(neighbors[tileId], otherTileId)
 					}
@@ -247,9 +254,10 @@ func main() {
 		}
 		return true
 	}
-	fullPicture[0][0] = cornerIds[0]
-	fullPicture[1][0] = neighbors[cornerIds[0]][0]
-	fullPicture[0][1] = neighbors[cornerIds[0]][1]
+	startId := 1439
+	fullPicture[0][0] = startId
+	fullPicture[1][0] = neighbors[startId][1]
+	fullPicture[0][1] = neighbors[startId][0]
 	for i := 1; i < 12; i++ {
 		for _, nbr := range neighbors[fullPicture[0][i]] {
 			if utils.IntSliceContains(edgeIds, nbr) && notInPicture(nbr) {
@@ -273,15 +281,20 @@ func main() {
 		}
 	}
 	for x := 1; x < 12; x++ {
-		for y := 1; y < 12; y++ {
+		for y = 1; y < 12; y++ {
 			for _, nbr := range neighbors[fullPicture[x][y-1]] {
 				if utils.IntSliceContains(neighbors[fullPicture[x-1][y]], nbr) && notInPicture(nbr) {
 					fullPicture[x][y] = nbr
 				}
+
 			}
 		}
+		//for _, line := range fullPicture {
+		//	fmt.Println(line)
+		//}
 	}
-
+	fmt.Println(len(edgeIds))
+	fmt.Println(len(neighbors))
 	for _, line := range fullPicture {
 		fmt.Println(line)
 	}
