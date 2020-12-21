@@ -289,13 +289,59 @@ func main() {
 
 			}
 		}
-		//for _, line := range fullPicture {
-		//	fmt.Println(line)
-		//}
 	}
 	fmt.Println(len(edgeIds))
 	fmt.Println(len(neighbors))
 	for _, line := range fullPicture {
 		fmt.Println(line)
+	}
+	flatFullPicture := make([][][10][10]string, 12)
+	for i := 0; i < 12; i++ {
+		flatFullPicture[i] = make([][10][10]string, 12)
+		for foo := 0; foo < 12; foo++ {
+			var tmp [10][10]string
+			for a := 0; a < 10; a++ {
+				for b := 0; b < 10; b++ {
+					tmp[a][b] = "-"
+				}
+			}
+			flatFullPicture[i][foo] = tmp
+		}
+	}
+	tmp := allTiles[1439]
+	flatFullPicture[0][0] = getAllVariants(&tmp)[0]
+	//outer:
+	for x := 0; x < 11; x++ {
+		//if x != 0 {
+		//	currentTile := flatFullPicture[x][0]
+		//	nbrTmp := allTiles[fullPicture[x+1][0]]
+		//	for _, nbrTile := range getAllVariants(&nbrTmp) {
+		//		if checkLeftRight(currentTile, nbrTile) {
+		//			flatFullPicture[x+1][y] = nbrTile
+		//			//break outer
+		//		}
+		//	}
+		//}
+		for y = 0; y < 11; y++ {
+			currentTile := flatFullPicture[x][y]
+			nbrTmp := allTiles[fullPicture[x][y+1]]
+			for _, nbrTile := range getAllVariants(&nbrTmp) {
+				if checkTopBot(currentTile, nbrTile) {
+					flatFullPicture[x][y+1] = nbrTile
+				}
+			}
+		}
+	}
+	for yTile := 0; yTile < 12; yTile++ {
+		for y = 0; y < 10; y++ {
+			for tileNr := 0; tileNr < 12; tileNr++ {
+				for x := 0; x < 10; x++ {
+					fmt.Print(flatFullPicture[tileNr][yTile][x][y])
+				}
+				fmt.Print(" ")
+			}
+			fmt.Println()
+		}
+		fmt.Println()
 	}
 }
