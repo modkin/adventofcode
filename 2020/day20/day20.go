@@ -170,7 +170,7 @@ func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRo
 }
 
 func main() {
-	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/input"))
+	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/testinput"))
 	allTiles := make(map[int][10][10]string)
 	var newTile [10][10]string
 	y := 0
@@ -190,6 +190,7 @@ func main() {
 			y++
 		}
 	}
+	allTiles[newTileId] = newTile
 	//fmt.Println(allTiles)
 	neighbors := make(map[int][]int)
 	for tileId, tile := range allTiles {
@@ -233,5 +234,16 @@ func main() {
 	}
 	solutionOne := cornerIds[0] * cornerIds[1] * cornerIds[2] * cornerIds[3]
 	fmt.Println("Task 1:", solutionOne)
-
+	var fullPicture [12][12]int
+	fullPicture[0][0] = cornerIds[0]
+	fullPicture[1][0] = neighbors[cornerIds[0]][0]
+	fullPicture[0][1] = neighbors[cornerIds[0]][1]
+	for i := 1; i < 11; i++ {
+		for _, nbr := range neighbors[fullPicture[i][0]] {
+			if utils.IntSliceContains(edgeIds, nbr) {
+				fullPicture[i+1][0] = nbr
+			}
+		}
+	}
+	fmt.Println(fullPicture)
 }
