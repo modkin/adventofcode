@@ -343,4 +343,20 @@ func main() {
 		}
 		fmt.Println()
 	}
+	var finnalImage [96][96]string
+	for yTile := 0; yTile < 12; yTile++ {
+		for y = 1; y < 9; y++ {
+			for tileNr := 0; tileNr < 12; tileNr++ {
+				for x := 1; x < 9; x++ {
+					finnalImage[(x-1)+tileNr*8][(y-1)+yTile*8] = flatFullPicture[tileNr][yTile][x][y]
+				}
+			}
+		}
+	}
+	for y := 0; y < 96; y++ {
+		for x := 0; x < 96; x++ {
+			fmt.Print(finnalImage[x][y])
+		}
+		fmt.Println()
+	}
 }
