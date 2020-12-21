@@ -256,8 +256,8 @@ func main() {
 	}
 	startId := 1439
 	fullPicture[0][0] = startId
-	fullPicture[1][0] = neighbors[startId][1]
-	fullPicture[0][1] = neighbors[startId][0]
+	fullPicture[1][0] = 2417
+	fullPicture[0][1] = 3461
 	for i := 1; i < 12; i++ {
 		for _, nbr := range neighbors[fullPicture[0][i]] {
 			if utils.IntSliceContains(edgeIds, nbr) && notInPicture(nbr) {
@@ -309,19 +309,18 @@ func main() {
 		}
 	}
 	tmp := allTiles[1439]
-	flatFullPicture[0][0] = getAllVariants(&tmp)[0]
+	flatFullPicture[0][0] = getAllVariants(&tmp)[7]
 	//outer:
-	for x := 0; x < 11; x++ {
-		//if x != 0 {
-		//	currentTile := flatFullPicture[x][0]
-		//	nbrTmp := allTiles[fullPicture[x+1][0]]
-		//	for _, nbrTile := range getAllVariants(&nbrTmp) {
-		//		if checkLeftRight(currentTile, nbrTile) {
-		//			flatFullPicture[x+1][y] = nbrTile
-		//			//break outer
-		//		}
-		//	}
-		//}
+	for x := 0; x < 12; x++ {
+		if x != 11 {
+			currentTile := flatFullPicture[x][0]
+			nbrTmp := allTiles[fullPicture[x+1][0]]
+			for _, nbrTile := range getAllVariants(&nbrTmp) {
+				if checkLeftRight(currentTile, nbrTile) {
+					flatFullPicture[x+1][0] = nbrTile
+				}
+			}
+		}
 		for y = 0; y < 11; y++ {
 			currentTile := flatFullPicture[x][y]
 			nbrTmp := allTiles[fullPicture[x][y+1]]
