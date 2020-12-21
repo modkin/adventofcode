@@ -170,7 +170,7 @@ func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRo
 }
 
 func main() {
-	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/testinput"))
+	scanner := bufio.NewScanner(utils.OpenFile("2020/day20/input"))
 	allTiles := make(map[int][10][10]string)
 	var newTile [10][10]string
 	y := 0
@@ -223,7 +223,6 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(neighbors)
 	cornerIds, edgeIds := make([]int, 0), make([]int, 0)
 	for tileId, neighborIds := range neighbors {
 		if len(neighborIds) == 2 {
@@ -234,16 +233,56 @@ func main() {
 	}
 	solutionOne := cornerIds[0] * cornerIds[1] * cornerIds[2] * cornerIds[3]
 	fmt.Println("Task 1:", solutionOne)
+	fmt.Println("Corners: ", cornerIds)
+
 	var fullPicture [12][12]int
+
+	notInPicture := func(id int) bool {
+		for _, line := range fullPicture {
+			for _, elem := range line {
+				if elem == id {
+					return false
+				}
+			}
+		}
+		return true
+	}
 	fullPicture[0][0] = cornerIds[0]
 	fullPicture[1][0] = neighbors[cornerIds[0]][0]
 	fullPicture[0][1] = neighbors[cornerIds[0]][1]
-	for i := 1; i < 11; i++ {
+	for i := 1; i < 12; i++ {
+		for _, nbr := range neighbors[fullPicture[0][i]] {
+			if utils.IntSliceContains(edgeIds, nbr) && notInPicture(nbr) {
+				fullPicture[0][i+1] = nbr
+			}
+		}
 		for _, nbr := range neighbors[fullPicture[i][0]] {
-			if utils.IntSliceContains(edgeIds, nbr) {
+			if utils.IntSliceContains(edgeIds, nbr) && notInPicture(nbr) {
 				fullPicture[i+1][0] = nbr
 			}
 		}
 	}
-	fmt.Println(fullPicture)
+	for _, nbr := range neighbors[fullPicture[0][10]] {
+		if utils.IntSliceContains(cornerIds, nbr) {
+			fullPicture[0][11] = nbr
+		}
+	}
+	for _, nbr := range neighbors[fullPicture[10][0]] {
+		if utils.IntSliceContains(cornerIds, nbr) {
+			fullPicture[11][0] = nbr
+		}
+	}
+	for x := 1; x < 12; x++ {
+		for y := 1; y < 12; y++ {
+			for _, nbr := range neighbors[fullPicture[x][y-1]] {
+				if utils.IntSliceContains(neighbors[fullPicture[x-1][y]], nbr) && notInPicture(nbr) {
+					fullPicture[x][y] = nbr
+				}
+			}
+		}
+	}
+
+	for _, line := range fullPicture {
+		fmt.Println(line)
+	}
 }
