@@ -7,18 +7,6 @@ import (
 	"strings"
 )
 
-func printRow(row [][10][10]string) {
-	for y := 0; y < 10; y++ {
-		for tileNr := 0; tileNr < 12; tileNr++ {
-			for x := 0; x < 10; x++ {
-				fmt.Print(row[tileNr][x][y])
-			}
-			fmt.Print(" ")
-		}
-		fmt.Println()
-	}
-}
-
 func rotateTile90(tile *[10][10]string) [10][10]string {
 	var rotate90 [10][10]string
 	for y := 0; y < 10; y++ {
@@ -49,91 +37,6 @@ func getAllVariants(tile *[10][10]string) [][10][10]string {
 	return ret
 }
 
-func getVariants(tile *[10][10]string) [][10][10]string {
-	//ret := make([][10][10]string,0)
-	var rotate0 [10][10]string
-	var rotate90 [10][10]string
-	var rotate180 [10][10]string
-	var rotate270 [10][10]string
-	var flipH [10][10]string
-	var flipV [10][10]string
-	//rotate
-	for y := 0; y < 10; y++ {
-		for x := 0; x < 10; x++ {
-			rotate0[x][y] = tile[x][y]
-			rotate90[x][y] = tile[y][9-x]
-			rotate180[x][y] = tile[9-x][9-y]
-			rotate270[x][y] = tile[9-y][x]
-			flipH[x][y] = tile[x][9-y]
-			flipV[x][y] = tile[9-x][y]
-		}
-	}
-	return [][10][10]string{rotate0, rotate90, rotate180, rotate270, flipH, flipV}
-}
-
-func sameStringSlice(one []string, two []string) bool {
-	same := true
-	for i, elem := range one {
-		if elem != two[i] {
-			same = false
-		}
-	}
-	return same
-}
-
-func possibleNeighbors(tiles [][10][10]string, inputTile *[10][10]string, ids []int) [][]int {
-	neighborsAtOrientation := make([][]int, 0)
-	neighborsFound := 0
-	for _, tile := range getAllVariants(inputTile) {
-		neighborsSlice := make([]int, 0)
-		for otherId, elem := range tiles {
-			//fmt.Println("Other Tile:", ids[i])
-			if elem == tile {
-				continue
-			}
-			for _, otherTile := range getAllVariants(&elem) {
-				//top
-				if tile[:][0] == otherTile[:][0] {
-					neighborsSlice = append(neighborsSlice, ids[otherId])
-					neighborsFound++
-				}
-				//bot
-				if tile[:][9] == otherTile[:][9] {
-					neighborsSlice = append(neighborsSlice, ids[otherId])
-					neighborsFound++
-				}
-				//left
-				if sameStringSlice(tile[0][:], otherTile[0][:]) {
-					neighborsSlice = append(neighborsSlice, ids[otherId])
-					neighborsFound++
-				}
-				//right
-				if sameStringSlice(tile[9][:], otherTile[9][:]) {
-					neighborsSlice = append(neighborsSlice, ids[otherId])
-					neighborsFound++
-				}
-			}
-		}
-		neighborsAtOrientation = append(neighborsAtOrientation, neighborsSlice)
-	}
-	return neighborsAtOrientation
-}
-
-func findPossibleNextLeft(current [10][10]string, tiles [][10][10]string, alreadyUsed []int) []int {
-	ret := make([]int, 0)
-	for i, nextTile := range tiles {
-		if utils.IntSliceContains(alreadyUsed, i) {
-			continue
-		}
-		for _, rotatedNexTile := range getAllVariants(&nextTile) {
-			if sameStringSlice(current[9][:], rotatedNexTile[0][:]) {
-				ret = append(ret, i)
-			}
-		}
-	}
-	return ret
-}
-
 func checkTopBot(upper [10][10]string, lower [10][10]string) bool {
 	for i := 0; i < 10; i++ {
 		if upper[i][9] != lower[i][0] {
@@ -152,30 +55,34 @@ func checkLeftRight(left [10][10]string, right [10][10]string) bool {
 	return true
 }
 
-func createRow(startId int, tiles [][10][10]string, alreadyUsed []int, currentRow []int, ret *[][]int, rowLength int, previousRow [][10][10]string) {
-	currentRow = append(currentRow, startId)
-	if len(currentRow) == rowLength {
-		*ret = append(*ret, utils.CopyIntSlice(currentRow))
-	} else {
-		for _, rotation := range getAllVariants(&tiles[startId]) {
-			if !checkTopBot(previousRow[len(currentRow)-1], rotation) {
-				continue
-			}
-			possibleNextLeft := findPossibleNextLeft(rotation, tiles, alreadyUsed)
-			if len(possibleNextLeft) == 0 {
-				continue
-			} else {
-				possibleNextLeftMap := make(map[int]bool)
-				for _, nextID := range possibleNextLeft {
-					possibleNextLeftMap[nextID] = true
-				}
-				for key := range possibleNextLeftMap {
-					alreadyUsed = append(alreadyUsed, key)
-					createRow(key, tiles, utils.CopyIntSlice(alreadyUsed), utils.CopyIntSlice(currentRow), ret, rowLength, previousRow)
-				}
+func findSeaMonster(image [96][96]string) int {
+	MonstersFound := 0
+	for y := 0; y < 96-2; y++ {
+		for x := 0; x < 96-19; x++ {
+			found := make([]string, 0)
+			found = append(found, image[x+18][y])
+
+			found = append(found, image[x][y+1])
+			found = append(found, image[x+5][y+1])
+			found = append(found, image[x+6][y+1])
+			found = append(found, image[x+11][y+1])
+			found = append(found, image[x+12][y+1])
+			found = append(found, image[x+17][y+1])
+			found = append(found, image[x+18][y+1])
+			found = append(found, image[x+19][y+1])
+
+			found = append(found, image[x+1][y+2])
+			found = append(found, image[x+4][y+2])
+			found = append(found, image[x+7][y+2])
+			found = append(found, image[x+10][y+2])
+			found = append(found, image[x+13][y+2])
+			found = append(found, image[x+16][y+2])
+			if strings.Count(strings.Join(found, ""), "#") == 15 {
+				MonstersFound++
 			}
 		}
 	}
+	return MonstersFound
 }
 
 func main() {
@@ -239,8 +146,8 @@ func main() {
 		}
 	}
 	solutionOne := cornerIds[0] * cornerIds[1] * cornerIds[2] * cornerIds[3]
-	fmt.Println("Task 1:", solutionOne)
-	fmt.Println("Corners: ", cornerIds)
+	fmt.Println("Task 20.1:", solutionOne)
+	//fmt.Println("Corners: ", cornerIds)
 
 	var fullPicture [12][12]int
 
@@ -290,11 +197,9 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(len(edgeIds))
-	fmt.Println(len(neighbors))
-	for _, line := range fullPicture {
-		fmt.Println(line)
-	}
+	//fmt.Println(len(edgeIds))
+	//fmt.Println(len(neighbors))
+
 	flatFullPicture := make([][][10][10]string, 12)
 	for i := 0; i < 12; i++ {
 		flatFullPicture[i] = make([][10][10]string, 12)
@@ -331,18 +236,18 @@ func main() {
 			}
 		}
 	}
-	for yTile := 0; yTile < 12; yTile++ {
-		for y = 0; y < 10; y++ {
-			for tileNr := 0; tileNr < 12; tileNr++ {
-				for x := 0; x < 10; x++ {
-					fmt.Print(flatFullPicture[tileNr][yTile][x][y])
-				}
-				fmt.Print(" ")
-			}
-			fmt.Println()
-		}
-		fmt.Println()
-	}
+	//for yTile := 0; yTile < 12; yTile++ {
+	//	for y = 0; y < 10; y++ {
+	//		for tileNr := 0; tileNr < 12; tileNr++ {
+	//			for x := 0; x < 10; x++ {
+	//				fmt.Print(flatFullPicture[tileNr][yTile][x][y])
+	//			}
+	//			fmt.Print(" ")
+	//		}
+	//		fmt.Println()
+	//	}
+	//	fmt.Println()
+	//}
 	var finnalImage [96][96]string
 	for yTile := 0; yTile < 12; yTile++ {
 		for y = 1; y < 9; y++ {
@@ -353,10 +258,20 @@ func main() {
 			}
 		}
 	}
+	//for y := 0; y < 96; y++ {
+	//	for x := 0; x < 96; x++ {
+	//		fmt.Print(finnalImage[x][y])
+	//	}
+	//	fmt.Println()
+	//}
+	numberOfMonsters := findSeaMonster(finnalImage)
+	countHash := 0
 	for y := 0; y < 96; y++ {
 		for x := 0; x < 96; x++ {
-			fmt.Print(finnalImage[x][y])
+			if finnalImage[x][y] == "#" {
+				countHash++
+			}
 		}
-		fmt.Println()
 	}
+	fmt.Println("Task 20.2:", countHash-15*numberOfMonsters)
 }
