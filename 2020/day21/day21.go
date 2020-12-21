@@ -13,7 +13,6 @@ func main() {
 	allIngredients := make(map[string]int)
 	ingredientToAllgergenMap := make(map[string]map[string]int)
 	toxicIngredients := make([]string, 0)
-	//AllgergenToIngredientMap := make(map[string]string)
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), "(")
 		ingredients := strings.Split(strings.TrimSpace(line[0]), " ")
@@ -33,9 +32,6 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(allergenMap)
-	//fmt.Println(allIngredients)
-	//fmt.Println(ingredientToAllgergenMap)
 	smallerAlgIngMap := make(map[string]map[string]bool)
 	for allergen := range allergenMap {
 		max := 0
@@ -55,7 +51,6 @@ func main() {
 			smallerAlgIngMap[allergen][elem] = true
 		}
 	}
-	//fmt.Println(smallerAlgIngMap)
 	for i := 0; i < 8; i++ {
 		for alg, ings := range smallerAlgIngMap {
 			if len(ings) == 1 {
@@ -69,14 +64,6 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(len(smallerAlgIngMap))
-	fmt.Println(smallerAlgIngMap)
-	for _, ings := range smallerAlgIngMap {
-		for keys := range ings {
-			toxicIngredients = append(toxicIngredients, keys)
-			fmt.Print(keys, ",")
-		}
-	}
 
 	sum := 0
 	for ing, amount := range allIngredients {
@@ -85,4 +72,13 @@ func main() {
 		}
 	}
 	fmt.Println("Task 21.1:", sum)
+	fmt.Print("Task 21.2: ")
+	printStr := fmt.Sprint(smallerAlgIngMap)
+	tmp := strings.Split(strings.TrimPrefix(printStr, "map["), " ")
+	for i, elem := range tmp {
+		fmt.Print(strings.Split(strings.Split(elem, "[")[1], ":")[0])
+		if i != len(tmp)-1 {
+			fmt.Print(",")
+		}
+	}
 }
