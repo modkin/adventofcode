@@ -64,7 +64,11 @@ func main() {
 			}
 		}
 	}
-
+	for _, elem1 := range smallerAlgIngMap {
+		for toxic := range elem1 {
+			toxicIngredients = append(toxicIngredients, toxic)
+		}
+	}
 	sum := 0
 	for ing, amount := range allIngredients {
 		if !utils.SliceContains(toxicIngredients, ing) {
