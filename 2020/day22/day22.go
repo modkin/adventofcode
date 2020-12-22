@@ -10,28 +10,34 @@ import (
 
 func hashGame(deck1 []int, deck2 []int) string {
 	ret := make([]string, 0)
-	for card := range deck1 {
+	for _, card := range deck1 {
 		ret = append(ret, strconv.Itoa(card))
 	}
-	for card := range deck2 {
+	for _, card := range deck2 {
 		ret = append(ret, strconv.Itoa(card))
 	}
 	return strings.Join(ret, "")
 }
 
-func playGame(deck1 []int, deck2 []int, alreadyPlayed map[string]bool) (bool, []int) {
-	//hash := hashGame(deck1,deck2)
-	//if _,ok := alreadyPlayed[hash]; ok {
-	//	return true, deck1
-	//} else {
-	//	alreadyPlayed[hash] = true
-	//}
+func playGame(deck1 []int, deck2 []int, allGames map[string]bool) (bool, []int) {
+	//fmt.Println(len(allGames))
+	alreadyPlayed := make(map[string]bool)
 
 	playerOneWon := false
 	for len(deck1) > 0 && len(deck2) > 0 {
+		hash := hashGame(deck1, deck2)
+		if _, ok := alreadyPlayed[hash]; ok {
+			return true, deck1
+		} else {
+			alreadyPlayed[hash] = true
+		}
 		playerOneWon = false
 		if deck1[0] <= len(deck1[1:]) && deck2[0] <= len(deck2[1:]) {
-			playerOneWon, _ = playGame(utils.CopyIntSlice(deck1[1:]), utils.CopyIntSlice(deck2[1:]), alreadyPlayed)
+			//if result, ok := allGames[hashGame(deck1[1:], deck2[1:])]; ok {
+			//	playerOneWon = result
+			//} else {
+			playerOneWon, _ = playGame(utils.CopyIntSlice(deck1[1:deck1[0]+1]), utils.CopyIntSlice(deck2[1:deck2[0]+1]), allGames)
+			//}
 		} else {
 			if deck1[0] > deck2[0] {
 				playerOneWon = true
@@ -45,10 +51,12 @@ func playGame(deck1 []int, deck2 []int, alreadyPlayed map[string]bool) (bool, []
 			deck1 = deck1[1:]
 		}
 	}
-	if playerOneWon {
-		return playerOneWon, deck1
+	//hash := hashGame(deck1,deck2)
+	//allGames[hash] = playerOneWon
+	if len(deck1) > len(deck2) {
+		return true, deck1
 	} else {
-		return playerOneWon, deck2
+		return false, deck2
 	}
 
 }
@@ -73,10 +81,11 @@ func main() {
 		}
 	}
 
-	playedGames := make(map[string]bool)
-	_, winningDeck := playGame(deck1, deck2, playedGames)
-	fmt.Println(deck1)
-	fmt.Println(deck2)
+	allGames := make(map[string]bool)
+	_, winningDeck := playGame(deck1, deck2, allGames)
+	fmt.Println(len(deck1))
+	fmt.Println(len(deck2))
+	fmt.Println(len(winningDeck))
 	score := 0
 	for i, elem := range winningDeck {
 		score += (len(winningDeck) - i) * elem
