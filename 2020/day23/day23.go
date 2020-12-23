@@ -4,54 +4,10 @@ import (
 	"adventofcode/utils"
 	"container/ring"
 	"fmt"
-	"math"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
-
-type currentCup struct {
-	pos   int
-	value int
-}
-
-func getDestination(currentCup int, cups *ring.Ring) int {
-	sorted := make([]int, cups.Len())
-	for i := 0; i < cups.Len(); i++ {
-		sorted = append(sorted, cups.Value.(int))
-		cups = cups.Next()
-	}
-	sort.Ints(sorted)
-	for i, elem := range sorted {
-		if elem == currentCup {
-			if i == 0 {
-				return sorted[len(sorted)-1]
-			} else {
-				return sorted[i-1]
-			}
-		}
-	}
-	fmt.Println("ERROR")
-	return math.MaxInt64
-}
-
-func getOptimizedDestination(current int, cups *ring.Ring, max int) int {
-	pickedUp := make([]int, 3)
-	for i := range pickedUp {
-		pickedUp[i] = cups.Value.(int)
-		cups = cups.Next()
-	}
-	for {
-		current--
-		if current == 0 {
-			current = max
-		}
-		if !utils.IntSliceContains(pickedUp, current) {
-			return current
-		}
-	}
-}
 
 func printRing(ring *ring.Ring) {
 	for i := 0; i < ring.Len(); i++ {
@@ -62,30 +18,46 @@ func printRing(ring *ring.Ring) {
 }
 
 func playGame(cups *ring.Ring, rounds int) {
-	searchDest := 0
+
 	searchNext := 0
-	//start := time.Now()
+	start := time.Now()
+	pickedUp := make([]int, 3)
 	for i := 0; i < rounds; i++ {
-		//if i%50 == 0 {
-		//	fmt.Println(i, searchDest, searchNext, time.Now().Sub(start))
-		//	start = time.Now()
-		//}
+		searchDest := 0
 		cups = cups.Next()
-		//printRing(cups)
 		currentVal := cups.Value.(int)
-		//fmt.Println(currentVal)
 		pickup := cups.Unlink(3)
-		//printRing(cups)
-		destinationCup := getOptimizedDestination(currentVal, pickup, cups.Len()+pickup.Len())
-		//destinationCup := cups.Prev().Value.(int)
+		//destinationCup := getOptimizedDestination(currentVal, pickup, )
+		destinationCup := 0
+
+		for i := range pickedUp {
+			pickedUp[i] = pickup.Value.(int)
+			pickup = pickup.Next()
+		}
+		current := currentVal
+		for {
+			current--
+			if current == 0 {
+				current = cups.Len() + pickup.Len()
+			}
+			if !utils.IntSliceContains(pickedUp, current) {
+				destinationCup = current
+				break
+			}
+		}
 		for cups.Value.(int) != destinationCup {
 			cups = cups.Prev()
 			searchDest++
 		}
+
 		cups.Link(pickup)
 		for cups.Value.(int) != currentVal {
 			cups = cups.Next()
 			searchNext++
+		}
+		if i%50 == 0 {
+			fmt.Println(i, searchDest, searchNext, time.Now().Sub(start), destinationCup)
+			start = time.Now()
 		}
 	}
 }
