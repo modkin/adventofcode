@@ -39,7 +39,7 @@ func playGame(cups *ring.Ring, rounds int) {
 		for {
 			current--
 			if current == 0 {
-				current = cups.Len() + pickup.Len()
+				current = 1000000
 			}
 			if !utils.IntSliceContains(pickedUp, current) {
 				destinationCup = current
@@ -68,7 +68,7 @@ func playGame(cups *ring.Ring, rounds int) {
 	}
 }
 
-func main() {
+func solve() {
 	input := "952316487"
 	//input = "389125467"
 	cupsStr := strings.Split(input, "")
@@ -97,14 +97,14 @@ func main() {
 	}
 	fmt.Println("Task 23.1:", solution)
 
-	cups2 := make([]int, 1000000)
+	//cups2 := make([]int, 1000000)
 	cups2Ring := ring.New(1000000)
-	for i := 0; i < len(cups2); i++ {
+	for i := 0; i < 1000000; i++ {
 		if i < len(cupsInt) {
-			cups2[i] = cupsInt[i]
+			//cups2[i] = cupsInt[i]
 			cups2Ring.Value = cupsInt[i]
 		} else {
-			cups2[i] = i + 1
+			//cups2[i] = i + 1
 			cups2Ring.Value = i + 1
 		}
 		cups2Ring = cups2Ring.Next()
@@ -119,4 +119,8 @@ func main() {
 	first := cups2Ring.Next().Value.(int)
 	second := cups2Ring.Next().Next().Value.(int)
 	fmt.Println(first * second)
+}
+
+func main() {
+	solve()
 }
