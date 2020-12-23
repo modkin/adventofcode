@@ -4,6 +4,7 @@ import (
 	"adventofcode/utils"
 	"container/ring"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -53,12 +54,10 @@ func playIntGame(cups []int, rounds int) {
 	}
 }
 
-func playGame(cups *ring.Ring, rounds int) {
-	cups.Next()
-	previousPtr := cups
-	currentSafe := cups
-	dstPtr := cups
-	cups.Prev()
+func playGame(cups *ring.Ring, rounds int, output bool) {
+	previousPtr := cups.Next()
+	currentSafe := cups.Next()
+	dstPtr := cups.Next()
 
 	start := time.Now()
 	totalCups := cups.Len()
@@ -69,6 +68,9 @@ func playGame(cups *ring.Ring, rounds int) {
 
 		cups = cups.Next()
 		currentVal := cups.Value.(int)
+		if dstPtr == cups.Next() || dstPtr == cups.Next().Next() || dstPtr == cups.Next().Next().Next() {
+			dstPtr = cups
+		}
 		pickup := cups.Unlink(3)
 		//destinationCup := getOptimizedDestination(currentVal, pickup, )
 		destinationCup := 0
@@ -113,12 +115,14 @@ func playGame(cups *ring.Ring, rounds int) {
 			cups = cups.Next()
 			searchNext++
 		}
-		if searchDest > 0 || searchNext > 0 {
+		if output {
+			if searchDest > 0 || searchNext > 0 {
 
-			fmt.Println(i, searchDest, searchNext, time.Now().Sub(start), destinationCup)
-			start = time.Now()
-			searchDest = 0
-			searchNext = 0
+				fmt.Println(i, searchDest, searchNext, time.Now().Sub(start), destinationCup)
+				start = time.Now()
+				searchDest = 0
+				searchNext = 0
+			}
 		}
 	}
 }
@@ -139,7 +143,7 @@ func solve() {
 	}
 	cups = cups.Prev()
 	//printRing(cups)
-	//playGame(cups, 100)
+	playGame(cups, 100, false)
 	printRing(cups)
 	for cups.Value.(int) != 1 {
 		cups = cups.Next()
@@ -151,6 +155,10 @@ func solve() {
 		cups = cups.Next()
 	}
 	fmt.Println("Task 23.1:", solution)
+	if solution != "25398647" {
+		fmt.Println("error")
+		os.Exit(1)
+	}
 	//playIntGame(cupsInt, 100)
 	//fmt.Println(cupsInt)
 
@@ -170,7 +178,7 @@ func solve() {
 	}
 	cups2Ring = cups2Ring.Prev()
 	start := time.Now()
-	playGame(cups2Ring, 100)
+	playGame(cups2Ring, 1000000, true)
 	//playIntGame(cups2, 1000*1000)
 	fmt.Println(time.Now().Sub(start))
 	for cups2Ring.Value.(int) != 1 {
@@ -178,6 +186,7 @@ func solve() {
 	}
 	first := cups2Ring.Next().Value.(int)
 	second := cups2Ring.Next().Next().Value.(int)
+	fmt.Println(first, second)
 	fmt.Println(first * second)
 }
 
