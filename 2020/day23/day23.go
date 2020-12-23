@@ -19,11 +19,12 @@ func printRing(ring *ring.Ring) {
 
 func playGame(cups *ring.Ring, rounds int) {
 
-	searchNext := 0
 	start := time.Now()
 	pickedUp := make([]int, 3)
+	searchDest := 0
+	searchNext := 0
 	for i := 0; i < rounds; i++ {
-		searchDest := 0
+
 		cups = cups.Next()
 		currentVal := cups.Value.(int)
 		pickup := cups.Unlink(3)
@@ -45,26 +46,31 @@ func playGame(cups *ring.Ring, rounds int) {
 				break
 			}
 		}
+		cups = cups.Move(-i)
 		for cups.Value.(int) != destinationCup {
 			cups = cups.Prev()
 			searchDest++
 		}
 
 		cups.Link(pickup)
+		cups = cups.Move(i + 3)
 		for cups.Value.(int) != currentVal {
 			cups = cups.Next()
 			searchNext++
 		}
-		if i%50 == 0 {
+		if i%1000 == 0 {
+
 			fmt.Println(i, searchDest, searchNext, time.Now().Sub(start), destinationCup)
 			start = time.Now()
+			searchDest = 0
+			searchNext = 0
 		}
 	}
 }
 
 func main() {
 	input := "952316487"
-	input = "389125467"
+	//input = "389125467"
 	cupsStr := strings.Split(input, "")
 	cupsInt := make([]int, len(cupsStr))
 	for i, val := range cupsStr {
