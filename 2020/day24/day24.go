@@ -90,7 +90,7 @@ func main() {
 			tiles[pos] = true
 		}
 	}
-	printTiles(tiles)
+	//printTiles(tiles)
 	countTiles := func() int {
 		count := 0
 		for _, value := range tiles {
@@ -101,7 +101,7 @@ func main() {
 		return count
 	}
 
-	fmt.Println(countTiles())
+	fmt.Println("Task 24.1:", countTiles())
 
 	for i := 0; i < 100; i++ {
 		newtiles := make(map[[2]int]bool)
@@ -122,6 +122,6 @@ func main() {
 			}
 		}
 		tiles = newtiles
-		fmt.Println(countTiles())
 	}
+	fmt.Println("Task 24.2:", countTiles())
 }
