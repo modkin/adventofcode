@@ -53,6 +53,18 @@ func move(start [2]int, direction string) [2]int {
 	return [2]int{math.MaxInt64, math.MaxInt64}
 }
 
+func countNeighbors(pos [2]int, tiles map[[2]int]bool) int {
+	allDirections := []string{"e", "w", "ne", "nw", "se", "sw"}
+	neighbors := 0
+	for _, dir := range allDirections {
+		nbr := move(pos, dir)
+		if tiles[nbr] {
+			neighbors++
+		}
+	}
+	return neighbors
+}
+
 func main() {
 	scanner := bufio.NewScanner(utils.OpenFile("2020/day24/input"))
 	tiles := make(map[[2]int]bool)
@@ -72,18 +84,44 @@ func main() {
 				pos = move(pos, elem+line[i+1])
 			}
 		}
-		if value, ok := tiles[pos]; ok {
-			tiles[pos] = !value
+		if tiles[pos] {
+			delete(tiles, pos)
 		} else {
 			tiles[pos] = true
 		}
 	}
 	printTiles(tiles)
-	count := 0
-	for _, value := range tiles {
-		if value {
-			count++
+	countTiles := func() int {
+		count := 0
+		for _, value := range tiles {
+			if value {
+				count++
+			}
 		}
+		return count
 	}
-	fmt.Println(count)
+
+	fmt.Println(countTiles())
+
+	for i := 0; i < 100; i++ {
+		newtiles := make(map[[2]int]bool)
+		for position, _ := range tiles {
+			// check if white has two neighbors
+			allDirections := []string{"e", "w", "ne", "nw", "se", "sw"}
+			for _, dir := range allDirections {
+				nbr := move(position, dir)
+				if !tiles[nbr] {
+					if countNeighbors(nbr, tiles) == 2 {
+						newtiles[nbr] = true
+					}
+				}
+			}
+			// check black
+			if nrNbr := countNeighbors(position, tiles); nrNbr == 1 || nrNbr == 2 {
+				newtiles[position] = true
+			}
+		}
+		tiles = newtiles
+		fmt.Println(countTiles())
+	}
 }
