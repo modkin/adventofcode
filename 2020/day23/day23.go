@@ -4,15 +4,13 @@ import (
 	"adventofcode/utils"
 	"container/ring"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 )
 
 func printRing(ring *ring.Ring) {
 	for i := 0; i < ring.Len(); i++ {
-		fmt.Print(ring.Value.(int), " ")
+		fmt.Print(ring.Value.(cup).value, " ")
 		ring = ring.Next()
 	}
 	fmt.Println()
@@ -55,8 +53,6 @@ func playIntGame(cups []int, rounds int) {
 }
 
 func playGame(cups *ring.Ring, rounds int, output bool) {
-	previousPtr := cups.Next()
-	currentSafe := cups.Next()
 	dstPtr := cups.Next()
 
 	start := time.Now()
@@ -67,16 +63,16 @@ func playGame(cups *ring.Ring, rounds int, output bool) {
 	for i := 0; i < rounds; i++ {
 
 		cups = cups.Next()
-		currentVal := cups.Value.(int)
-		if dstPtr == cups.Next() || dstPtr == cups.Next().Next() || dstPtr == cups.Next().Next().Next() {
-			dstPtr = cups
+		currentVal := cups.Value.(cup).value
+		dstPtr = cups.Value.(cup).previousVal
+		for dstPtr == cups.Next() || dstPtr == cups.Next().Next() || dstPtr == cups.Next().Next().Next() {
+			dstPtr = dstPtr.Value.(cup).previousVal
 		}
 		pickup := cups.Unlink(3)
-		//destinationCup := getOptimizedDestination(currentVal, pickup, )
 		destinationCup := 0
 
 		for k := range pickedUp {
-			pickedUp[k] = pickup.Value.(int)
+			pickedUp[k] = pickup.Value.(cup).value
 			pickup = pickup.Next()
 		}
 		current := currentVal
@@ -90,28 +86,18 @@ func playGame(cups *ring.Ring, rounds int, output bool) {
 				break
 			}
 		}
-		currentSafe = cups
-		//currentSafeAdr := &cups
-		//cups = cups.Move(-i)
-		//cups = previousPtr
-		for dstPtr.Value.(int) != destinationCup {
+		for dstPtr.Value.(cup).value != destinationCup {
 			dstPtr = dstPtr.Next()
 			searchDest++
 		}
-		previousPtr = cups
 
 		dstPtr.Link(pickup)
-		dstPtr = dstPtr.Next().Next().Next()
-		if destinationCup%16 == 12 {
-			dstPtr = dstPtr.Next().Next().Next().Next()
-		}
-		//cups = currentSafe
-		//cups2 := *currentSafeAdr
-		if false {
-			fmt.Println(currentSafe)
-			fmt.Println(previousPtr)
-		}
-		for cups.Value.(int) != currentVal {
+		//dstPtr = dstPtr.Next().Next().Next()
+		//if destinationCup%16 == 12 {
+		//	dstPtr = dstPtr.Next().Next().Next().Next()
+		//}
+
+		for cups.Value.(cup).value != currentVal {
 			cups = cups.Next()
 			searchNext++
 		}
@@ -127,6 +113,11 @@ func playGame(cups *ring.Ring, rounds int, output bool) {
 	}
 }
 
+type cup struct {
+	value       int
+	previousVal *ring.Ring
+}
+
 func solve() {
 	input := "952316487"
 	//input = "389125467"
@@ -136,56 +127,61 @@ func solve() {
 		cupsInt[i] = utils.ToInt(val)
 	}
 
-	cups := ring.New(len(cupsInt))
+	cups2RingPtr := make(map[int]*ring.Ring)
+	cups2Ring := ring.New(len(cupsInt))
+	startCup := cups2Ring
 	for _, val := range cupsInt {
-		cups.Value = val
-		cups = cups.Next()
+		cups2Ring.Value = cup{val, nil}
+		cups2RingPtr[val] = cups2Ring
+		cups2Ring = cups2Ring.Next()
 	}
-	cups = cups.Prev()
-	//printRing(cups)
-	playGame(cups, 100, false)
-	printRing(cups)
-	for cups.Value.(int) != 1 {
-		cups = cups.Next()
-	}
-	cups = cups.Next()
-	solution := ""
-	for i := 0; i < cups.Len()-1; i++ {
-		solution += strconv.Itoa(cups.Value.(int))
-		cups = cups.Next()
-	}
-	fmt.Println("Task 23.1:", solution)
-	if solution != "25398647" {
-		fmt.Println("error")
-		os.Exit(1)
-	}
-	//playIntGame(cupsInt, 100)
-	//fmt.Println(cupsInt)
-
-	cups2RingPtr := make([]*ring.Ring, 1000*1000)
-	cups2 := make([]int, 1000000)
-	cups2Ring := ring.New(1000000)
-	for i := 0; i < 1000000; i++ {
-		if i < len(cupsInt) {
-			cups2[i] = cupsInt[i]
-			cups2Ring.Value = cupsInt[i]
+	tmp := startCup
+	for i := 0; i < len(cupsInt); i++ {
+		cupNr := tmp.Value.(cup).value
+		if cupNr == 1 {
+			tmp.Value = cup{cupNr, cups2RingPtr[len(cupsInt)]}
 		} else {
-			cups2[i] = i + 1
-			cups2Ring.Value = i + 1
+			tmp.Value = cup{cupNr, cups2RingPtr[cupNr-1]}
 		}
-		cups2RingPtr[i] = cups2Ring
+		tmp = tmp.Next()
+	}
+	cups2Ring = startCup.Prev()
+	//playGame(cups2Ring, 100, true)
+	//printRing(cups2Ring)
+	//for cups2Ring.Value.(cup).value != 1 {
+	//	cups2Ring = cups2Ring.Next()
+	//}
+	//cups2Ring = cups2Ring.Next()
+	//solution := ""
+	//for i := 0; i < cups2Ring.Len()-1; i++ {
+	//	solution += strconv.Itoa(cups2Ring.Value.(cup).value)
+	//	cups2Ring = cups2Ring.Next()
+	//}
+	//fmt.Println("Task 23.1:", solution)
+	//if solution != "25398647" {
+	//	fmt.Println("error")
+	//	os.Exit(1)
+	//}
+	cups2Ring = tmp.Prev()
+	cups2RingExtend := ring.New(1000000 - len(cupsInt))
+	cups2Ring.Link(cups2RingExtend)
+	cups2RingPtr[1].Value = cup{1, startCup.Prev()}
+	cups2Ring = cups2Ring.Next()
+	cups2Ring.Value = cup{len(cupsInt) + 1, cups2RingPtr[len(cupsInt)]}
+	cups2Ring = cups2Ring.Next()
+	for i := len(cupsInt) + 2; i <= 1000000; i++ {
+		cups2Ring.Value = cup{i, cups2Ring.Prev()}
 		cups2Ring = cups2Ring.Next()
 	}
-	cups2Ring = cups2Ring.Prev()
+	cups2Ring = startCup.Prev()
 	start := time.Now()
-	playGame(cups2Ring, 1000000, true)
-	//playIntGame(cups2, 1000*1000)
+	playGame(cups2Ring, 10000000, true)
 	fmt.Println(time.Now().Sub(start))
-	for cups2Ring.Value.(int) != 1 {
+	for cups2Ring.Value.(cup).value != 1 {
 		cups2Ring = cups2Ring.Next()
 	}
-	first := cups2Ring.Next().Value.(int)
-	second := cups2Ring.Next().Next().Value.(int)
+	first := cups2Ring.Next().Value.(cup).value
+	second := cups2Ring.Next().Next().Value.(cup).value
 	fmt.Println(first, second)
 	fmt.Println(first * second)
 }
