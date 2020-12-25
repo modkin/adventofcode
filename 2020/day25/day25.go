@@ -28,7 +28,6 @@ func main() {
 	for cardLoopSize == 0 || doorLoopSize == 0 {
 		hash *= 7
 		hash = hash % 20201227
-		//hash := calcHash(7, testLoopSize)
 		if hash == cardPublic {
 			cardLoopSize = testLoopSize
 		}
@@ -37,7 +36,7 @@ func main() {
 		}
 		testLoopSize++
 	}
-	fmt.Println(cardLoopSize, doorLoopSize)
+	//fmt.Println(cardLoopSize, doorLoopSize)
 	encyrptionKey := calcHash(doorPublic, cardLoopSize)
-	fmt.Println(encyrptionKey)
+	fmt.Println("Task 25:", encyrptionKey)
 }
