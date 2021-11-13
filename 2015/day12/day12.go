@@ -19,8 +19,34 @@ func read(data interface{}) int {
 		}
 	case float64:
 		sum += int(v)
-	default:
-		fmt.Println(sum)
+	}
+	return sum
+}
+
+func read2(data interface{}) int {
+	sum := 0
+	switch v := data.(type) {
+	case []interface{}:
+		for _, elem := range v {
+			sum += read2(elem)
+		}
+	case map[string]interface{}:
+		noRed := true
+		for _, value := range v {
+			switch v1 := value.(type) {
+			case string:
+				if v1 == "red" {
+					noRed = false
+				}
+			}
+		}
+		if noRed {
+			for _, value := range v {
+				sum += read2(value)
+			}
+		}
+	case float64:
+		sum += int(v)
 	}
 	return sum
 }
@@ -37,6 +63,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(read(data))
+	fmt.Println("Task 12.1: ", read(data))
+	fmt.Println("Task 12.2: ", read2(data))
 	//fmt.Println(data.(type))
 }
