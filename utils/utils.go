@@ -142,3 +142,11 @@ func Print3DGrid(grid map[[3]int]bool, max int) {
 
 	}
 }
+
+func Factorial(num int) int {
+	result := 1
+	for i := 1; i <= num; i++ {
+		result = result * i
+	}
+	return result
+}
