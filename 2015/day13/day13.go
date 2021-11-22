@@ -63,7 +63,6 @@ func main() {
 	for name := range happinessMap {
 		allNames = append(allNames, name)
 	}
-	fmt.Println(allNames)
 	combination := utils.Factorial(len(allNames) - 1)
 
 	fmt.Println("number of combinations: ", combination)
@@ -71,11 +70,18 @@ func main() {
 	//for i := 0; i < combination; i++ {
 	//	allPermutations[i] = utils.CopyStringSlice(allNames)
 	//}
-
+	happinessMap["Dom"] = make(map[string]int)
+	for _, name := range allNames {
+		for key, elem := range happinessMap {
+			elem["Dom"] = 0
+			happinessMap[key] = elem
+		}
+		happinessMap["Dom"][name] = 0
+	}
+	allNames = append(allNames, "Dom")
 	permutate(allPermutations, allNames, len(allNames), allNames[len(allNames)-1])
 
-	fmt.Println(allPermutations)
-
+	//calculateHappy := func() int {
 	mostHappy := 0
 	for _, seating := range allPermutations {
 		seatingHappy := 0
@@ -95,6 +101,8 @@ func main() {
 			mostHappy = seatingHappy
 		}
 	}
+	//return mostHappy
+	//}
 	fmt.Println(mostHappy)
 
 }
