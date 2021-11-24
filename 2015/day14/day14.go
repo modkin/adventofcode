@@ -9,9 +9,13 @@ import (
 )
 
 type reindeer struct {
-	speed int //in km/s
-	power int //how long before rest
-	rest  int //how long to rest
+	speed     int //in km/s
+	power     int //how long before rest
+	rest      int //how long to rest
+	pos       int
+	powerLeft int
+	restLeft  int
+	points    int
 }
 
 func main() {
@@ -27,9 +31,11 @@ func main() {
 		line := scanner.Text()
 		lineSplit := strings.Split(line, " ")
 		reindeers = append(reindeers, reindeer{
-			speed: utils.ToInt(lineSplit[3]),
-			power: utils.ToInt(lineSplit[6]),
-			rest:  utils.ToInt(lineSplit[13]),
+			speed:     utils.ToInt(lineSplit[3]),
+			power:     utils.ToInt(lineSplit[6]),
+			rest:      utils.ToInt(lineSplit[13]),
+			powerLeft: utils.ToInt(lineSplit[6]),
+			restLeft:  utils.ToInt(lineSplit[13]),
 		})
 	}
 	seconds := 2503
@@ -56,4 +62,34 @@ func main() {
 		}
 	}
 	fmt.Println("Day 14.1:", maxDistance)
+	for time := 1; time <= seconds; time++ {
+		for idx, r := range reindeers {
+			if r.powerLeft > 0 {
+				reindeers[idx].pos += r.speed
+				reindeers[idx].powerLeft--
+			} else if r.restLeft > 0 {
+				reindeers[idx].restLeft--
+				if reindeers[idx].restLeft == 0 {
+					reindeers[idx].powerLeft = r.power
+					reindeers[idx].restLeft = r.rest
+				}
+			}
+		}
+		leaderIdx := 0
+		leaderPos := 0
+		for idx, r := range reindeers {
+			if r.pos > leaderPos {
+				leaderPos = r.pos
+				leaderIdx = idx
+			}
+		}
+		reindeers[leaderIdx].points++
+	}
+	mostPoints := 0
+	for _, r := range reindeers {
+		if r.points > mostPoints {
+			mostPoints = r.points
+		}
+	}
+	fmt.Println("Day 14.2:", mostPoints)
 }
