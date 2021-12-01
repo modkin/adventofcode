@@ -15,16 +15,25 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(file)
-	height := 0
-	//next := 0
-	count := 0
-	//meassures := make([]int,0)
+	count1 := 0
+	count2 := 0
+	measures := make([]int, 0)
 	for scanner.Scan() {
-		next := utils.ToInt(scanner.Text())
-		if next > height {
-			count++
-		}
-		height = next
+		measures = append(measures, utils.ToInt(scanner.Text()))
 	}
-	fmt.Println(count - 1)
+	for i := 1; i < len(measures); i++ {
+		if measures[i] > measures[i-1] {
+			count1++
+		}
+	}
+
+	for i := 1; i < len(measures)-2; i++ {
+		prev := measures[i-1] + measures[i] + measures[i+1]
+		next := measures[i] + measures[i+1] + measures[i+2]
+		if next > prev {
+			count2++
+		}
+	}
+	fmt.Println("Day 1.1:", count1)
+	fmt.Println("Day 1.2:", count2)
 }
