@@ -15,23 +15,25 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(file)
-	pos := 0
-	height := 0
-	aim := 0
+	pos1, pos2 := 0, 0
+	height1, height2 := 0, 0
+	aim2 := 0
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
 		dir, amount := line[0], utils.ToInt(line[1])
 		if dir == "forward" {
-			pos += amount
-			height += aim * amount
-		}
-		if dir == "up" {
-			aim -= amount
-		}
-		if dir == "down" {
-			aim += amount
+			pos1 += amount
+			pos2 += amount
+			height2 += aim2 * amount
+		} else if dir == "up" {
+			height1 -= amount
+			aim2 -= amount
+		} else if dir == "down" {
+			height1 += amount
+			aim2 += amount
 		}
 	}
-	fmt.Println(pos * height)
+	fmt.Println("Day 2.1:", pos1*height1)
+	fmt.Println("Day 2.2:", pos2*height2)
 }
