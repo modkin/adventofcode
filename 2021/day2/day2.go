@@ -17,18 +17,20 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	pos := 0
 	height := 0
+	aim := 0
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
 		dir, amount := line[0], utils.ToInt(line[1])
 		if dir == "forward" {
 			pos += amount
+			height += aim * amount
 		}
 		if dir == "up" {
-			height += amount
+			aim -= amount
 		}
 		if dir == "down" {
-			height -= amount
+			aim += amount
 		}
 	}
 	fmt.Println(pos * height)
