@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-type getCurrentBitFunction func([][]string) int64
+type getCurrentBitFunction func([][]string) string
 
-func getGammaEpsilon(splitlines [][]string) [2]int64 {
+func getGammaEpsilon(splitlines [][]string) [2]string {
 	gammaString := ""
 	for i := 0; i < len(splitlines[0]); i++ {
 		verticalLine := ""
@@ -23,9 +23,8 @@ func getGammaEpsilon(splitlines [][]string) [2]int64 {
 			gammaString += "0"
 		}
 	}
-	gamma, _ := strconv.ParseInt(gammaString, 2, 32)
-	epsilon := gamma ^ (1<<len(splitlines[0]) - 1)
-	return [2]int64{gamma, epsilon}
+	epsilonString := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(gammaString, "1", "X"), "0", "1"), "X", "0")
+	return [2]string{gammaString, epsilonString}
 }
 
 func getCxyCO2(splitlines [][]string, fn getCurrentBitFunction) int64 {
@@ -34,7 +33,7 @@ func getCxyCO2(splitlines [][]string, fn getCurrentBitFunction) int64 {
 		cleanup = append(cleanup, splitline)
 	}
 	for i := 0; i < len(splitlines[0]) && len(cleanup) != 1; i++ {
-		currentBit := string(strconv.FormatInt(fn(cleanup), 2)[i])
+		currentBit := string(fn(cleanup)[i])
 		idx := 0
 		for _, line := range cleanup {
 			if line[i] == currentBit {
@@ -49,7 +48,7 @@ func getCxyCO2(splitlines [][]string, fn getCurrentBitFunction) int64 {
 }
 
 func main() {
-	file, err := os.Open("2021/day3/testinput")
+	file, err := os.Open("2021/day3/input")
 	if err != nil {
 		panic(err)
 	}
@@ -61,34 +60,15 @@ func main() {
 		splitlines = append(splitlines, line)
 	}
 	gammaEpsilon := getGammaEpsilon(splitlines)
-	fmt.Println("Day 3.1:", gammaEpsilon[0]*gammaEpsilon[1])
+	gamma, _ := strconv.ParseInt(gammaEpsilon[0], 2, 32)
+	epsilon, _ := strconv.ParseInt(gammaEpsilon[1], 2, 32)
+	fmt.Println("Day 3.1:", gamma*epsilon)
 
-	getGamma := func(input [][]string) int64 {
+	getGamma := func(input [][]string) string {
 		return getGammaEpsilon(input)[0]
 	}
-	getEpsilon := func(input [][]string) int64 {
+	getEpsilon := func(input [][]string) string {
 		return getGammaEpsilon(input)[1]
 	}
-	fmt.Println(getCxyCO2(splitlines, getEpsilon))
-	fmt.Println(getCxyCO2(splitlines, getGamma))
-
-	cleanup := make([][]string, 0)
-	for _, splitline := range splitlines {
-		cleanup = append(cleanup, splitline)
-	}
-	for i := 0; i < len(splitlines[0]) && len(cleanup) != 1; i++ {
-		gamma := getGammaEpsilon(cleanup)[0]
-		currentBit := string(strconv.FormatInt(gamma, 2)[i])
-		idx := 0
-		for _, line := range cleanup {
-			if line[i] == currentBit {
-				cleanup[idx] = line
-				idx++
-			}
-		}
-		cleanup = cleanup[:idx]
-	}
-	fmt.Println(cleanup)
-	co2scrubrating, _ := strconv.ParseInt(strings.Join(cleanup[0][:], ""), 2, 64)
-	fmt.Println("CO2", co2scrubrating)
+	fmt.Println("Day 3.2:", getCxyCO2(splitlines, getEpsilon)*getCxyCO2(splitlines, getGamma))
 }
