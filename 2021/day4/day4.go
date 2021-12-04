@@ -74,21 +74,35 @@ func main() {
 				newBoard.numbers[i][i2] = utils.ToInt(s)
 			}
 		}
-		fmt.Println(newBoard)
 		boards = append(boards, newBoard)
 	}
+	numBoards := len(boards)
+	winners := make([]int, numBoards)
+	taskOneNotDone := true
 outer:
 	for _, number := range numbers {
-		for bi, _ := range boards {
+		for bi := range boards {
 			markNumber(&boards[bi], number)
 		}
 		for bi, b := range boards {
+
 			if checkWinner(b) {
-				fmt.Println("Winner", bi, "num", number)
-				fmt.Println(boardScore(b) * number)
-				break outer
+				//fmt.Println("Winner", bi, "num", number)
+				if taskOneNotDone {
+					fmt.Println("Day 4.1:", boardScore(b)*number)
+					taskOneNotDone = false
+				}
+				winners[bi] = 1
+				winnerSum := 0
+				for _, winner := range winners {
+					winnerSum += winner
+				}
+				if winnerSum == numBoards {
+					fmt.Println("Day 4.2:", boardScore(b)*number)
+					break outer
+				}
 			}
 		}
-	}
 
+	}
 }
