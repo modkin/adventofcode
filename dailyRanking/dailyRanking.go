@@ -32,7 +32,10 @@ func main() {
 	jsonByte, _ := ioutil.ReadFile("dailyRanking/678703.json")
 
 	var data map[string]interface{}
-	json.Unmarshal([]byte(jsonByte), &data)
+	err := json.Unmarshal([]byte(jsonByte), &data)
+	if err != nil {
+		panic(err)
+	}
 
 	var allMember []member
 
@@ -50,9 +53,9 @@ func main() {
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2)}
 
 		for i, task := range elem.(map[string]interface{})["completion_day_level"].(map[string]interface{}) {
-			tmp.timings[(utils.ToInt(i)-1)*2] = utils.ToInt(task.(map[string]interface{})["1"].(map[string]interface{})["get_star_ts"].(string))
+			tmp.timings[(utils.ToInt(i)-1)*2] = int(task.(map[string]interface{})["1"].(map[string]interface{})["get_star_ts"].(float64))
 			if val, ok := task.(map[string]interface{})["2"].(map[string]interface{}); ok {
-				tmp.timings[(utils.ToInt(i)-1)*2+1] = utils.ToInt(val["get_star_ts"].(string))
+				tmp.timings[(utils.ToInt(i)-1)*2+1] = int(val["get_star_ts"].(float64))
 			}
 		}
 		allMember = append(allMember, tmp)
@@ -66,7 +69,7 @@ func main() {
 	for k := 0; k < daysDone*2; k++ {
 		sort.SliceStable(allMember, func(i, j int) bool { return allMember[i].timings[k] < allMember[j].timings[k] })
 		sort.SliceStable(memberPoints, func(i, j int) bool { return memberPoints[i].timings[k] < memberPoints[j].timings[k] })
-		for points, _ := range memberPoints {
+		for points := range memberPoints {
 			if memberPoints[points].timings[k] != math.MaxInt32 {
 				memberPoints[points].timings[k] = len(memberPoints) - points
 			} else {
@@ -74,14 +77,14 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(memberPoints)
-	fmt.Printf("%-15v|", "Name")
+	//fmt.Println(memberPoints)
+	fmt.Printf("%-24v|", "Name")
 	for i := 0; i < daysDone*2; i++ {
 		fmt.Printf("%2v|", (i/2)+1)
 	}
 	fmt.Print(" Sum\n")
 	for _, mem := range memberPoints {
-		fmt.Printf("%-15v|", mem.Name)
+		fmt.Printf("%-24v|", mem.Name)
 		for _, point := range mem.timings {
 			fmt.Printf("%2v|", point)
 		}
