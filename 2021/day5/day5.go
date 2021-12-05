@@ -32,10 +32,16 @@ func main() {
 		lines = append(lines, ventline{x1, y1, x2, y2})
 	}
 	rectangularLines := make([]ventline, 0)
+	diagLines := make([]ventline, 0)
 	for _, line := range lines {
 		if line.x1 == line.x2 || line.y1 == line.y2 {
 			rectangularLines = append(rectangularLines, line)
+		} else {
+			diagLines = append(diagLines, line)
 		}
+	}
+	if len(diagLines)+len(rectangularLines) != len(lines) {
+		fmt.Println("error")
 	}
 	ocean := make(map[[2]int]int)
 	for _, line := range rectangularLines {
@@ -64,5 +70,32 @@ func main() {
 			count++
 		}
 	}
-	fmt.Println(count)
+	fmt.Println("Day 5.1:", count)
+	for _, line := range diagLines {
+		xStart, xEnd, yStart, yEnd := line.x1, line.x2, line.y1, line.y2
+		xstep, ystep := 1, 1
+		if line.x1 > line.x2 {
+			xstep = -1
+		}
+		if line.y1 > line.y2 {
+			ystep = -1
+		}
+		y := yStart
+		for x := xStart; x != (xEnd+xstep) || y != (yEnd+ystep); x += xstep {
+			if _, ok := ocean[[2]int{x, y}]; ok {
+				ocean[[2]int{x, y}] += 1
+			} else {
+				ocean[[2]int{x, y}] = 1
+			}
+			y += ystep
+		}
+	}
+	count = 0
+	for _, i := range ocean {
+		if i >= 2 {
+			count++
+		}
+	}
+
+	fmt.Println("Day 5.2:", count)
 }

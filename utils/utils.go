@@ -143,6 +143,28 @@ func Print3DGrid(grid map[[3]int]bool, max int) {
 	}
 }
 
+func Print2DIntGrid(grid map[[2]int]int) {
+	xMax, yMax := 0, 0
+	for i := range grid {
+		if i[0] > xMax {
+			xMax = i[0]
+		}
+		if i[1] > yMax {
+			yMax = i[1]
+		}
+	}
+	for y := 0; y <= yMax; y++ {
+		for x := 0; x <= xMax; x++ {
+			if val, ok := grid[[2]int{x, y}]; ok {
+				fmt.Print(val)
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+}
+
 func Factorial(num int) int {
 	result := 1
 	for i := 1; i <= num; i++ {
