@@ -23,22 +23,20 @@ func main() {
 			crabsPos = append(crabsPos, utils.ToInt(s))
 		}
 	}
-	min := math.MaxInt64
-	max := 0
-	for _, crab := range crabsPos {
-		if crab < min {
-			min = crab
-		}
-		if crab > max {
-			max = crab
-		}
-	}
 	bestAlign := math.MaxInt64
-	bestPos := 0
-	for i := min; i <= max; i++ {
+	bestAlign1 := math.MaxInt64
+
+	for _, i := range crabsPos {
+		tmp := 0
+		for _, crab := range crabsPos {
+			tmp += utils.IntAbs(i - crab)
+		}
+		if tmp < bestAlign1 {
+			bestAlign1 = tmp
+		}
 		totalFuel := 0
 		for _, crab := range crabsPos {
-			tmp := 0
+			tmp = 0
 			tmp += utils.IntAbs(i - crab)
 			for j := 1; j <= tmp; j++ {
 				totalFuel += j
@@ -46,9 +44,8 @@ func main() {
 		}
 		if totalFuel < bestAlign {
 			bestAlign = totalFuel
-			bestPos = i
 		}
 	}
-	fmt.Println(bestPos)
-	fmt.Println(bestAlign)
+	fmt.Println("Day 7.1:", bestAlign1)
+	fmt.Println("Day 7.2:", bestAlign)
 }
