@@ -23,7 +23,7 @@ func main() {
 			crabsPos = append(crabsPos, utils.ToInt(s))
 		}
 	}
-	min := 1000000
+	min := math.MaxInt64
 	max := 0
 	for _, crab := range crabsPos {
 		if crab < min {
@@ -33,16 +33,19 @@ func main() {
 			max = crab
 		}
 	}
-	bestAlign := 10000000
+	bestAlign := math.MaxInt64
 	bestPos := 0
 	for i := min; i <= max; i++ {
-		tmp := 0.0
+		totalFuel := 0
 		for _, crab := range crabsPos {
-			tmp += math.Abs(float64(i - crab))
+			tmp := 0
+			tmp += utils.IntAbs(i - crab)
+			for j := 1; j <= tmp; j++ {
+				totalFuel += j
+			}
 		}
-		fmt.Println(i, tmp)
-		if int(tmp) < bestAlign {
-			bestAlign = int(tmp)
+		if totalFuel < bestAlign {
+			bestAlign = totalFuel
 			bestPos = i
 		}
 	}
