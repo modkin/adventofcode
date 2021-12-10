@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func checkMatch(left string, right string) bool {
 
 func main() {
 
-	file, err := os.Open("2021/day10/testinput")
+	file, err := os.Open("2021/day10/input")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -34,6 +35,7 @@ func main() {
 	illegal := make([]string, 0)
 	incompleteLines := make([][]string, 0)
 	for scanner.Scan() {
+		braceStack = make([]string, 0)
 		line := strings.Split(scanner.Text(), "")
 		//fmt.Println(line)
 		notIllegal := true
@@ -51,7 +53,7 @@ func main() {
 			}
 		}
 		if notIllegal {
-			incompleteLines = append(incompleteLines, line)
+			incompleteLines = append(incompleteLines, braceStack)
 		}
 	}
 	sum := 0
@@ -68,4 +70,25 @@ func main() {
 	}
 	fmt.Println(sum)
 	fmt.Println(incompleteLines)
+	scores := make([]int, 0)
+	for _, line := range incompleteLines {
+		score := 0
+		for i := len(line) - 1; i >= 0; i-- {
+			score *= 5
+			switch line[i] {
+			case "(":
+				score += 1
+			case "[":
+				score += 2
+			case "{":
+				score += 3
+			case "<":
+				score += 4
+			}
+		}
+		scores = append(scores, score)
+	}
+	fmt.Println(scores)
+	sort.Ints(scores)
+	fmt.Println(scores[len(scores)/2])
 }
