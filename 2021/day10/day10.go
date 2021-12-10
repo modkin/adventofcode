@@ -68,8 +68,7 @@ func main() {
 			sum += 25137
 		}
 	}
-	fmt.Println(sum)
-	fmt.Println(incompleteLines)
+	fmt.Println("Day 10.1:", sum)
 	scores := make([]int, 0)
 	for _, line := range incompleteLines {
 		score := 0
@@ -88,7 +87,6 @@ func main() {
 		}
 		scores = append(scores, score)
 	}
-	fmt.Println(scores)
 	sort.Ints(scores)
-	fmt.Println(scores[len(scores)/2])
+	fmt.Println("Day 10.2", scores[len(scores)/2])
 }
