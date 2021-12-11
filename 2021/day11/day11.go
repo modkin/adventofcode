@@ -88,13 +88,20 @@ func main() {
 		grid = append(grid, newRow)
 	}
 	grid = append(grid, utils.CopyIntSlice(topBorder))
-	printGrid(grid)
 	flashes := 0
-	for timestep := 0; timestep < 100; timestep++ {
+	counter := 0
+	for {
 		increaseOne(grid)
-		flashes += flash(grid)
+		flashNow := flash(grid)
+		if flashNow == 100 {
+			fmt.Println("Day 11.2:", counter+1)
+			break
+		}
+		if counter < 100 {
+			flashes += flashNow
+		}
 		reset(grid)
-		//printGrid(grid)
+		counter++
 	}
-	fmt.Println(flashes)
+	fmt.Println("Day 11.1:", flashes)
 }
