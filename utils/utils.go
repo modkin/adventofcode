@@ -106,6 +106,16 @@ func SliceContains(list []string, s string) bool {
 	return false
 }
 
+func CountStringinStringSlice(list []string, s string) int {
+	count := 0
+	for _, elem := range list {
+		if s == elem {
+			count++
+		}
+	}
+	return count
+}
+
 func IntSliceContains(list []int, s int) bool {
 	for _, elem := range list {
 		if s == elem {
