@@ -19,8 +19,17 @@ func main() {
 	start := make([]string, 1)
 	inserts := make(map[string]string)
 	letters := make(map[string]bool)
+	lettersCount := make(map[string]int)
+	forumla := make(map[string]int)
 	scanner.Scan()
 	start = strings.Split(scanner.Text(), "")
+	for i, s := range start {
+		lettersCount[s]++
+		if i < len(start)-1 {
+			forumla[strings.Join([]string{start[i], start[i+1]}, "")] += 1
+
+		}
+	}
 	scanner.Scan()
 
 	for scanner.Scan() {
@@ -28,8 +37,6 @@ func main() {
 		inserts[line[0]] = line[1]
 		letters[line[1]] = true
 	}
-	fmt.Println(start)
-	fmt.Println(inserts)
 
 	for step := 0; step < 10; step++ {
 		startCopy := make([]string, 0)
@@ -42,7 +49,6 @@ func main() {
 		startCopy = append(startCopy, start[len(start)-1])
 
 		start = utils.CopyStringSlice(startCopy)
-		//fmt.Println(start)
 	}
 	max := 0
 	min := math.MaxInt
@@ -55,5 +61,29 @@ func main() {
 			min = count
 		}
 	}
-	fmt.Println(max - min)
+	fmt.Println("Day 14.1:", max-min)
+	for step := 0; step < 40; step++ {
+		newforumla := make(map[string]int)
+		for key, count := range forumla {
+			split := strings.Split(key, "")
+			insert := inserts[key]
+			lettersCount[insert] += count
+			first := strings.Join([]string{split[0], insert}, "")
+			second := strings.Join([]string{insert, split[1]}, "")
+			newforumla[first] += count
+			newforumla[second] += count
+		}
+		forumla = newforumla
+	}
+	max = 0
+	min = math.MaxInt
+	for _, count := range lettersCount {
+		if count > max {
+			max = count
+		}
+		if count < min {
+			min = count
+		}
+	}
+	fmt.Println("Day 14.2:", max-min)
 }
