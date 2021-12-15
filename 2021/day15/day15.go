@@ -56,7 +56,7 @@ func nextStep(dijstra map[[2]int]*node, distances [][]int) {
 }
 
 func main() {
-	file, err := os.Open("2021/day15/testinput")
+	file, err := os.Open("2021/day15/input")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -86,11 +86,58 @@ func main() {
 		grid = append(grid, newline)
 	}
 	grid = append(grid, border)
-	printGrid(grid)
 
 	target := [2]int{len(grid[0]) - 2, len(grid) - 2}
-	fmt.Println(target)
 	start := [2]int{1, 1}
+	dijstra[start] = &node{0, false}
+	for {
+		if val, ok := dijstra[target]; ok {
+			if val.visited {
+				fmt.Println(val.dist)
+				break
+			}
+		}
+		nextStep(dijstra, grid)
+	}
+	grid = grid[1 : len(grid)-1]
+	for i, ints := range grid {
+		grid[i] = ints[1 : len(ints)-1]
+	}
+	xlen := len(grid[0])
+	ylen := len(grid)
+	for block := 1; block < 9; block++ {
+		for y := 0; y < ylen; y++ {
+			for x := 0; x < xlen; x++ {
+				nextNumber := grid[y][x] + block
+				if nextNumber > 9 {
+					nextNumber = nextNumber % 9
+				}
+				grid[y] = append(grid[y], nextNumber)
+			}
+		}
+	}
+	for block := 1; block < 5; block++ {
+		for y := 0; y < ylen; y++ {
+			grid = append(grid, utils.CopyIntSlice(grid[y][xlen*block:xlen*block+xlen*5]))
+		}
+	}
+	for y := 0; y < ylen; y++ {
+		grid[y] = grid[y][:ylen*5]
+	}
+	border = make([]int, len(grid[0])+2)
+	for i := 0; i < len(border); i++ {
+		border[i] = math.MaxInt / 2
+	}
+	for i := range grid {
+		grid[i] = append(grid[i], math.MaxInt/2)
+		grid[i] = append([]int{math.MaxInt / 2}, grid[i]...)
+	}
+	grid = append([][]int{border}, grid...)
+	grid = append(grid, border)
+	//printGrid(grid)
+	target = [2]int{len(grid[0]) - 2, len(grid) - 2}
+	start = [2]int{1, 1}
+	dijstra = make(map[[2]int]*node)
 	dijstra[start] = &node{0, false}
 	for {
 		if val, ok := dijstra[target]; ok {
