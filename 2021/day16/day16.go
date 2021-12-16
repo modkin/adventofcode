@@ -52,30 +52,75 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 			literals = append(literals, numberInt)
 		default:
 			lengthTypeID := input[pos]
-			var length int64
+			var length, endPos int64
+			var newLiterals, newVersions []int64
 			if lengthTypeID == "0" {
 				length = toInt64(input[pos+1 : pos+15])
 				pos += 1 + 15
 				stop := pos + length
-				newVersions, newLiterals, endPos := parse(input[pos:], stop, math.MaxInt64)
+				newVersions, newLiterals, endPos = parse(input[pos:], stop, math.MaxInt64)
 				versions = append(versions, newVersions...)
-				literals = append(literals, newLiterals...)
+				//literals = append(literals, newLiterals...)
 				pos += endPos
 			} else {
 				length = toInt64(input[pos+1 : pos+11])
 				pos += 1 + 11
-				newVersions, newLiterals, endPos := parse(input[pos:], math.MaxInt64, length)
+				newVersions, newLiterals, endPos = parse(input[pos:], math.MaxInt64, length)
 				versions = append(versions, newVersions...)
-				literals = append(literals, newLiterals...)
+				//literals = append(literals, newLiterals...)
 				pos += endPos
 			}
+			result := int64(0)
+			switch typeID {
+			case 0:
+				for _, nL := range newLiterals {
+					result += nL
+				}
+			case 1:
+				result = 1
+				for _, nL := range newLiterals {
+					result *= nL
+				}
+			case 2:
+				result = math.MaxInt64
+				for _, nL := range newLiterals {
+					if nL < result {
+						result = nL
+					}
+				}
+			case 3:
+				for _, nL := range newLiterals {
+					if nL > result {
+						result = nL
+					}
+				}
+			case 5:
+				if newLiterals[0] > newLiterals[1] {
+					result = 1
+				} else {
+					result = 0
+				}
+			case 6:
+				if newLiterals[0] < newLiterals[1] {
+					result = 1
+				} else {
+					result = 0
+				}
+			case 7:
+				if newLiterals[0] == newLiterals[1] {
+					result = 1
+				} else {
+					result = 0
+				}
+			}
+			literals = append(literals, result)
 		}
 	}
 	return
 }
 
 func main() {
-	file, err := os.Open("2021/day16/input")
+	file, err := os.Open("2021/day16/testinput")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
