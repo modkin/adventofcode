@@ -59,17 +59,19 @@ func main() {
 	target := targetArea{utils.ToInt(xCoords[0]), utils.ToInt(xCoords[1]), utils.ToInt(yCoords[0]), utils.ToInt(yCoords[1])}
 
 	ymax := 0
-
-	for x := 0; x < 1000; x++ {
-		for y := 0; y < 1000; y++ {
+	hits := 0
+	for x := -1000; x < 1000; x++ {
+		for y := -1000; y < 1000; y++ {
 			hit, height := fire(x, y, target)
 			if hit {
 				if height > ymax {
 					ymax = height
 				}
+				hits += 1
 			}
 		}
 	}
 	fmt.Println(ymax)
+	fmt.Println(hits)
 
 }
