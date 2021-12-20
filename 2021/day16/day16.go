@@ -30,6 +30,7 @@ func onlyZero(input []string) bool {
 func parse(input []string, stopPos int64, stopCount int64) (versions []int64, literals []int64, pos int64) {
 	count := int64(0)
 	for pos <= stopPos && count <= stopCount {
+		count++
 		if onlyZero(input[pos:]) {
 			break
 		}
@@ -55,7 +56,7 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 			var length, endPos int64
 			var newLiterals, newVersions []int64
 			if lengthTypeID == "0" {
-				length = toInt64(input[pos+1 : pos+15])
+				length = toInt64(input[pos+1 : pos+16])
 				pos += 1 + 15
 				stop := pos + length
 				newVersions, newLiterals, endPos = parse(input[pos:], stop, math.MaxInt64)
@@ -63,7 +64,7 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 				//literals = append(literals, newLiterals...)
 				pos += endPos
 			} else {
-				length = toInt64(input[pos+1 : pos+11])
+				length = toInt64(input[pos+1 : pos+12])
 				pos += 1 + 11
 				newVersions, newLiterals, endPos = parse(input[pos:], math.MaxInt64, length)
 				versions = append(versions, newVersions...)
@@ -106,11 +107,17 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 				} else {
 					result = 0
 				}
+				if len(newLiterals) > 2 {
+					fmt.Println("ERROR")
+				}
 			case 7:
 				if newLiterals[0] == newLiterals[1] {
 					result = 1
 				} else {
 					result = 0
+				}
+				if len(newLiterals) > 2 {
+					fmt.Println("ERROR")
 				}
 			}
 			literals = append(literals, result)
@@ -120,7 +127,7 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 }
 
 func main() {
-	file, err := os.Open("2021/day16/testinput")
+	file, err := os.Open("2021/day16/input")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
