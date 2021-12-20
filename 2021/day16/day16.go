@@ -28,7 +28,7 @@ func onlyZero(input []string) bool {
 }
 
 func parse(input []string, stopPos int64, stopCount int64) (versions []int64, literals []int64, pos int64) {
-	count := int64(0)
+	count := int64(1)
 	for pos <= stopPos && count <= stopCount {
 		count++
 		if onlyZero(input[pos:]) {
@@ -58,8 +58,8 @@ func parse(input []string, stopPos int64, stopCount int64) (versions []int64, li
 			if lengthTypeID == "0" {
 				length = toInt64(input[pos+1 : pos+16])
 				pos += 1 + 15
-				stop := pos + length
-				newVersions, newLiterals, endPos = parse(input[pos:], stop, math.MaxInt64)
+				//stop := pos + length
+				newVersions, newLiterals, endPos = parse(input[pos:], length, math.MaxInt64)
 				versions = append(versions, newVersions...)
 				//literals = append(literals, newLiterals...)
 				pos += endPos
