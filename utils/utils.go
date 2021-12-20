@@ -175,6 +175,35 @@ func Print2DIntGrid(grid map[[2]int]int) {
 	}
 }
 
+func Print2DStringsGrid(grid map[[2]int]string) {
+	fmt.Println("----------------------------------------------")
+	xMin, yMin, xMax, yMax := math.MaxInt, math.MaxInt, 0, 0
+	for i := range grid {
+		if i[0] < xMin {
+			xMin = i[0]
+		}
+		if i[0] > xMax {
+			xMax = i[0]
+		}
+		if i[1] < yMin {
+			yMin = i[1]
+		}
+		if i[1] > yMax {
+			yMax = i[1]
+		}
+	}
+	for y := yMin; y <= yMax; y++ {
+		for x := xMin; x <= xMax; x++ {
+			if val, ok := grid[[2]int{x, y}]; ok {
+				fmt.Print(val)
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+}
+
 func Print2DStringGrid(grid map[[2]int]bool) {
 	fmt.Println("----------------------------------------------")
 	xMax, yMax := 0, 0
