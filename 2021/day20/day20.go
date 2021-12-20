@@ -1,7 +1,6 @@
 package main
 
 import (
-	"adventofcode/utils"
 	"bufio"
 	"fmt"
 	"math"
@@ -18,7 +17,7 @@ func toInt(input []string) int {
 	return int(number)
 }
 
-func enhance(grid map[[2]int]string, algo []string) map[[2]int]string {
+func enhance(grid map[[2]int]string, algo []string, index int) map[[2]int]string {
 	output := make(map[[2]int]string)
 	xMin, yMin, xMax, yMax := math.MaxInt, math.MaxInt, 0, 0
 	for i := range grid {
@@ -36,8 +35,8 @@ func enhance(grid map[[2]int]string, algo []string) map[[2]int]string {
 		}
 	}
 
-	for y := yMin - 10; y <= yMax+10; y++ {
-		for x := xMin - 10; x <= xMax+10; x++ {
+	for y := yMin - 1; y <= yMax+1; y++ {
+		for x := xMin - 1; x <= xMax+1; x++ {
 			enhancePos := make([]string, 0)
 			for i := -1; i <= 1; i++ {
 				for m := -1; m <= 1; m++ {
@@ -49,7 +48,11 @@ func enhance(grid map[[2]int]string, algo []string) map[[2]int]string {
 							enhancePos = append(enhancePos, "0")
 						}
 					} else {
-						enhancePos = append(enhancePos, "0")
+						if index%2 == 0 {
+							enhancePos = append(enhancePos, "0")
+						} else {
+							enhancePos = append(enhancePos, "1")
+						}
 					}
 				}
 			}
@@ -81,19 +84,24 @@ func main() {
 		}
 		y++
 	}
-	utils.Print2DStringsGrid(image)
-	//fmt.Println(algo)
-	image = enhance(image, algo)
-	image = enhance(image, algo)
-	utils.Print2DStringsGrid(image)
+	image = enhance(image, algo, 0)
+	image = enhance(image, algo, 1)
 	counter := 0
-	for key, i2 := range image {
-		if key[0] > -5 && key[0] < 105 && key[1] > -5 && key[1] < 105 {
-			if i2 == "#" {
-				counter++
-			}
+	for _, i2 := range image {
+		if i2 == "#" {
+			counter++
 		}
 	}
-	fmt.Println(counter)
+	for i := 2; i < 50; i++ {
+		image = enhance(image, algo, i)
+	}
+	fmt.Println("Day 20.1:", counter)
+	counter = 0
+	for _, i2 := range image {
+		if i2 == "#" {
+			counter++
+		}
+	}
+	fmt.Println("Day 20.2:", counter)
 
 }
