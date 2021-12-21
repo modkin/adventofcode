@@ -54,7 +54,6 @@ func main() {
 	loser := 0
 	add := 0
 	for {
-		fmt.Println(dice, player1Points, player2Points)
 		add, dice = roll(dice)
 		counter += 3
 		p1 += add
@@ -90,7 +89,7 @@ func main() {
 		}
 	}
 	sort.Ints(diceList)
-	fmt.Println(diceList)
+	//fmt.Println(diceList)
 
 	for p1points := 20; p1points >= 0; p1points-- {
 		for p2points := 20; p2points >= 0; p2points-- {
@@ -103,8 +102,9 @@ func main() {
 								if newPoints := wrapTrack(p1 + d); p1points+newPoints >= 21 {
 									tmp[0]++
 								} else {
-									tmp2 := playerWins[[5]int{newPoints, p2, p1points + newPoints, p2points, activePlayer}]
+									tmp2 := playerWins[[5]int{newPoints, p2, p1points + newPoints, p2points, 2}]
 									tmp[0] += tmp2[0]
+									tmp[1] = tmp2[1]
 								}
 								playerWins[[5]int{p1, p2, p1points, p2points, activePlayer}] = tmp
 							} else {
@@ -112,8 +112,9 @@ func main() {
 								if newPoints := wrapTrack(p2 + d); p2points+newPoints >= 21 {
 									tmp[1]++
 								} else {
-									tmp2 := playerWins[[5]int{newPoints, p2, p1points, p2points + newPoints, activePlayer}]
+									tmp2 := playerWins[[5]int{p1, newPoints, p1points, p2points + newPoints, 1}]
 									tmp[1] += tmp2[1]
+									tmp[0] += tmp2[0]
 								}
 								playerWins[[5]int{p1, p2, p1points, p2points, activePlayer}] = tmp
 							}
@@ -124,6 +125,7 @@ func main() {
 		}
 	}
 
+	fmt.Println(playerWins[[5]int{10, 10, 20, 17, 2}])
 	fmt.Println(playerWins[[5]int{player1Start, player2Start, 0, 0, 1}])
 
 }
