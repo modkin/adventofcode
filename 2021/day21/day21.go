@@ -44,10 +44,8 @@ func main() {
 	scanner.Scan()
 	line = strings.Split(scanner.Text(), " ")
 	p2 := utils.ToInt(line[len(line)-1])
-	fmt.Println(p1, p2)
 	player1Points, player2Points := 0, 0
 	player1Start, player2Start := p1, p2
-	fmt.Println(player1Start, player2Start)
 
 	dice := 1
 	counter := 0
@@ -77,8 +75,7 @@ func main() {
 
 	}
 
-	fmt.Println(loser, counter)
-	fmt.Println(loser * counter)
+	fmt.Println("Day 21.1:", loser*counter)
 
 	diceList := make([]int, 0)
 	for i := 1; i <= 3; i++ {
@@ -104,7 +101,7 @@ func main() {
 								} else {
 									tmp2 := playerWins[[5]int{newPoints, p2, p1points + newPoints, p2points, 2}]
 									tmp[0] += tmp2[0]
-									tmp[1] = tmp2[1]
+									tmp[1] += tmp2[1]
 								}
 								playerWins[[5]int{p1, p2, p1points, p2points, activePlayer}] = tmp
 							} else {
@@ -125,7 +122,11 @@ func main() {
 		}
 	}
 
-	fmt.Println(playerWins[[5]int{10, 10, 20, 17, 2}])
-	fmt.Println(playerWins[[5]int{player1Start, player2Start, 0, 0, 1}])
+	wins := playerWins[[5]int{player1Start, player2Start, 0, 0, 1}]
+	if wins[0] > wins[1] {
+		fmt.Println("Day 21.2:", wins[0])
+	} else {
+		fmt.Println("Day 21.2:", wins[1])
+	}
 
 }
