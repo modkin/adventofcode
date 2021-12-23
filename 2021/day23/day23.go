@@ -64,7 +64,7 @@ func printScene(input scene) {
 func checkScenes(allScenes []scene) (int, int, bool) {
 	min := math.MaxInt
 	idx := 0
-	finished := false
+	finished := [4]bool{}
 	for i, s := range allScenes {
 		if s.cost < min {
 			min = s.cost
@@ -77,10 +77,11 @@ func checkScenes(allScenes []scene) (int, int, bool) {
 		tmp, _ = getOwnRoom(allScenes[idx].rooms[i][1])
 		second := i == tmp
 		if first && second {
-			finished = true
+			finished[i] = true
 		}
 	}
-	return min, idx, finished
+	finishedRet := finished[0] && finished[1] && finished[2] && finished[3]
+	return min, idx, finishedRet
 }
 
 func getOwnRoom(amp string) (roomIdx int, hwIdx int) {
@@ -127,7 +128,7 @@ func allNextPos(init scene) (output []scene) {
 			if isPathFree(i, hwIdx, init) {
 				dstRoomPos := 0
 				dstRoom := init.rooms[dstRoomIdx]
-				if dstRoom[1] == "" && (dstRoom[0] == "" || dstRoom[1] == s) {
+				if dstRoom[1] == "" && (dstRoom[0] == "" || dstRoom[0] == s) {
 					if init.rooms[dstRoomIdx][0] == s {
 						dstRoomPos = 1
 					}
@@ -193,7 +194,7 @@ func allNextPos(init scene) (output []scene) {
 }
 
 func main() {
-	file, err := os.Open("2021/day23/testinput")
+	file, err := os.Open("2021/day23/input")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -226,7 +227,6 @@ func main() {
 	for ; finished == false; min, idx, finished = checkScenes(allScenes) {
 		newScenes := allNextPos(allScenes[idx])
 		allScenes = append(allScenes[:idx], allScenes[idx+1:]...)
-		allScenes = append(allScenes, newScenes...)
 		for _, ns := range newScenes {
 			notVisited := true
 			for i, olds := range allScenes {
@@ -241,21 +241,23 @@ func main() {
 				allScenes = append(allScenes, ns)
 			}
 		}
-		fmt.Println(min)
+		//fmt.Println(min, len(allScenes))
+		//for _, bs := range allScenes {
+		//	printScene(bs)
+		//	fmt.Println()
+		//}
 	}
 	fmt.Println(min)
 
+	printScene(allScenes[idx])
 	//testScene := scene{}
-	//testScene.rooms[2][0] = "A"
-	//testScene.hallway[7] = "B"
+	//testScene.rooms[0][0] = "A"
+	//testScene.hallway[5] = "A"
 	//nextPos := allNextPos(testScene)
 	//printScene(testScene)
 	//fmt.Println()
 	//for _, po := range nextPos {
 	//	printScene(po)
 	//	fmt.Println()
-	//}
-	//for i := 0; i < 4; i++ {
-	//	fmt.Println(math.Pow10(i))
 	//}
 }
