@@ -11,27 +11,12 @@ import (
 
 var hallwayPos = [7]int{0, 1, 3, 5, 7, 9, 10}
 
+const LINES int = 2
+
 type scene struct {
 	hallway [11]string
-	rooms   [4][2]string
-	cost    int
-}
-
-type sceneNoCost struct {
-	hallway [11]string
-	rooms   [4][2]string
-}
-
-func unique(intSlice []scene) []scene {
-	keys := make(map[scene]bool)
-	list := []scene{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
+	rooms   [4][LINES]string
+	//cost    int
 }
 
 func printScene(input scene) {
@@ -58,30 +43,29 @@ func printScene(input scene) {
 		fmt.Println("##")
 	}
 	fmt.Println("#############")
-	fmt.Println(input.cost)
 }
 
-func checkScenes(allScenes []scene) (int, int, bool) {
+func checkScenes(allScenes map[scene]int) (int, scene, bool) {
 	min := math.MaxInt
-	idx := 0
+	var minScene scene
 	finished := [4]bool{}
 	for i, s := range allScenes {
-		if s.cost < min {
-			min = s.cost
-			idx = i
+		if s < min {
+			min = s
+			minScene = i
 		}
 	}
 	for i := 0; i < 4; i++ {
-		tmp, _ := getOwnRoom(allScenes[idx].rooms[i][0])
+		tmp, _ := getOwnRoom(minScene.rooms[i][0])
 		first := i == tmp
-		tmp, _ = getOwnRoom(allScenes[idx].rooms[i][1])
+		tmp, _ = getOwnRoom(minScene.rooms[i][1])
 		second := i == tmp
 		if first && second {
 			finished[i] = true
 		}
 	}
 	finishedRet := finished[0] && finished[1] && finished[2] && finished[3]
-	return min, idx, finishedRet
+	return min, minScene, finishedRet
 }
 
 func getOwnRoom(amp string) (roomIdx int, hwIdx int) {
@@ -110,34 +94,26 @@ func isPathFree(start, stop int, current scene) bool {
 	return true
 }
 
-func allNextPos(init scene) (output []scene) {
+func allNextPos(init scene, currentCost int) (output map[scene]int) {
+	output = make(map[scene]int)
 	for i, s := range init.hallway {
 		if s != "" {
-			//for _, targetPos := range hallwayPos {
-			//	if targetPos == i {
-			//		continue
-			//	}
-			//	if isPathFree(i, targetPos, init) {
-			//		newScene := init
-			//		newScene.hallway[targetPos] = s
-			//		newScene.hallway[i] = ""
-			//		output = append(output, newScene)
-			//	}
-			//}
 			dstRoomIdx, hwIdx := getOwnRoom(s)
 			if isPathFree(i, hwIdx, init) {
-				dstRoomPos := 0
+				//dstRoomPos := 0
 				dstRoom := init.rooms[dstRoomIdx]
-				if dstRoom[1] == "" && (dstRoom[0] == "" || dstRoom[0] == s) {
-					if init.rooms[dstRoomIdx][0] == s {
-						dstRoomPos = 1
+				for roomIdx, s2 := range dstRoom {
+					if s2 != "" && s2 != s {
+						break
 					}
-					newScene := init
-					newScene.hallway[i] = ""
-					newScene.rooms[dstRoomIdx][dstRoomPos] = s
-					distance := utils.IntAbs(hwIdx-i) + 2 - dstRoomPos
-					newScene.cost += distance * int(math.Pow10(dstRoomIdx))
-					output = append(output, newScene)
+					if s2 == "" {
+						newScene := init
+						newScene.hallway[i] = ""
+						newScene.rooms[dstRoomIdx][roomIdx] = s
+						distance := utils.IntAbs(hwIdx-i) + len(dstRoom) - roomIdx
+						output[newScene] = currentCost + distance*int(math.Pow10(dstRoomIdx))
+						break
+					}
 				}
 			}
 		}
@@ -150,7 +126,7 @@ func allNextPos(init scene) (output []scene) {
 			}
 			dstRoomIdx, dsthwIdx := getOwnRoom(s)
 			if dstRoomIdx == i {
-				other := 1 - k
+				other := len(room) - 1 - k
 				if room[other] == "" || room[other] == s {
 					continue
 				}
@@ -158,33 +134,33 @@ func allNextPos(init scene) (output []scene) {
 			hallwayIdx := 2 + i*2
 			if s != "" {
 				for _, targetPos := range hallwayPos {
-					distance := 2 - k
+					distance := len(room) - k
 					if isPathFree(hallwayIdx, targetPos, init) {
 						newScene := init
 						newScene.hallway[targetPos] = s
 						newScene.rooms[i][k] = ""
 						distance += utils.IntAbs(targetPos - hallwayIdx)
-						newScene.cost += distance * int(math.Pow10(dstRoomIdx))
-						output = append(output, newScene)
+						output[newScene] = currentCost + distance*int(math.Pow10(dstRoomIdx))
 					}
 				}
 				if dstRoomIdx == i {
 					continue
 				}
 				if isPathFree(hallwayIdx, dsthwIdx, init) {
-					distance := 2 - k
+					distance := len(room) - k
 					dstRoomPos := 0
 					dstRoom := init.rooms[dstRoomIdx]
-					if dstRoom[1] == "" && (dstRoom[0] == "" || dstRoom[1] == s) {
-						if init.rooms[dstRoomIdx][0] == s {
-							dstRoomPos = 1
+					for _, s2 := range dstRoom {
+						if s2 != "" && s2 != s {
+							break
 						}
-						newScene := init
-						newScene.rooms[i][k] = ""
-						newScene.rooms[dstRoomIdx][dstRoomPos] = s
-						distance += utils.IntAbs(dsthwIdx-hallwayIdx) + 2 - dstRoomPos
-						newScene.cost += distance * int(math.Pow10(dstRoomIdx))
-						output = append(output, newScene)
+						if s2 == "" {
+							newScene := init
+							newScene.rooms[i][k] = ""
+							newScene.rooms[dstRoomIdx][dstRoomPos] = s
+							distance += utils.IntAbs(dsthwIdx-hallwayIdx) + len(dstRoom) - dstRoomPos
+							output[newScene] = currentCost + distance*int(math.Pow10(dstRoomIdx))
+						}
 					}
 				}
 			}
@@ -194,7 +170,7 @@ func allNextPos(init scene) (output []scene) {
 }
 
 func main() {
-	file, err := os.Open("2021/day23/input")
+	file, err := os.Open("2021/day23/testinput")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -206,57 +182,57 @@ func main() {
 	scanner.Scan()
 	scanner.Scan()
 	line := strings.Split(strings.Trim(scanner.Text(), "###"), "#")
+
 	for i := 0; i < 4; i++ {
-		initScene.rooms[i][1] = line[i]
+		initScene.rooms[i][LINES-1] = line[i]
 	}
 
-	scanner.Scan()
-	line = strings.Split(scanner.Text(), "#")
-	for i := 0; i < 4; i++ {
-		initScene.rooms[i][0] = line[i+1]
-	}
-
-	//fmt.Println(initScene)
-
-	allScenes := make([]scene, 0)
-	allScenes = append(allScenes, initScene)
-	//sceneCosts := make(map[sceneNoCost]int)
-
-	min, idx := 0, 0
-	finished := false
-	for ; finished == false; min, idx, finished = checkScenes(allScenes) {
-		newScenes := allNextPos(allScenes[idx])
-		allScenes = append(allScenes[:idx], allScenes[idx+1:]...)
-		for _, ns := range newScenes {
-			notVisited := true
-			for i, olds := range allScenes {
-				if olds.hallway == ns.hallway && olds.rooms == ns.rooms {
-					notVisited = false
-					if ns.cost < olds.cost {
-						allScenes[i].cost = ns.cost
-					}
-				}
-			}
-			if notVisited {
-				allScenes = append(allScenes, ns)
-			}
+	for k := LINES - 1 - 1; k >= 0; k-- {
+		scanner.Scan()
+		line = strings.Split(scanner.Text(), "#")
+		for i := 0; i < 4; i++ {
+			initScene.rooms[i][k] = line[i+1]
 		}
-		//fmt.Println(min, len(allScenes))
-		//for _, bs := range allScenes {
-		//	printScene(bs)
-		//	fmt.Println()
-		//}
+	}
+
+	allScenes := make(map[scene]int)
+	visitedScenes := make(map[scene]int)
+	allScenes[initScene] = 0
+
+	min := 0
+	var minScene scene
+	finished := false
+	for ; finished == false; min, minScene, finished = checkScenes(allScenes) {
+		newScenes := allNextPos(minScene, allScenes[minScene])
+		delete(allScenes, minScene)
+		visitedScenes[minScene] = 1
+		for key, value := range newScenes {
+			if _, ok := visitedScenes[key]; ok {
+				continue
+			}
+			if ret, ok := allScenes[key]; ok {
+				if value < ret {
+					allScenes[key] = value
+				}
+			} else {
+				allScenes[key] = value
+			}
+
+		}
+		fmt.Println(min, len(allScenes))
 	}
 	fmt.Println(min)
 
-	printScene(allScenes[idx])
+	printScene(minScene)
+
 	//testScene := scene{}
-	//testScene.rooms[0][0] = "A"
-	//testScene.hallway[5] = "A"
-	//nextPos := allNextPos(testScene)
-	//printScene(testScene)
-	//fmt.Println()
-	//for _, po := range nextPos {
+	//testScene.rooms[0][0] = "B"
+	//testScene.rooms[0][1] = "A"
+	//testScene.hallway[0] = "C"
+	//nextPos := allNextPos(testScene, 0)
+	//
+	//fmt.Println("----------")
+	//for po, _ := range nextPos {
 	//	printScene(po)
 	//	fmt.Println()
 	//}
