@@ -1,0 +1,7 @@
+inp z
+inp x
+mul z 3
+add w z
+add w 5
+mod w 5
+eql z x
