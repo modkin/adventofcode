@@ -11,7 +11,7 @@ import (
 
 var hallwayPos = [7]int{0, 1, 3, 5, 7, 9, 10}
 
-const LINES int = 2
+const LINES int = 4
 
 type scene struct {
 	hallway [11]string
@@ -30,7 +30,7 @@ func printScene(input scene) {
 		}
 	}
 	fmt.Println("#")
-	for i := 1; i >= 0; i-- {
+	for i := LINES - 1; i >= 0; i-- {
 		fmt.Print("###")
 		for r := 0; r < 4; r++ {
 			if input.rooms[r][i] == "" {
@@ -148,9 +148,9 @@ func allNextPos(init scene, currentCost int) (output map[scene]int) {
 				}
 				if isPathFree(hallwayIdx, dsthwIdx, init) {
 					distance := len(room) - k
-					dstRoomPos := 0
+					//dstRoomPos := 0
 					dstRoom := init.rooms[dstRoomIdx]
-					for _, s2 := range dstRoom {
+					for dstRoomPos, s2 := range dstRoom {
 						if s2 != "" && s2 != s {
 							break
 						}
@@ -170,7 +170,7 @@ func allNextPos(init scene, currentCost int) (output map[scene]int) {
 }
 
 func main() {
-	file, err := os.Open("2021/day23/testinput")
+	file, err := os.Open("2021/day23/testinput2")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -220,15 +220,18 @@ func main() {
 
 		}
 		fmt.Println(min, len(allScenes))
+		//break
 	}
 	fmt.Println(min)
 
 	printScene(minScene)
 
 	//testScene := scene{}
-	//testScene.rooms[0][0] = "B"
-	//testScene.rooms[0][1] = "A"
 	//testScene.hallway[0] = "C"
+	//testScene.hallway[3] = "A"
+	//testScene.hallway[9] = "B"
+	//testScene.hallway[10] = "D"
+
 	//nextPos := allNextPos(testScene, 0)
 	//
 	//fmt.Println("----------")
