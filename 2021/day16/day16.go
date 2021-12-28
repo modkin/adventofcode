@@ -29,7 +29,7 @@ func onlyZero(input []string) bool {
 
 func parse(input []string, stopPos int64, stopCount int64) (versions []int64, literals []int64, pos int64) {
 	count := int64(1)
-	for pos <= stopPos && count <= stopCount {
+	for pos < stopPos && count <= stopCount {
 		count++
 		if onlyZero(input[pos:]) {
 			break
@@ -160,10 +160,11 @@ func main() {
 	}
 	//fmt.Println(code)
 	versions, literals, _ := parse(code, int64(len(code)), math.MaxInt64)
-	fmt.Println(versions, literals)
+	//fmt.Println(versions, literals)
 	sum := int64(0)
 	for _, version := range versions {
 		sum += version
 	}
 	fmt.Println("Day 16.1:", sum)
+	fmt.Println("Day 16.2:", literals[0])
 }
