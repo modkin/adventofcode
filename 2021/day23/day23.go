@@ -215,7 +215,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	//memory := make(map[scene]int)
 	initScene := scene{}
 
 	scanner.Scan()
@@ -239,39 +238,8 @@ func main() {
 	visitedScenes := make(map[scene]int)
 	allScenes[initScene] = 0
 
-	initScene.hallway[0] = "A"
-
-	initScene.hallway[7] = "B"
-	initScene.hallway[9] = "B"
-	initScene.hallway[10] = "D"
-
-	initScene.rooms[3][3] = ""
-	initScene.rooms[3][2] = ""
-	initScene.rooms[2][3] = ""
-	initScene.rooms[2][2] = ""
-
-	//initScene.hallway[1] = "A"
-	//initScene.rooms[1][3] = "."
-	//initScene.rooms[1][2] = "."
-	//initScene.rooms[2][1] = "C"
-	//initScene.rooms[2][2] = "C"
-
-	//initScene.rooms[1][1] = "B"
-	//initScene.rooms[2][0] = "C"
-	//initScene.rooms[2][1] = "C"
-	//initScene.rooms[3][0] = "A"
-	//initScene.rooms[3][1] = "D"
-
-	//min := 0
-	//var minScene scene
-	//finished := false
 	min, minScene, finished := checkScenes(allScenes)
 	for ; finished == false; min, minScene, finished = checkScenes(allScenes) {
-		if minScene == initScene {
-			fmt.Println("SLKFJLK:DFS:", min)
-			printScene(minScene)
-
-		}
 		visitedScenes[minScene] = 1
 		newScenes := allNextPos(minScene, allScenes[minScene])
 		delete(allScenes, minScene)
@@ -288,37 +256,7 @@ func main() {
 			}
 
 		}
-		fmt.Println(min, len(allScenes))
-		//break
 	}
-	fmt.Println("Day 23:", min)
+	fmt.Println("Day 23.2:", min)
 
-	//printScene(minScene)
-
-	initScene.hallway[3] = "B"
-	initScene.rooms[3][1] = ""
-	//initScene.rooms[0][1] = ""
-	//initScene.rooms[1][0] = "B"
-	//initScene.rooms[1][1] = "B"
-	//initScene.rooms[2][0] = "C"
-	//initScene.rooms[2][1] = "C"
-	//initScene.rooms[3][0] = "A"
-	//initScene.rooms[3][1] = "D"
-
-	//testScene := scene{}
-	//testScene.rooms[3][1] = "A"
-	//testScene.rooms[3][0] = "A"
-	//testScene.hallway[7] = "D"
-	//testScene.hallway[5] = "D"
-	//
-	//fmt.Println("START")
-	//printScene(testScene)
-	//nextPos := allNextPos(testScene, 0)
-	//
-	//fmt.Println("----------")
-	//for po, cost := range nextPos {
-	//	printScene(po)
-	//	fmt.Println(cost)
-	//	fmt.Println()
-	//}
 }
