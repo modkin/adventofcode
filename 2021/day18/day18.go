@@ -128,6 +128,15 @@ func magnitude(input []string) int {
 	return math.MaxInt
 }
 
+func add(first []string, second []string) []string {
+	line := append([]string{"["}, utils.CopyStringSlice(first)...)
+	line = append(line, ",")
+	line = append(line, utils.CopyStringSlice(second)...)
+	line = append(line, "]")
+	line = process(line)
+	return line
+}
+
 func main() {
 	file, err := os.Open("2021/day18/input")
 	scanner := bufio.NewScanner(file)
@@ -138,14 +147,26 @@ func main() {
 	scanner.Scan()
 	line := strings.Split(scanner.Text(), "")
 	line = process(line)
+	allLines := [][]string{line}
 	for scanner.Scan() {
-		line = append([]string{"["}, line...)
-		line = append(line, ",")
 		newLine := strings.Split(scanner.Text(), "")
-		line = append(line, newLine...)
-		line = append(line, "]")
-		line = process(line)
+		allLines = append(allLines, utils.CopyStringSlice(newLine))
+		line = add(line, newLine)
+
+	}
+	maxMag := 0
+	for _, one := range allLines {
+		for _, two := range allLines {
+			if magnitude(one) == magnitude(two) {
+				continue
+			}
+			tmpMag := magnitude(add(one, two))
+			if tmpMag > maxMag {
+				maxMag = tmpMag
+			}
+		}
 	}
 	//printList(line)
 	fmt.Println("Day 18.1:", magnitude(line))
+	fmt.Println("Day 18.2:", maxMag)
 }
