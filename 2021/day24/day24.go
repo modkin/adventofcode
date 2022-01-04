@@ -19,7 +19,7 @@ func toIntList(input int) []int {
 }
 
 func main() {
-	file, err := os.Open("2021/day24/input")
+	file, err := os.Open("2021/day24/testinput")
 	scanner := bufio.NewScanner(file)
 	if err != nil {
 		panic(err)
@@ -70,12 +70,14 @@ func main() {
 
 	}
 	check := func() bool {
-		registers["w"] = 0
-		registers["x"] = 0
-		registers["y"] = 0
-		registers["z"] = 0
+		//registers["w"] = 0
+		//registers["x"] = 0
+		//registers["y"] = 0
+		//registers["z"] = 0
 		for _, in := range inst {
 			alu(in[0], in[1:])
+			fmt.Println(in)
+			fmt.Println(registers)
 		}
 		if len(input) != 0 {
 			fmt.Println("EROOR")
@@ -87,12 +89,16 @@ func main() {
 		}
 	}
 
-	for i := 99999999999999; i > 0; i-- {
-		input = toIntList(i)
-		//fmt.Println(i)
-		if check() {
-			fmt.Println(i)
-		}
-	}
+	i := 78896919699991
+	i = 59996912981939
+	registers["z"] = 0
+
+	//for k := 0; k < 9; k++ {
+	input = toIntList(i)
+	fmt.Println(input)
+	check()
+	fmt.Println(registers)
+	//i -= 10000000000000
+	//}
 
 }
