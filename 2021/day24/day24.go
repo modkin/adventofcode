@@ -44,6 +44,7 @@ func main() {
 		}
 		switch inst {
 		case "inp":
+			fmt.Println("---------------------")
 			registers[ops[0]] = input[0]
 			input = input[1:]
 		case "mul":
@@ -76,8 +77,10 @@ func main() {
 		//registers["z"] = 0
 		for _, in := range inst {
 			alu(in[0], in[1:])
-			fmt.Println(in)
-			fmt.Println(registers)
+			if in[0] == "add" && in[1] == "x" {
+				fmt.Println(in)
+				fmt.Println(registers)
+			}
 		}
 		if len(input) != 0 {
 			fmt.Println("EROOR")
@@ -90,7 +93,8 @@ func main() {
 	}
 
 	i := 78896919699991
-	i = 59996912981939
+	i = 59996912981939 // part 1
+	i = 17241911811915 //part 2
 	registers["z"] = 0
 
 	//for k := 0; k < 9; k++ {
