@@ -68,7 +68,7 @@ func main() {
 	if points != 11603 || pointsTwo != 12725 {
 		panic(err)
 	}
-	fmt.Println("Day 1.1:", points)
-	fmt.Println("Day 1.1:", pointsTwo)
+	fmt.Println("Day 2.1:", points)
+	fmt.Println("Day 2.2:", pointsTwo)
 
 }
