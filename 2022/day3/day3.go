@@ -7,6 +7,18 @@ import (
 	"strings"
 )
 
+func toPrios(input []rune) (sum int) {
+	for i := 0; i < len(input); i++ {
+		tmp := input[i]
+		if tmp >= 97 {
+			sum += int(input[i]) - 96
+		} else {
+			sum += int(input[i]) - 38
+		}
+	}
+	return sum
+}
+
 func main() {
 
 	file, err := os.Open("2022/day3/input")
@@ -37,17 +49,7 @@ func main() {
 		}
 	}
 
-	sum := 0
-	for i := 0; i < len(doubles); i++ {
-		tmp := doubles[i]
-		if tmp >= 97 {
-			sum += int(doubles[i]) - 96
-		} else {
-			sum += int(doubles[i]) - 38
-		}
-		fmt.Println(int(doubles[i]))
-		//sum += doubles[i] - 64
-	}
+	fmt.Println("Day 3.1:", toPrios(doubles))
 
 	groups := make([]rune, 0)
 	for i := 0; i < len(rucksacks); i += 3 {
@@ -59,11 +61,6 @@ func main() {
 		} else {
 			longest = rucksacks2[i+2]
 		}
-		fmt.Println("NEW")
-		fmt.Println(rucksacks2[i])
-		fmt.Println(rucksacks2[i+1])
-		fmt.Println(rucksacks2[i+2])
-		fmt.Println(longest)
 		for _, m := range longest {
 			if strings.Contains(rucksacks2[i], string(m)) && strings.Contains(rucksacks2[i+1], string(m)) && strings.Contains(rucksacks2[i+2], string(m)) {
 				groups = append(groups, m)
@@ -71,18 +68,7 @@ func main() {
 			}
 		}
 	}
-	fmt.Println("Day 3.1:", sum)
-	sum = 0
-	for i := 0; i < len(groups); i++ {
-		tmp := groups[i]
-		if tmp >= 97 {
-			sum += int(groups[i]) - 96
-		} else {
-			sum += int(groups[i]) - 38
-		}
-		//sum += doubles[i] - 64
-	}
 
-	fmt.Println("Day 3.2:", sum)
+	fmt.Println("Day 3.2:", toPrios(groups))
 
 }
