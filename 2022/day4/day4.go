@@ -5,7 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
+	"regexp"
 )
 
 func inRange(first int, second int, check int) bool {
@@ -29,17 +29,11 @@ func main() {
 	rangePairs := make([][2][2]int, 0)
 
 	for scanner.Scan() {
-		tmp := strings.Split(scanner.Text(), ",")
-		fp := strings.Split(tmp[0], "-")
-		fp1 := utils.ToInt(fp[0])
-		fp2 := utils.ToInt(fp[1])
-		fptmp := [2]int{fp1, fp2}
-		sp := strings.Split(tmp[1], "-")
-		sp1 := utils.ToInt(sp[0])
-		sp2 := utils.ToInt(sp[1])
-		sptmp := [2]int{sp1, sp2}
-		rangePairs = append(rangePairs, [2][2]int{fptmp, sptmp})
-
+		re := regexp.MustCompile(`\d*`)
+		dgts := re.FindAllString(scanner.Text(), -1)
+		fp := [2]int{utils.ToInt(dgts[0]), utils.ToInt(dgts[1])}
+		sp := [2]int{utils.ToInt(dgts[2]), utils.ToInt(dgts[3])}
+		rangePairs = append(rangePairs, [2][2]int{fp, sp})
 	}
 
 	counter := 0
@@ -62,12 +56,6 @@ outer:
 				continue outer
 			}
 		}
-		//for i := pair[1][0]; i < pair[1][1]; i++ {
-		//	if inRange(pair[0][1], pair[0][1], i) {
-		//		counter2++
-		//		continue outer
-		//	}
-		//}
 	}
 	fmt.Println("Day 3.1:", counter2)
 
