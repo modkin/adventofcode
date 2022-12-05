@@ -4,20 +4,35 @@ import (
 	"adventofcode/utils"
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
 
 func main() {
 
-	file, err := os.Open("2022/day5/input")
+	file, err := os.Open("2022/day5/testinput")
 	if err != nil {
 		panic(err)
 	}
 
 	scanner := bufio.NewScanner(file)
 
-	stackNbr := 9
+	var stackNbr int
+	for scanner.Scan() {
+		if scanner.Text()[1] == '1' {
+			line := strings.Split(scanner.Text(), " ")
+			stackNbr = utils.ToInt(line[len(line)-1])
+			break
+		}
+	}
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		panic(err)
+	}
+
+	scanner = bufio.NewScanner(file)
+
 	stacks := make([][]string, stackNbr)
 	for i := 0; i < stackNbr; i++ {
 		stacks[i] = make([]string, 0)
@@ -31,9 +46,7 @@ func main() {
 		}
 		if string(line[0]) == " " || string(line[0]) == "[" {
 			for i := 0; i < len(line); i += 4 {
-				//re := regexp.MustCompile(`\w*`)
 				part := line[i : i+3]
-				//char := re.FindString(line[i*4 : (i+1)*4])
 				if " " != string(part[2]) {
 					stacks[i/4] = append(stacks[i/4], string(part[1]))
 				}
@@ -44,8 +57,10 @@ func main() {
 		}
 	}
 
-	fmt.Println(stacks)
-	fmt.Println(moves)
+	stackBackup := make([][]string, stackNbr)
+	for i, stack := range stacks {
+		stackBackup[i] = utils.CopyStringSlice(stack)
+	}
 
 	for _, move := range moves {
 		amount := move[0]
@@ -55,15 +70,28 @@ func main() {
 			stacks[to] = append([]string{stacks[from][0]}, stacks[to]...)
 			stacks[from] = stacks[from][1:]
 		}
-		fmt.Println(stacks)
-		fmt.Println("Next")
 	}
 
-	for i := 0; i < 9; i++ {
+	fmt.Print("Day 5.1: ")
+	for i := 0; i < stackNbr; i++ {
 		fmt.Print(stacks[i][0])
 	}
 	fmt.Println()
 
-	fmt.Println("Day 3.1:", stacks)
+	stacks = stackBackup
+
+	for _, move := range moves {
+		amount := move[0]
+		from := move[1] - 1
+		to := move[2] - 1
+		stacks[to] = append(utils.CopyStringSlice(stacks[from][0:amount]), stacks[to]...)
+		stacks[from] = stacks[from][amount:]
+	}
+
+	fmt.Print("Day 5.2: ")
+	for i := 0; i < stackNbr; i++ {
+		fmt.Print(stacks[i][0])
+	}
+	fmt.Println()
 
 }
