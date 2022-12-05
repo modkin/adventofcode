@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 )
 
 func main() {
 
-	file, err := os.Open("2022/day5/testinput")
+	file, err := os.Open("2022/day5/input")
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +22,8 @@ func main() {
 	var stackNbr int
 	for scanner.Scan() {
 		if scanner.Text()[1] == '1' {
-			line := strings.Split(scanner.Text(), " ")
+			re := regexp.MustCompile(`\d+`)
+			line := re.FindAllString(scanner.Text(), -1)
 			stackNbr = utils.ToInt(line[len(line)-1])
 			break
 		}
