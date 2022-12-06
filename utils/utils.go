@@ -75,7 +75,7 @@ func ReverseIntSlice(a []int) []int {
 	return a
 }
 
-///split integer into integer slice of the digits
+// /split integer into integer slice of the digits
 func SplitInt(input int) []int {
 	count := len(fmt.Sprint(input))
 	output := make([]int, count)
@@ -98,6 +98,15 @@ func Sum(one [2]int, two [2]int) [2]int {
 }
 
 func SliceContains(list []string, s string) bool {
+	for _, elem := range list {
+		if s == elem {
+			return true
+		}
+	}
+	return false
+}
+
+func RuneSliceContains(list []rune, s rune) bool {
 	for _, elem := range list {
 		if s == elem {
 			return true
