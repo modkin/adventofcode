@@ -4,14 +4,15 @@ import (
 	"adventofcode/utils"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"sort"
 )
 
 type member struct {
 	Name    string
 	timings []int
+	points  []int
 }
 
 func genEmptyTimings(length int) []int {
@@ -22,14 +23,8 @@ func genEmptyTimings(length int) []int {
 	return timings
 }
 
-func printDayRanking(allMember []member) {
-	for i, mem := range allMember {
-		fmt.Println(i+1, " ", mem.Name)
-	}
-}
-
 func main() {
-	jsonByte, _ := ioutil.ReadFile("dailyRanking/678703.json")
+	jsonByte, _ := os.ReadFile("dailyRanking/678703.json")
 
 	var data map[string]interface{}
 	err := json.Unmarshal([]byte(jsonByte), &data)
@@ -50,7 +45,7 @@ func main() {
 	daysDone := 25
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
-		tmp := member{name.(string), genEmptyTimings(daysDone * 2)}
+		tmp := member{name.(string), genEmptyTimings(daysDone * 2), make([]int, daysDone*2)}
 
 		for i, task := range elem.(map[string]interface{})["completion_day_level"].(map[string]interface{}) {
 			tmp.timings[(utils.ToInt(i)-1)*2] = int(task.(map[string]interface{})["1"].(map[string]interface{})["get_star_ts"].(float64))
@@ -71,9 +66,9 @@ func main() {
 		sort.SliceStable(memberPoints, func(i, j int) bool { return memberPoints[i].timings[k] < memberPoints[j].timings[k] })
 		for points := range memberPoints {
 			if memberPoints[points].timings[k] != math.MaxInt32 {
-				memberPoints[points].timings[k] = len(memberPoints) - points
+				memberPoints[points].points[k] = len(memberPoints) - points
 			} else {
-				memberPoints[points].timings[k] = 0
+				memberPoints[points].points[k] = 0
 			}
 		}
 	}
@@ -85,10 +80,17 @@ func main() {
 	fmt.Print(" Sum\n")
 	for _, mem := range memberPoints {
 		fmt.Printf("%-24v|", mem.Name)
-		for _, point := range mem.timings {
+		for _, point := range mem.points {
 			fmt.Printf("%2v|", point)
 		}
-		fmt.Print(" ", utils.SumSlice(mem.timings), "\n")
+		fmt.Print(" ", utils.SumSlice(mem.points), "\n")
 	}
-
+	fmt.Println()
+	for i := 0; i < 50; i++ {
+		difference := memberPoints[0].timings[i] - memberPoints[1].timings[i]
+		//fmt.Println("Day: ", i/2, ".", i%2)
+		if utils.IntAbs(difference) < 60 && difference != 0 {
+			fmt.Print("Day: ", (i/2)+1, ".", i%2, " ", difference, "\n")
+		}
+	}
 }
