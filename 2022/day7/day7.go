@@ -9,19 +9,6 @@ import (
 	"strings"
 )
 
-func addRecursive(dirContents map[string][]string, dirSizes map[string]int, path []string) {
-	currentDir := strings.Join(path, "-")
-	for _, i := range dirContents[currentDir] {
-		subdir := append(path, i)
-		for i := range path {
-			dirSizes[strings.Join(path[:i+1], "-")] += dirSizes[strings.Join(subdir, "-")]
-		}
-		newPath := utils.CopyStringSlice(path)
-		newPath = append(newPath, i)
-		addRecursive(dirContents, dirSizes, newPath)
-	}
-}
-
 func main() {
 
 	file, err := os.Open("2022/day7/input")
@@ -33,9 +20,6 @@ func main() {
 
 	commands := make([][]string, 0)
 	dirSizes := make(map[string]int)
-	dirContents := make(map[string][]string)
-	//partentDir := make(map[string]string)
-	//foo := make(map[string]int)
 
 	for scanner.Scan() {
 		split := strings.Split(scanner.Text(), " ")
@@ -50,16 +34,15 @@ outer:
 				if commands[i][2] == ".." {
 					currentDir = currentDir[:len(currentDir)-1]
 				} else {
-					//partentDir[commands[i][2]] = currentDir
 					currentDir = append(currentDir, commands[i][2])
 				}
 			} else if commands[i][1] == "ls" {
 				i++
 				for commands[i][0] != "$" {
-					if commands[i][0] == "dir" {
-						dirContents[strings.Join(currentDir, "-")] = append(dirContents[strings.Join(currentDir, "-")], commands[i][1])
-					} else {
-						dirSizes[strings.Join(currentDir, "-")] += utils.ToInt(commands[i][0])
+					if commands[i][0] != "dir" {
+						for i2 := range currentDir {
+							dirSizes[strings.Join(currentDir[:i2+1], "-")] += utils.ToInt(commands[i][0])
+						}
 					}
 					i++
 					if i >= len(commands) {
@@ -70,26 +53,22 @@ outer:
 			}
 		}
 		i++
-
 	}
-	fmt.Println(dirContents)
-	fmt.Println(dirSizes)
-	addRecursive(dirContents, dirSizes, []string{"/"})
 
 	total := 0
-	fmt.Println(dirSizes)
 	for _, i := range dirSizes {
 		if i <= 100000 {
 			total += i
 		}
 	}
 
-	fmt.Println("Day 6.1: ", total)
+	fmt.Println("Day 7.1:", total)
+	if total != 1783610 {
+		panic(err)
+	}
 
-	totalSize := 70000000
 	required := 30000000
-	currentFree := totalSize - dirSizes["/"]
-	fmt.Println(currentFree)
+	currentFree := 70000000 - dirSizes["/"]
 	SizeList := make([]int, 0)
 	for _, i := range dirSizes {
 		SizeList = append(SizeList, i)
@@ -97,7 +76,10 @@ outer:
 	sort.Ints(SizeList)
 	for _, i := range SizeList {
 		if currentFree+i >= required {
-			fmt.Println(i)
+			fmt.Println("Day 7.2:", i)
+			if i != 4370655 {
+				panic(err)
+			}
 			break
 		}
 	}
