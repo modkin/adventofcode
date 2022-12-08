@@ -7,8 +7,20 @@ import (
 	"os"
 )
 
-func look(trees [][]int, incx int, incy int) (freeView bool, treesVisible int) {
-
+func look(trees [][]int, x int, y int, incx int, incy int) (freeView bool, treesVisible int) {
+	treeHeight := trees[y][x]
+	treesVisible = 1
+	for {
+		x += incx
+		y += incy
+		if trees[y][x] >= treeHeight {
+			return false, treesVisible
+		}
+		if x == 0 || x == len(trees[0])-1 || y == 0 || y == len(trees)-1 {
+			return true, treesVisible
+		}
+		treesVisible++
+	}
 }
 
 func main() {
@@ -33,74 +45,26 @@ func main() {
 
 	counter := len(trees) * 2
 	counter += (len(trees[0]) * 2) - 4
-	score := 0
-	fmt.Println(counter)
+	maxScenicScore := 0
 	for y := 1; y < len(trees)-1; y++ {
-		//outer:
-
 		for x := 1; x < len(trees[0])-1; x++ {
-			currentScore := 1
-			currentHeight := trees[y][x]
-			factor := 0
-			for i := x - 1; i >= 0; i-- {
-				factor++
-				if trees[y][i] >= currentHeight {
-					break
-				}
 
-				//if i == 0 {
-				//	counter++
-				//	continue outer
-				//}
-			}
-			currentScore *= factor
-			factor = 0
-			for i := x + 1; i <= len(trees[0])-1; i++ {
-				factor++
-				if trees[y][i] >= currentHeight {
-					break
-				}
+			leftView, leftTrees := look(trees, x, y, -1, 0)
+			rightView, rightTrees := look(trees, x, y, 1, 0)
+			bottomView, bottomTrees := look(trees, x, y, 0, -1)
+			topView, topTrees := look(trees, x, y, 0, 1)
 
-				//if i == len(trees[0])-1 {
-				//	counter++
-				//	continue outer
-				//}
+			if leftView || rightView || bottomView || topView {
+				counter++
 			}
-			currentScore *= factor
-			factor = 0
-			for i := y - 1; i >= 0; i-- {
-				factor++
-				if trees[i][x] >= currentHeight {
-					break
-				}
+			currentScenicScore := leftTrees * rightTrees * bottomTrees * topTrees
 
-				//if i == 0 {
-				//	counter++
-				//	continue outer
-				//}
-			}
-			currentScore *= factor
-			factor = 0
-			for i := y + 1; i <= len(trees[0])-1; i++ {
-				factor++
-				if trees[i][x] >= currentHeight {
-					break
-				}
-
-				//if i == len(trees)-1 {
-				//	counter++
-				//	continue outer
-				//}
-			}
-			currentScore *= factor
-			if currentScore > score {
-				score = currentScore
-				fmt.Println(score, x, y)
+			if currentScenicScore > maxScenicScore {
+				maxScenicScore = currentScenicScore
 			}
 		}
-
 	}
 
-	fmt.Println("Day 7.1:", counter)
-
+	fmt.Println("Day 8.1:", counter)
+	fmt.Println("Day 8.2:", maxScenicScore)
 }
