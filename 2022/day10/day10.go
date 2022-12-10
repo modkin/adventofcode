@@ -22,6 +22,7 @@ func main() {
 	//grid := make([][]int, 0)
 	scanner := bufio.NewScanner(file)
 
+	crt := make(map[[2]int]string)
 	cpu := CPU{1}
 	instructions := make([][]string, 0)
 	pipeline := make([][]string, 0)
@@ -44,20 +45,28 @@ func main() {
 	fmt.Println(pipeline)
 	cycle := 1
 	score := 0
+	crtPos := 0
 	for _, i2 := range pipeline {
 		fmt.Println("B", cycle, cpu.x, score)
+		pos := [2]int{crtPos % 40, crtPos / 40}
+		if utils.IntAbs(cpu.x-crtPos%40) <= 1 {
+			crt[pos] = "#"
+		} else {
+			crt[pos] = "."
+		}
+
 		if cycle == 20 {
 			score += cpu.x * cycle
-			fmt.Println(cpu.x * cycle)
 		} else if (cycle-20)%40 == 0 {
 			score += cpu.x * cycle
-			fmt.Println(cpu.x * cycle)
 		}
 		if i2[0] == "addx" {
 			cpu.x += utils.ToInt(i2[1])
 		}
 		fmt.Println("E", cycle, cpu.x, score)
+		utils.Print2DStringsGrid(crt)
 		cycle++
+		crtPos++
 	}
 
 	fmt.Println("Day 10.2:", len(instructions))
