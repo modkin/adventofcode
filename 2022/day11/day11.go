@@ -9,14 +9,15 @@ import (
 	"strings"
 )
 
-type CPU struct {
-	x int
-}
-
 type monkey struct {
 	items     []int
 	operation func(int) int
 	testWorry func(int) int
+}
+
+type roundConfig struct {
+	rounds      int
+	updateWorry func(int) int
 }
 
 func main() {
@@ -30,6 +31,8 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	monkeys := make([]monkey, 0)
+	startList := make([][]int, 0)
+	factor := 1
 
 	for scanner.Scan() {
 		tmp := strings.Split(scanner.Text(), " ")
@@ -40,6 +43,7 @@ func main() {
 			for _, item := range tmp[2:] {
 				startItems = append(startItems, utils.ToInt(strings.ReplaceAll(item, ",", "")))
 			}
+			startList = append(startList, utils.CopyIntSlice(startItems))
 			scanner.Scan()
 			tmp = strings.Split(strings.TrimSpace(scanner.Text()), " ")
 			op := tmp[4]
@@ -64,6 +68,7 @@ func main() {
 			scanner.Scan()
 			tmp = strings.Split(strings.TrimSpace(scanner.Text()), " ")
 			divby := utils.ToInt(tmp[3])
+			factor *= divby
 			scanner.Scan()
 			tmp = strings.Split(strings.TrimSpace(scanner.Text()), " ")
 			ifTrue := utils.ToInt(tmp[5])
@@ -81,31 +86,45 @@ func main() {
 			monkeys = append(monkeys, newMonkey)
 		}
 	}
+	part1 := roundConfig{20, func(i int) int {
+		return i / 3
+	}}
+	part2 := roundConfig{10000, func(i int) int {
+		return i % factor
+	}}
 	scores := make([]int, len(monkeys))
-	for round := 0; round < 20; round++ {
-		for mi, m := range monkeys {
-			for _, item := range m.items {
-				scores[mi]++
-				item = m.operation(item)
-				item = item / 3
-				targetMonkey := m.testWorry(item)
-				monkeys[targetMonkey].items = append(monkeys[targetMonkey].items, item)
-				if len(monkeys[mi].items) == 1 {
-					monkeys[mi].items = make([]int, 0)
-				} else {
-					monkeys[mi].items = monkeys[mi].items[1:]
+	for i, config := range []roundConfig{part1, part2} {
+
+		for round := 0; round < config.rounds; round++ {
+			for mi, m := range monkeys {
+				for _, item := range m.items {
+					scores[mi]++
+					item = m.operation(item)
+					item = config.updateWorry(item)
+					targetMonkey := m.testWorry(item)
+					monkeys[targetMonkey].items = append(monkeys[targetMonkey].items, item)
+					if len(monkeys[mi].items) == 1 {
+						monkeys[mi].items = make([]int, 0)
+					} else {
+						monkeys[mi].items = monkeys[mi].items[1:]
+					}
 				}
 			}
+			//fmt.Println("Round", round)
+			//for i, _ := range monkeys {
+			//	fmt.Println(i, scores[i])
+			//}
 		}
-		fmt.Println("Round", round)
-		for i, m := range monkeys {
-			fmt.Println(i, m.items)
+
+		fmt.Println(scores)
+
+		sort.Ints(scores)
+		monkeyBuisness := scores[len(scores)-1] * scores[len(scores)-2]
+		fmt.Println("Day 11.", i+1, ":", monkeyBuisness)
+		scores = make([]int, len(monkeys))
+		for i2 := 0; i2 < len(monkeys); i2++ {
+			monkeys[i2].items = utils.CopyIntSlice(startList[i2])
 		}
 	}
-	fmt.Println(scores)
-
-	sort.Ints(scores)
-	monkeyBuisness := scores[len(scores)-1] * scores[len(scores)-2]
-	fmt.Println("Day 11.1:", monkeyBuisness)
 
 }
