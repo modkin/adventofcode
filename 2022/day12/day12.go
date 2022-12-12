@@ -80,6 +80,8 @@ func main() {
 			} else if tmp[x] == 'S' {
 				startPos = [2]int{x, y}
 				hmap[[2]int{x, y}] = Point{'a', math.MaxInt}
+			} else if tmp[x] == 'a' {
+				hmap[[2]int{x, y}] = Point{tmp[x], 0}
 			} else {
 				hmap[[2]int{x, y}] = Point{tmp[x], math.MaxInt}
 			}
@@ -92,7 +94,12 @@ func main() {
 	//currentHeight := "A"
 	//pos := [2]int{0, 0}
 	hmap[startPos] = Point{hmap[startPos].h, 0}
-	curPoses[startPos] = Point{'a', 0}
+	for ints, point := range hmap {
+		if point.h == 'a' {
+			curPoses[ints] = Point{'a', 0}
+		}
+	}
+	//curPoses[startPos] = Point{'a', 0}
 
 	for {
 		//hmapprint(hmap)
