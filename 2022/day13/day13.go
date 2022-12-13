@@ -5,9 +5,19 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+func goSort(left string, right string) bool {
+	ret := compare(left, right)
+	if ret == 1 {
+		return true
+	} else {
+		return false
+	}
+}
 
 // return the index AFTER the closing ']'
 func findClosing(input string) int {
@@ -136,6 +146,9 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	rightOrder := 0
 	counter := 0
+	allLines := make([]string, 0)
+	allLines = append(allLines, "[[2]]")
+	allLines = append(allLines, "[[6]]")
 
 	for scanner.Scan() {
 		counter++
@@ -143,13 +156,27 @@ func main() {
 			scanner.Scan()
 		}
 		left := scanner.Text()
+		allLines = append(allLines, scanner.Text())
 		scanner.Scan()
 		right := scanner.Text()
-		comp := compare(left[1:len(left)-1], right[1:len(right)-1])
+		allLines = append(allLines, scanner.Text())
+		comp := compare(left, right)
 		if comp == 1 {
 			rightOrder += counter
 		}
 	}
+	//fmt.Println(allLines)
+	sort.Slice(allLines, func(i, j int) bool {
+		return goSort(allLines[i], allLines[j])
+	})
+	//fmt.Println(allLines)
+	pos := 1
+	for i, line := range allLines {
+		if line == "[[2]]" || line == "[[6]]" {
+			pos *= i + 1
+		}
+	}
 
-	fmt.Println(rightOrder)
+	fmt.Println("Day 13.1:", rightOrder)
+	fmt.Println("Day 13.2:", pos)
 }
