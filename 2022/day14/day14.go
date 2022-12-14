@@ -48,20 +48,25 @@ func main() {
 			sty = stopY
 		}
 	}
-	fmt.Println(grid)
-	utils.Print2DStringsGrid(grid)
+	//utils.Print2DStringsGrid(grid)
+	floorY := yMax + 2
 
 	source := [2]int{500, 0}
 	pos := source
 	counter := 0
+	day1NotDone := true
 	for {
 		if _, down := grid[[2]int{pos[0], pos[1] + 1}]; down {
 			if _, downLeft := grid[[2]int{pos[0] - 1, pos[1] + 1}]; downLeft {
 				if _, downRight := grid[[2]int{pos[0] + 1, pos[1] + 1}]; downRight {
 					grid[pos] = "o"
+					counter++
+					if pos == source {
+						break
+					}
 					pos = source
 					//utils.Print2DStringsGrid(grid)
-					counter++
+
 				} else {
 					pos = [2]int{pos[0] + 1, pos[1] + 1}
 				}
@@ -71,10 +76,20 @@ func main() {
 		} else {
 			pos = [2]int{pos[0], pos[1] + 1}
 		}
-		if pos[1] > yMax {
-			break
+		if pos[1] == floorY-1 {
+			grid[pos] = "o"
+			pos = source
+			if day1NotDone {
+				fmt.Println("Day 14.1:", counter)
+				day1NotDone = false
+			}
+			counter++
 		}
+		//if pos[1] > yMax {
+		//	break
+		//}
 	}
-	fmt.Println("Day 14.1:", counter)
+	//utils.Print2DStringsGrid(grid)
+	fmt.Println("Day 14.2:", counter)
 
 }
