@@ -244,3 +244,13 @@ func Factorial(num int) int {
 	}
 	return result
 }
+
+func Sgn(a int) int {
+	switch {
+	case a < 0:
+		return -1
+	case a > 0:
+		return +1
+	}
+	return 0
+}
