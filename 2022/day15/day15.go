@@ -8,18 +8,81 @@ import (
 	"strings"
 )
 
+type sensor struct {
+	pos  [2]int
+	dist int
+}
+
+func checkLine(sensors []sensor, lineNum int, beacons []int) int {
+	elements := make(map[int]bool)
+	for _, s := range sensors {
+		xdist := s.dist - utils.IntAbs(lineNum-s.pos[1])
+		if xdist > -1 {
+			for x := s.pos[0] - xdist; x <= s.pos[0]+xdist; x++ {
+				if !utils.IntSliceContains(beacons, x) {
+					elements[x] = true
+				}
+			}
+		}
+	}
+	return len(elements)
+}
+
+func inRange(x, y int, sen sensor) bool {
+	xdist := utils.IntAbs(x - sen.pos[0])
+	ydist := utils.IntAbs(y - sen.pos[1])
+	if xdist+ydist <= sen.dist {
+		return true
+	} else {
+		return false
+	}
+}
+
+func genBoundary(sen sensor) [][2]int {
+	ret := make([][2]int, 0)
+	boundaryDist := sen.dist + 1
+	for dist := 0; dist <= boundaryDist; dist++ {
+
+		ret = append(ret, [2]int{sen.pos[0] + dist, sen.pos[1] + boundaryDist - dist})
+		ret = append(ret, [2]int{sen.pos[0] - dist, sen.pos[1] - boundaryDist + dist})
+		ret = append(ret, [2]int{sen.pos[0] + boundaryDist - dist, sen.pos[1] - dist})
+		ret = append(ret, [2]int{sen.pos[0] - boundaryDist + dist, sen.pos[1] + dist})
+	}
+	return ret
+}
+
+func checkSensor(allSensors []sensor, sen sensor) (found bool, x, y int) {
+	boundary := genBoundary(sen)
+outer:
+	for _, b := range boundary {
+		for _, other := range allSensors {
+			if sen.pos == other.pos {
+				continue
+			}
+			if inRange(b[0], b[1], other) {
+				continue outer
+			}
+		}
+		return true, b[0], b[1]
+	}
+	return false, 0, 0
+}
+
 func main() {
 
 	file, err := os.Open("2022/day15/input")
-	//yCoord := 10
-	yCoord := 2000000
+	var yCoord int
+	if strings.Contains(file.Name(), "test") {
+		yCoord = 20
+	} else {
+		yCoord = 4000000
+	}
 	if err != nil {
 		panic(err)
 	}
-
-	//grid := make(map[[2]int]string)
+	sensors := make([]sensor, 0)
+	beaconsOnLine := make([]int, 0)
 	scanner := bufio.NewScanner(file)
-	noBeacon := make(map[int]string)
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), " ")
@@ -30,78 +93,22 @@ func main() {
 		xdist := utils.IntAbs(xBe - xSen)
 		ydist := utils.IntAbs(yBe - ySen)
 		totaldist := xdist + ydist
+		newSen := sensor{[2]int{xSen, ySen}, totaldist}
+		sensors = append(sensors, newSen)
+		if yBe == yCoord/2 {
+			beaconsOnLine = append(beaconsOnLine, xBe)
+		}
+	}
 
-		distLeft := totaldist - utils.IntAbs(yCoord-ySen)
-		for x := 0; x <= distLeft; x++ {
-			x1 := xSen + x
-			x2 := xSen - x
-			for _, testx := range []int{x1, x2} {
-				if _, ok := noBeacon[testx]; !ok {
-					if testx != xBe || yBe != yCoord {
-						noBeacon[testx] = "#"
-					} else {
-						noBeacon[testx] = "B"
-					}
-				}
+	fmt.Println("Day 15.1:", checkLine(sensors, yCoord/2, beaconsOnLine))
+
+	for _, s := range sensors {
+		ret, x, y := checkSensor(sensors, s)
+		if ret {
+			if 0 <= x && x <= yCoord && 0 <= y && y <= yCoord {
+				fmt.Println("Day 15.2:", x*4000000+y)
+				break
 			}
 		}
-
-		//grid[[2]int{xSen, ySen}] = "S"
-		//walk := make(map[[2]int]bool)
-		//walk[[2]int{xSen, ySen}] = true
-		//
-		//for i := 0; i <= xdist+ydist; i++ {
-		//	newWalk := make(map[[2]int]bool)
-		//	for pos := range walk {
-		//		grid[pos] = "#"
-		//		newWalk[[2]int{pos[0] + 1, pos[1]}] = true
-		//		newWalk[[2]int{pos[0], pos[1] + 1}] = true
-		//		newWalk[[2]int{pos[0] - 1, pos[1]}] = true
-		//		newWalk[[2]int{pos[0], pos[1] - 1}] = true
-		//	}
-		//	walk = newWalk
-		//
-		//}
-		//grid[[2]int{xSen, ySen}] = "S"
-		//grid[[2]int{xBe, yBe}] = "B"
-		//utils.Print2DStringsGrid(grid)
-		fmt.Println("new Line")
 	}
-	//xMin, yMin, xMax, yMax := math.MaxInt, math.MaxInt, 0, 0
-	//for i := range grid {
-	//	if i[0] < xMin {
-	//		xMin = i[0]
-	//	}
-	//	if i[0] > xMax {
-	//		xMax = i[0]
-	//	}
-	//	if i[1] < yMin {
-	//		yMin = i[1]
-	//	}
-	//	if i[1] > yMax {
-	//		yMax = i[1]
-	//	}
-	//}
-	//
-	//counter := 0
-	//
-	//for i := xMin; i < xMax; i++ {
-	//	fmt.Print(grid[[2]int{i, yCoord}])
-	//	if grid[[2]int{i, yCoord}] == "#" {
-	//		counter++
-	//	}
-	//}
-	//fmt.Println()
-	//for i := xMin; i < xMax; i++ {
-	//	fmt.Print(noBeacon[i])
-	//}
-	//fmt.Println(counter)
-	counter2 := 0
-	for _, s := range noBeacon {
-		if s == "#" {
-			counter2++
-		}
-	}
-	fmt.Println(counter2)
-
 }
