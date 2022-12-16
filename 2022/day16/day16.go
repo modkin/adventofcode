@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -39,31 +40,8 @@ func findMaxState(input []state) state {
 func isUseless(new state, states []state) bool {
 	for _, s := range states {
 		if new.current == s.current {
-			sameOpen := true
-			for _, v := range new.open {
-				sameOpen = sameOpen && utils.SliceContains(s.open, v)
-			}
-			if sameOpen {
-				if new.flow < s.flow && new.time >= s.flow {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
-
-func isSame(new state, states []state) bool {
-	for _, s := range states {
-		if new.current == s.current {
-			sameOpen := true
-			for _, v := range new.open {
-				sameOpen = sameOpen && utils.SliceContains(s.open, v)
-			}
-			if sameOpen {
-				if new.flow == s.flow && new.time == s.time {
-					return true
-				}
+			if new.flow < s.flow && new.time > s.time {
+				return true
 			}
 		}
 	}
@@ -91,7 +69,7 @@ func getCheckSum(s state) string {
 
 func main() {
 
-	file, err := os.Open("2022/day16/testinput")
+	file, err := os.Open("2022/day16/input")
 
 	if err != nil {
 		panic(err)
@@ -121,20 +99,15 @@ func main() {
 	for newOpen {
 		newOpen = false
 		newAllState := make([]state, 0)
-		for i, maxState := range allState {
-			if maxState.time > 30 {
+		for _, maxState := range allState {
+			max := findMaxState(newAllState).flow
+			if max > currentMax {
+				currentMax = max
+				fmt.Println(currentMax)
+			}
+			if maxState.time >= 30 {
 				continue
 			}
-			flow := letIfFlow(maxState, allValves)
-			if maxState.flow+(30-maxState.time)*flow < currentMax {
-				continue
-			}
-
-			add := 0
-			for _, s2 := range maxState.open {
-				add += allValves[s2].flow
-			}
-			allState[i].flow += add
 			newOpen = true
 			//}
 
@@ -148,10 +121,11 @@ func main() {
 				newState := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1}
 				if !utils.SliceContains(newState.open, v) {
 					newState2 := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1}
-
-					newState2.open = append(newState2.open, v)
+					tmp := append(newState2.open, v)
+					sort.Strings(tmp)
+					newState2.open = tmp
+					newState2.flow += (30 - newState2.time) * allValves[v].flow
 					newState2.time++
-					newState2.flow += letIfFlow(newState2, allValves)
 					newAllState = append(newAllState, newState2)
 					//newState.flow = letIfFlow(newState, allValves)
 					//newState.open = append(newState.open, v)
@@ -164,27 +138,15 @@ func main() {
 		allState = make([]state, 0)
 		for _, s := range newAllState {
 			if !isUseless(s, newAllState) {
-				if !isSame(s, allState) {
-					if _, ok := alreadyChecked[getCheckSum(s)]; !ok {
-						allState = append(allState, s)
-						alreadyChecked[getCheckSum(s)] = true
-					}
+				//if !isSame(s, allState) {
+				if _, ok := alreadyChecked[getCheckSum(s)]; !ok {
+					allState = append(allState, s)
+					alreadyChecked[getCheckSum(s)] = true
 				}
+				//}
 			}
 		}
-		max := findMaxState(allState).flow
-		if max > currentMax {
-			currentMax = max
-		}
-		fmt.Println(currentMax)
-	}
 
-	maxState := 0
-	for _, s := range allState {
-		if s.flow > maxState {
-			maxState = s.flow
-			fmt.Println(s.open)
-		}
 	}
-	fmt.Println(maxState)
+	fmt.Println(currentMax)
 }
