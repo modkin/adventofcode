@@ -59,17 +59,6 @@ func isUseless2(new state, states map[string][]state) bool {
 	return false
 }
 
-func letIfFlow(s state, allValves map[string]valve) int {
-	if s.time > 30 {
-		return 0
-	}
-	add := 0
-	for _, s2 := range s.open {
-		add += allValves[s2].flow
-	}
-	return add
-}
-
 func getCheckSum(s state) string {
 	ret := strings.Join(s.open, "-")
 	ret += "-" + s.current + "-"
@@ -121,13 +110,6 @@ func run() {
 				continue
 			}
 			newOpen = true
-			//}
-
-			//maxIdx := findMaxState(allState)
-			//maxState := allState[maxIdx]
-			//maxState.time++
-
-			//for _, maxState := range allState {
 
 			for _, v := range allValves[maxState.current].tunnel {
 				newPath := append(utils.CopyStringSlice(maxState.path), v)
@@ -140,10 +122,6 @@ func run() {
 					newState2.flow += (30 - newState2.time) * allValves[v].flow
 					newState2.time++
 					newAllState = append(newAllState, newState2)
-					//newState.flow = letIfFlow(newState, allValves)
-					//newState.open = append(newState.open, v)
-					//newState.time++
-
 				}
 				newAllState = append(newAllState, newState)
 			}
