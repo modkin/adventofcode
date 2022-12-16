@@ -21,6 +21,7 @@ type state struct {
 	flow    int
 	current string
 	time    int
+	path    []string
 }
 
 func findMaxState(input []state) state {
@@ -48,6 +49,16 @@ func isUseless(new state, states []state) bool {
 	return false
 }
 
+func isUseless2(new state, states map[string][]state) bool {
+	for _, s := range states[new.current] {
+		if new.flow < s.flow && new.time > s.time {
+			return true
+		}
+
+	}
+	return false
+}
+
 func letIfFlow(s state, allValves map[string]valve) int {
 	if s.time > 30 {
 		return 0
@@ -67,9 +78,9 @@ func getCheckSum(s state) string {
 	return ret
 }
 
-func main() {
+func run() {
 
-	file, err := os.Open("2022/day16/input")
+	file, err := os.Open("/Users/dominikthoennes/go/src/adventofcode/2022/day16/input")
 
 	if err != nil {
 		panic(err)
@@ -79,6 +90,7 @@ func main() {
 	allValves := make(map[string]valve)
 	allState := make([]state, 0)
 	alreadyChecked := make(map[string]bool)
+	stateAtPos := make(map[string][]state)
 
 	re := regexp.MustCompile(`\d*;`)
 	for scanner.Scan() {
@@ -93,7 +105,7 @@ func main() {
 
 	}
 	fmt.Println(allValves)
-	allState = append(allState, state{[]string{"AA"}, 0, "AA", 1})
+	allState = append(allState, state{[]string{"AA"}, 0, "AA", 1, make([]string, 0)})
 	newOpen := true
 	currentMax := 0
 	for newOpen {
@@ -103,7 +115,7 @@ func main() {
 			max := findMaxState(newAllState).flow
 			if max > currentMax {
 				currentMax = max
-				fmt.Println(currentMax)
+				fmt.Println(currentMax, len(allState))
 			}
 			if maxState.time >= 30 {
 				continue
@@ -118,9 +130,10 @@ func main() {
 			//for _, maxState := range allState {
 
 			for _, v := range allValves[maxState.current].tunnel {
-				newState := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1}
-				if !utils.SliceContains(newState.open, v) {
-					newState2 := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1}
+				newPath := append(utils.CopyStringSlice(maxState.path), v)
+				newState := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1, newPath}
+				if !utils.SliceContains(newState.open, v) && allValves[v].flow != 0 {
+					newState2 := state{utils.CopyStringSlice(maxState.open), maxState.flow, v, maxState.time + 1, newPath}
 					tmp := append(newState2.open, v)
 					sort.Strings(tmp)
 					newState2.open = tmp
@@ -137,16 +150,27 @@ func main() {
 		}
 		allState = make([]state, 0)
 		for _, s := range newAllState {
-			if !isUseless(s, newAllState) {
-				//if !isSame(s, allState) {
+			if _, ok := stateAtPos[s.current]; ok {
+				stateAtPos[s.current] = append(stateAtPos[s.current], s)
+			} else {
+				stateAtPos[s.current] = []state{s}
+			}
+
+		}
+		for _, s := range newAllState {
+			//if !isUseless(s, newAllState) {
+			if !isUseless2(s, stateAtPos) {
 				if _, ok := alreadyChecked[getCheckSum(s)]; !ok {
 					allState = append(allState, s)
 					alreadyChecked[getCheckSum(s)] = true
 				}
-				//}
 			}
 		}
 
 	}
 	fmt.Println(currentMax)
+}
+
+func main() {
+	run()
 }
