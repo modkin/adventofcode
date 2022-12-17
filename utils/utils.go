@@ -134,6 +134,15 @@ func IntSliceContains(list []int, s int) bool {
 	return false
 }
 
+func Int2SliceContains(list [][2]int, s [2]int) bool {
+	for _, elem := range list {
+		if s == elem {
+			return true
+		}
+	}
+	return false
+}
+
 func Print1010Grid(mapToPrint [10][10]string) {
 	fmt.Println("=============")
 	for y := 0; y < 10; y++ {
@@ -213,6 +222,36 @@ func Print2DStringsGrid(grid map[[2]int]string) {
 	}
 }
 
+func Print2D2IntGrid(grid [][2]int) {
+	fmt.Println("----------------------------------------------")
+	xMin, yMin, xMax, yMax := math.MaxInt, math.MaxInt, 0, 0
+	for _, i := range grid {
+		if i[0] < xMin {
+			xMin = i[0]
+		}
+		if i[0] > xMax {
+			xMax = i[0]
+		}
+		if i[1] < yMin {
+			yMin = i[1]
+		}
+		if i[1] > yMax {
+			yMax = i[1]
+		}
+	}
+	for y := yMin; y <= yMax; y++ {
+		for x := xMin; x <= xMax; x++ {
+			if Int2SliceContains(grid, [2]int{x, y}) {
+
+				fmt.Print("#")
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+}
+
 func Print2DStringGrid(grid map[[2]int]bool) {
 	fmt.Println("----------------------------------------------")
 	xMax, yMax := 0, 0
@@ -228,6 +267,37 @@ func Print2DStringGrid(grid map[[2]int]bool) {
 		for x := 0; x <= xMax; x++ {
 			if _, ok := grid[[2]int{x, y}]; ok {
 				fmt.Print("#")
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println("----------------------------------------------")
+}
+
+func PrintTetris(ingrid map[[2]int]string, shape [][2]int, xDiff, yDiff int) {
+	grid := make(map[[2]int]string)
+	for i, s := range ingrid {
+		grid[i] = s
+	}
+	for _, i := range shape {
+		grid[[2]int{i[0] + xDiff, i[1] + yDiff}] = "*"
+	}
+	fmt.Println("----------------------------------------------")
+	xMax, yMax := 0, 0
+	for i := range grid {
+		if i[0] > xMax {
+			xMax = i[0]
+		}
+		if i[1] > yMax {
+			yMax = i[1]
+		}
+	}
+	for y := yMax; y >= -1; y-- {
+		for x := 0; x <= xMax; x++ {
+			if val, ok := grid[[2]int{x, y}]; ok {
+				fmt.Print(val)
 			} else {
 				fmt.Print(".")
 			}
