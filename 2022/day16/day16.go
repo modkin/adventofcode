@@ -25,52 +25,12 @@ type state struct {
 	timeEle int
 }
 
-//func findMaxState(input []state) state {
-//	max := 0
-//	var s state
-//	for _, i2 := range input {
-//		if i2.time <= 26 {
-//			if i2.flow > max {
-//				max = i2.flow
-//				s = i2
-//			}
-//		}
-//	}
-//	return s
-//}
-
-//func isUseless(new state, states []state) bool {
-//	for _, s := range states {
-//		if new.me == s.me {
-//			if new.flow < s.flow && new.time > s.time {
-//				return true
-//			}
-//		}
-//	}
-//	return false
-//}
-
-//func isUseless2(new state, states map[string][]state) bool {
-//	combinedPos := strings.Join([]string{new.me, new.elefant}, "-")
-//	for _, s := range states[combinedPos] {
-//		if new.flow < s.flow && new.time > s.time {
-//			return true
-//		}
-//	}
-//	combinedPos = strings.Join([]string{new.elefant, new.me}, "-")
-//	for _, s := range states[combinedPos] {
-//		if new.flow < s.flow && new.time > s.time {
-//			return true
-//		}
-//	}
-//	return false
-//}
-
-func getCheckSum(s state) string {
-	ret := strings.Join(s.open, "-")
-	ret += "-" + s.me + "-" + s.elefant + "-"
-	ret += strconv.Itoa(s.timeMe) + strconv.Itoa(s.timeEle)
-	ret += "-" + strconv.Itoa(s.flow)
+func getCheckSum(in state) string {
+	pos := []string{in.me, in.elefant}
+	sort.Strings(pos)
+	ret := strings.Join(pos, "-")
+	ret += strconv.Itoa(in.timeMe) + strconv.Itoa(in.timeEle)
+	ret += strconv.Itoa(in.flow)
 	return ret
 }
 
@@ -94,13 +54,10 @@ func run2() {
 
 	scanner := bufio.NewScanner(file)
 	allValves := make(map[string]valve)
-	//allState := make([]state, 0)
-	//alreadyChecked := make(map[string]bool)
-	//stateAtPos := make(map[string][]state)
 	shortestPath := make(map[string]int)
-	//distToValve := make(map[string]target)
+	alreadyChecked := make(map[string]bool)
 	realValves := make([]string, 0)
-	const maxTime = 30
+	const maxTime = 26
 	maxFlow := 0
 
 	re := regexp.MustCompile(`\d*;`)
@@ -143,11 +100,6 @@ func run2() {
 		}
 		allSearches = newAllSearches
 	}
-	//for con, dist := range shortestPath {
-	//	split := strings.Split(con, "-")
-	//	distToValve[split[0]] = target{split[1], dist}
-	//	distToValve[split[1]] = target{split[0], dist}
-	//}
 
 	allStates := []state{state{[]string{"AA"}, 0, "AA", "AA", 1, 1}}
 	for len(allStates) > 0 {
@@ -162,7 +114,7 @@ func run2() {
 						if newFlow > maxFlow {
 							maxFlow = newFlow
 						}
-						newState := state{
+						tmpState := state{
 							open:    append(utils.CopyStringSlice(curState.open), mytargetValv),
 							flow:    newFlow,
 							me:      mytargetValv,
@@ -170,23 +122,38 @@ func run2() {
 							timeMe:  newTime + 1,
 							timeEle: curState.timeEle,
 						}
-						//for _, eleTargetValv := range realValves {
-						//	if !utils.SliceContains(curState.open, eleTargetValv) {
-						//		dist = shortestPath[strings.Join([]string{newState.elefant, eleTargetValv}, "-")]
-						//		newTime = curState.timeEle + dist
-						//		if newTime < maxTime {
-						//			newFlowEle := newState.flow + (maxTime-newTime)*allValves[eleTargetValv].flow
-						//			if newFlowEle > maxFlow {
-						//				maxFlow = newFlowEle
-						//			}
-						//			newState.open = append(newState.open, eleTargetValv)
-						//			newState.flow = newFlowEle
-						//			newState.elefant = eleTargetValv
-						//			newState.timeEle = newTime
-						//		}
-						//	}
-						//}
-						newAllStates = append(newAllStates, newState)
+						for _, eleTargetValv := range realValves {
+							if !utils.SliceContains(tmpState.open, eleTargetValv) {
+								newState := state{
+									open:    utils.CopyStringSlice(tmpState.open),
+									flow:    tmpState.flow,
+									me:      tmpState.me,
+									elefant: tmpState.elefant,
+									timeMe:  tmpState.timeMe,
+									timeEle: tmpState.timeEle,
+								}
+								dist = shortestPath[strings.Join([]string{newState.elefant, eleTargetValv}, "-")]
+								newTime = curState.timeEle + dist
+								if newTime < maxTime {
+									newFlowEle := newState.flow + (maxTime-newTime)*allValves[eleTargetValv].flow
+									if newFlowEle > maxFlow {
+										maxFlow = newFlowEle
+										fmt.Println(maxFlow)
+									}
+									newState.open = append(newState.open, eleTargetValv)
+									newState.flow = newFlowEle
+									newState.elefant = eleTargetValv
+									newState.timeEle = newTime + 1
+								}
+								csum := getCheckSum(newState)
+								if _, ok := alreadyChecked[csum]; !ok {
+									newAllStates = append(newAllStates, newState)
+									alreadyChecked[csum] = true
+								}
+							}
+
+						}
+
 					}
 				}
 			}
