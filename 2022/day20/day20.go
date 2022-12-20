@@ -38,7 +38,8 @@ func main() {
 	}
 	scanner := bufio.NewScanner(file)
 
-	rotations := 1
+	rotations := 10
+	key := 811589153
 	initlist := make([]int, 0)
 
 	for scanner.Scan() {
@@ -46,7 +47,8 @@ func main() {
 	}
 	myRing := ring.New(len(initlist))
 
-	for i, _ := range initlist {
+	for i, idx := range initlist {
+		initlist[i] = idx * key
 		myRing.Value = i
 		myRing = myRing.Next()
 	}
@@ -55,6 +57,7 @@ func main() {
 	doRotation := func() {
 		for i := 0; i < len(initlist); i++ {
 			rotation := initlist[i]
+			//rotation = rotation({len(initlist-1))
 			if rotation == 0 {
 				//fmt.Println(value)
 				continue
@@ -68,10 +71,11 @@ func main() {
 			myRing = myRing.Move(rotation)
 			myRing.Link(ringEle)
 
-			///printRing(myRing, initlist)
+			//printRing(myRing, initlist)
 		}
 	}
 	for i := 0; i < rotations; i++ {
+		fmt.Println(i)
 		doRotation()
 	}
 	for initlist[myRing.Value.(int)] != 0 {
