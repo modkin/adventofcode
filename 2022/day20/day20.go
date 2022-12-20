@@ -57,7 +57,7 @@ func main() {
 	doRotation := func() {
 		for i := 0; i < len(initlist); i++ {
 			rotation := initlist[i]
-			//rotation = rotation({len(initlist-1))
+			rotation = rotation % (len(initlist) - 1)
 			if rotation == 0 {
 				//fmt.Println(value)
 				continue
