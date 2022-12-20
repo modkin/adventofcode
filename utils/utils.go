@@ -324,3 +324,11 @@ func Sgn(a int) int {
 	}
 	return 0
 }
+
+func CopyStringIntMap(in map[string]int) map[string]int {
+	ret := make(map[string]int)
+	for s, i := range in {
+		ret[s] = i
+	}
+	return ret
+}
