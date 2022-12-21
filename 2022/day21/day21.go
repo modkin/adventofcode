@@ -9,10 +9,28 @@ import (
 	"strings"
 )
 
+type op struct {
+	name      string
+	operation string
+	result    int
+	left      *op
+	right     *op
+}
+
 type monkey struct {
 	number    int
 	input     [2]string
 	operation string
+}
+
+func findDep(mon monkey, monkeys map[string]monkey, dep string) bool {
+	if mon.input[0] == "" {
+		return false
+	} else if mon.input[0] == dep || mon.input[1] == dep {
+		return true
+	} else {
+		return findDep(monkeys[mon.input[0]], monkeys, dep) || findDep(monkeys[mon.input[1]], monkeys, dep)
+	}
 }
 
 func calc(mon monkey, first, second int) int {
@@ -40,6 +58,7 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	monkeys := make(map[string]monkey)
+	allVar := make(map[string]bool)
 
 	for scanner.Scan() {
 		input := [2]string{}
@@ -49,6 +68,13 @@ func main() {
 		name := strings.Trim(split[0], ":")
 
 		if ret, err2 := strconv.Atoi(split[1]); err2 != nil {
+			for _, tmp := range []string{split[1], split[3]} {
+				if _, ok := allVar[tmp]; ok {
+					fmt.Println("DOUBLE", tmp)
+				} else {
+					allVar[tmp] = true
+				}
+			}
 			input = [2]string{split[1], split[3]}
 			operation = split[2]
 		} else {
@@ -60,7 +86,11 @@ func main() {
 		monkeys[name] = newMonkey
 	}
 
+	part1Sol := 0
+	counter := 0
+
 	for {
+		counter++
 		for name, mon := range monkeys {
 			if mon.number == 0 {
 				first := monkeys[mon.input[0]].number
@@ -73,7 +103,90 @@ func main() {
 		}
 		if monkeys["root"].number != 0 {
 			fmt.Println(monkeys["root"].number)
+			part1Sol = monkeys["root"].number
 			break
 		}
 	}
+	fmt.Println("Day 21.1:", part1Sol)
+
+	root0 := monkeys["root"].input[0]
+	root1 := monkeys["root"].input[1]
+	var target string
+	if findDep(monkeys[root0], monkeys, "humn") {
+		mon := monkeys[root0]
+		mon.number = monkeys[root1].number
+		monkeys[root0] = mon
+		fmt.Println("equal:", mon.number)
+		target = root0
+	}
+	if findDep(monkeys[root1], monkeys, "humn") {
+		mon := monkeys[root1]
+		mon.number = monkeys[root0].number
+		monkeys[root1] = mon
+		fmt.Println("equal:", mon.number)
+		target = root1
+	}
+	fmt.Println(target)
+	//	cur := target
+	//outer:
+	//	for {
+	//
+	//		mon := monkeys[cur]
+	//		if cur != target {
+	//			mon.number = 0
+	//		}
+	//		for _, s := range mon.input {
+	//			if s == "humn" {
+	//				break outer
+	//			}
+	//			if findDep(monkeys[s], monkeys, "humn") {
+	//				monkeys[cur] = mon
+	//				cur = s
+	//				break
+	//			}
+	//		}
+	//	}
+	cur := target
+	targetNum := monkeys[target].number
+	for {
+		mon := monkeys[cur]
+
+		for i, s := range mon.input {
+			if s != "humn" {
+				if !findDep(monkeys[s], monkeys, "humn") {
+					if mon.operation == "+" {
+						targetNum -= monkeys[s].number
+					}
+					if mon.operation == "-" {
+						if i == 1 {
+							targetNum += monkeys[s].number
+						} else {
+							targetNum = monkeys[s].number - targetNum
+						}
+					}
+					if mon.operation == "*" {
+						targetNum /= monkeys[s].number
+					}
+					if mon.operation == "/" {
+						if i == 1 {
+							targetNum *= monkeys[s].number
+						} else {
+							targetNum = monkeys[s].number / targetNum
+						}
+					}
+				} else {
+					cur = s
+				}
+			} else {
+				cur = "humn"
+			}
+		}
+		if cur == "humn" {
+			fmt.Println("Day 21.2:", targetNum)
+			break
+		}
+	}
+
+	//fmt.Println(monkeys)
+
 }
