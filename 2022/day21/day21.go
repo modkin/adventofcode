@@ -127,25 +127,6 @@ func main() {
 		target = root1
 	}
 	fmt.Println(target)
-	//	cur := target
-	//outer:
-	//	for {
-	//
-	//		mon := monkeys[cur]
-	//		if cur != target {
-	//			mon.number = 0
-	//		}
-	//		for _, s := range mon.input {
-	//			if s == "humn" {
-	//				break outer
-	//			}
-	//			if findDep(monkeys[s], monkeys, "humn") {
-	//				monkeys[cur] = mon
-	//				cur = s
-	//				break
-	//			}
-	//		}
-	//	}
 	cur := target
 	targetNum := monkeys[target].number
 	for {
@@ -186,7 +167,4 @@ func main() {
 			break
 		}
 	}
-
-	//fmt.Println(monkeys)
-
 }
