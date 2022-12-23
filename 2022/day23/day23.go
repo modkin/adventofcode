@@ -108,8 +108,10 @@ func main() {
 	utils.Print2DStringsGrid(grid)
 	increaseGrid(grid)
 	utils.Print2DStringsGrid(grid)
-	for rounds := 0; rounds < 10; rounds++ {
-		fmt.Println("Round", rounds)
+
+	step := func() bool {
+		goOn := false
+		//fmt.Println("Round", rounds)
 		increaseGrid(grid)
 		proposed := make(map[[2]int]bool)
 		moves := make(map[[2]int][2]int)
@@ -118,6 +120,7 @@ func main() {
 		for elvePos, value := range grid {
 			if value == "#" {
 				if elveAround(grid, elvePos) {
+					goOn = true
 					for _, dir := range possDirs {
 						if checkfree(grid, elvePos, dir) {
 							target := add(elvePos, dir)
@@ -144,9 +147,21 @@ func main() {
 			}
 		}
 		possDirs = append(possDirs[1:4], possDirs[0])
-		utils.Print2DStringsGrid(grid)
+		//utils.Print2DStringsGrid(grid)
+		return goOn
 	}
+
+	for rounds := 0; rounds < 10; rounds++ {
+		step()
+	}
+
 	area := increaseGrid(grid)
 	fmt.Println(area - numElves)
+
+	rounds := 10
+	for step() {
+		rounds++
+	}
+	fmt.Println(rounds + 1)
 
 }
