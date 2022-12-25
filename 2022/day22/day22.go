@@ -11,13 +11,6 @@ import (
 	"strings"
 )
 
-type sideMapping struct {
-	oneStart [2]int
-	oneDir   [2]int
-	twoStart [2]int
-	twoDir   [2]int
-}
-
 func turnLeft(vec [2]int) (ret [2]int) {
 	ret[0] = vec[1]
 	ret[1] = -1 * vec[0]
@@ -85,14 +78,6 @@ func dist(first [2]int, second [2]int) int {
 	ret += utils.IntAbs(second[0] - first[0])
 	ret += utils.IntAbs(second[1] - first[1])
 	return ret
-}
-
-func sor(first, second int) [2]int {
-	if first < second {
-		return [2]int{first, second}
-	} else {
-		return [2]int{second, first}
-	}
 }
 
 func norm(in [2]int) [2]int {
@@ -208,9 +193,17 @@ func move2(grid map[[2]int]string, start [2]int, dir [2]int, steps int, edgeMap 
 			for _, edges := range edgeMap {
 				for idx, edge := range edges {
 					if inBetween(pos, edge[0], edge[1]) {
+						if edge[0][0] == edge[1][0] {
+							if dir[1] != 0 {
+								continue
+							}
+						} else if edge[0][1] == edge[1][1] {
+							if dir[0] != 0 {
+								continue
+							}
+						}
 						//tmp := sub(pos, edge[0])
 						stepsFromCorner := dist(edge[0], pos)
-						//todo: rotate tmp to fit to new face
 						edgeVect := sub(edges[1-idx][1], edges[1-idx][0])
 						tar := add(edges[1-idx][0], mul(norm(edgeVect), stepsFromCorner))
 						if grid[tar] == "#" {
@@ -247,7 +240,7 @@ func addSide(edgeMapping map[[2]int][][2][2]int, start [2]int, dir [2]int, corne
 }
 
 func main() {
-	const filename = "2022/day22/testinput"
+	const filename = "2022/day22/input"
 	var sideSize int
 	if strings.Contains(filename, "test") {
 		sideSize = 4
@@ -267,13 +260,12 @@ func main() {
 	edgeMapping := make(map[[2]int][][2][2]int)
 
 	yPos := 0
-	start := [2]int{-1, -1}
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			scanner.Scan()
 			line := scanner.Text()
 			numreg := regexp.MustCompile(`\d*`)
-			dirreg := regexp.MustCompile(`R|L`)
+			dirreg := regexp.MustCompile(`[RL]`)
 			numbers := numreg.FindAllString(line, -1)
 			dirs := dirreg.FindAllString(line, -1)
 			for i, dir := range dirs {
@@ -286,9 +278,6 @@ func main() {
 			line := strings.Split(scanner.Text(), "")
 			for xPos, s := range line {
 				if s != " " {
-					if start == [2]int{-1, -1} {
-						start = [2]int{xPos, yPos}
-					}
 					grid[[2]int{xPos, yPos}] = s
 				}
 			}
@@ -297,13 +286,21 @@ func main() {
 	}
 
 	dir := [2]int{1, 0}
-	corners := [4]int{0, 1, 2, 3}
-	addSide(edgeMapping, start, dir, corners, sideSize)
-	addSide(edgeMapping, [2]int{8, 4}, dir, [4]int{3, 2, 6, 7}, sideSize)
-	addSide(edgeMapping, [2]int{4, 4}, dir, [4]int{0, 3, 7, 4}, sideSize)
-	addSide(edgeMapping, [2]int{0, 4}, dir, [4]int{1, 0, 4, 5}, sideSize)
-	addSide(edgeMapping, [2]int{8, 8}, dir, [4]int{7, 6, 5, 4}, sideSize)
-	addSide(edgeMapping, [2]int{12, 8}, dir, [4]int{6, 2, 1, 5}, sideSize)
+	if sideSize == 4 {
+		addSide(edgeMapping, [2]int{8, 0}, dir, [4]int{0, 1, 2, 3}, sideSize)
+		addSide(edgeMapping, [2]int{8, 4}, dir, [4]int{3, 2, 6, 7}, sideSize)
+		addSide(edgeMapping, [2]int{4, 4}, dir, [4]int{0, 3, 7, 4}, sideSize)
+		addSide(edgeMapping, [2]int{0, 4}, dir, [4]int{1, 0, 4, 5}, sideSize)
+		addSide(edgeMapping, [2]int{8, 8}, dir, [4]int{7, 6, 5, 4}, sideSize)
+		addSide(edgeMapping, [2]int{12, 8}, dir, [4]int{6, 2, 1, 5}, sideSize)
+	} else {
+		addSide(edgeMapping, [2]int{50, 0}, dir, [4]int{0, 1, 2, 3}, sideSize)
+		addSide(edgeMapping, [2]int{100, 0}, dir, [4]int{1, 5, 6, 2}, sideSize)
+		addSide(edgeMapping, [2]int{50, 50}, dir, [4]int{3, 2, 6, 7}, sideSize)
+		addSide(edgeMapping, [2]int{50, 100}, dir, [4]int{7, 6, 5, 4}, sideSize)
+		addSide(edgeMapping, [2]int{0, 100}, dir, [4]int{3, 7, 4, 0}, sideSize)
+		addSide(edgeMapping, [2]int{0, 150}, dir, [4]int{0, 4, 5, 1}, sideSize)
+	}
 
 	fmt.Println("laenge:", len(edgeMapping))
 	for ints, i := range edgeMapping {
@@ -330,9 +327,10 @@ func main() {
 				dir = turnRight(dir)
 			}
 			grid[pos] = "*"
-			utils.Print2DStringsGrid(grid)
+			//utils.Print2DStringsGrid(grid)
 		}
 	}
+	//utils.Print2DStringsGrid(grid)
 	row := pos[1] + 1
 	col := pos[0] + 1
 	password := row*1000 + col*4
