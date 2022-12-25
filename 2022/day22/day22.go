@@ -7,8 +7,16 @@ import (
 	"math"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 )
+
+type sideMapping struct {
+	oneStart [2]int
+	oneDir   [2]int
+	twoStart [2]int
+	twoDir   [2]int
+}
 
 func turnLeft(vec [2]int) (ret [2]int) {
 	ret[0] = vec[1]
@@ -64,6 +72,40 @@ func add(first [2]int, second [2]int) [2]int {
 	return [2]int{first[0] + second[0], first[1] + second[1]}
 }
 
+func mul(first [2]int, prod int) [2]int {
+	return [2]int{first[0] * prod, first[1] * prod}
+}
+
+func sub(first [2]int, second [2]int) [2]int {
+	return [2]int{first[0] - second[0], first[1] - second[1]}
+}
+
+func dist(first [2]int, second [2]int) int {
+	ret := 0
+	ret += utils.IntAbs(second[0] - first[0])
+	ret += utils.IntAbs(second[1] - first[1])
+	return ret
+}
+
+func sor(first, second int) [2]int {
+	if first < second {
+		return [2]int{first, second}
+	} else {
+		return [2]int{second, first}
+	}
+}
+
+func norm(in [2]int) [2]int {
+	if in[0] == 0 {
+		return [2]int{0, in[1] / utils.IntAbs(in[1])}
+	} else if in[1] == 0 {
+		return [2]int{in[0] / utils.IntAbs(in[0]), 0}
+	} else {
+		fmt.Println("ERROR")
+	}
+	return [2]int{0, 0}
+}
+
 func move(grid map[[2]int]string, start [2]int, dir [2]int, steps int) (pos [2]int) {
 	pos = start
 	for i := 0; i < steps; i++ {
@@ -111,8 +153,108 @@ func move(grid map[[2]int]string, start [2]int, dir [2]int, steps int) (pos [2]i
 
 }
 
+func inBetween(pos, start, end [2]int) bool {
+	if pos[0] == start[0] && pos[0] == end[0] {
+		tmp := []int{start[1], end[1]}
+		sort.Ints(tmp)
+		if pos[1] >= tmp[0] && pos[1] <= tmp[1] {
+			return true
+		}
+	}
+	if pos[1] == start[1] && pos[1] == end[1] {
+		tmp := []int{start[0], end[0]}
+		sort.Ints(tmp)
+		if pos[0] >= tmp[0] && pos[0] <= tmp[1] {
+			return true
+		}
+	}
+	return false
+}
+
+func getInwardDir(edge [2][2]int, sideSize int) [2]int {
+	if edge[0][0] == edge[1][0] {
+		if edge[0][0]%sideSize == 0 {
+			return [2]int{1, 0}
+		} else if edge[0][0]%sideSize == sideSize-1 {
+			return [2]int{-1, 0}
+		} else {
+			fmt.Println("ERROR 181")
+		}
+	} else if edge[0][1] == edge[1][1] {
+		if edge[1][1]%sideSize == 0 {
+			return [2]int{0, 1}
+		} else if edge[1][1]%sideSize == sideSize-1 {
+			return [2]int{0, -1}
+		} else {
+			fmt.Println("ERROR 189")
+		}
+	}
+	fmt.Println("ERROR 192")
+	return [2]int{math.MaxInt, math.MaxInt}
+}
+
+func move2(grid map[[2]int]string, start [2]int, dir [2]int, steps int, edgeMap map[[2]int][][2][2]int, sideSize int) ([2]int, [2]int) {
+
+	pos := start
+	for i := 0; i < steps; i++ {
+		if tile, ok := grid[add(pos, dir)]; ok {
+			if tile == "#" {
+				return pos, dir
+			} else {
+				pos = add(pos, dir)
+			}
+		} else {
+		findEdge:
+			for _, edges := range edgeMap {
+				for idx, edge := range edges {
+					if inBetween(pos, edge[0], edge[1]) {
+						//tmp := sub(pos, edge[0])
+						stepsFromCorner := dist(edge[0], pos)
+						//todo: rotate tmp to fit to new face
+						edgeVect := sub(edges[1-idx][1], edges[1-idx][0])
+						tar := add(edges[1-idx][0], mul(norm(edgeVect), stepsFromCorner))
+						if grid[tar] == "#" {
+							return pos, dir
+						} else {
+							pos = tar
+							dir = getInwardDir(edges[1-idx], sideSize)
+						}
+						break findEdge
+					}
+				}
+			}
+		}
+	}
+	return pos, dir
+
+}
+
+func addSide(edgeMapping map[[2]int][][2][2]int, start [2]int, dir [2]int, corners [4]int, sideSize int) {
+	for i := 0; i <= 3; i++ {
+		stop := add(start, mul(dir, sideSize-1))
+		edge := [2]int{corners[i], corners[(i+1)%4]}
+		edgeTurned := [2]int{corners[(i+1)%4], corners[i]}
+		if val, ok := edgeMapping[edge]; ok {
+			edgeMapping[edge] = append(val, [2][2]int{start, stop})
+		} else if val, ok = edgeMapping[edgeTurned]; ok {
+			edgeMapping[edgeTurned] = append(val, [2][2]int{stop, start})
+		} else {
+			edgeMapping[edge] = append(edgeMapping[edge], [2][2]int{start, stop})
+		}
+		start = stop
+		dir = turnRight(dir)
+	}
+}
+
 func main() {
-	file, err := os.Open("2022/day22/input")
+	const filename = "2022/day22/testinput"
+	var sideSize int
+	if strings.Contains(filename, "test") {
+		sideSize = 4
+	} else {
+		sideSize = 50
+	}
+	file, err := os.Open(filename)
 
 	if err != nil {
 		panic(err)
@@ -121,8 +263,11 @@ func main() {
 
 	grid := make(map[[2]int]string)
 	path := make([]string, 0)
+	//sideMappings := make(map[[sideSize][2]int][sideSize][2]int)
+	edgeMapping := make(map[[2]int][][2][2]int)
 
 	yPos := 0
+	start := [2]int{-1, -1}
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			scanner.Scan()
@@ -141,21 +286,43 @@ func main() {
 			line := strings.Split(scanner.Text(), "")
 			for xPos, s := range line {
 				if s != " " {
+					if start == [2]int{-1, -1} {
+						start = [2]int{xPos, yPos}
+					}
 					grid[[2]int{xPos, yPos}] = s
 				}
 			}
 			yPos++
 		}
 	}
-	fmt.Println(path)
-	utils.Print2DStringsGrid(grid)
+
+	dir := [2]int{1, 0}
+	corners := [4]int{0, 1, 2, 3}
+	addSide(edgeMapping, start, dir, corners, sideSize)
+	addSide(edgeMapping, [2]int{8, 4}, dir, [4]int{3, 2, 6, 7}, sideSize)
+	addSide(edgeMapping, [2]int{4, 4}, dir, [4]int{0, 3, 7, 4}, sideSize)
+	addSide(edgeMapping, [2]int{0, 4}, dir, [4]int{1, 0, 4, 5}, sideSize)
+	addSide(edgeMapping, [2]int{8, 8}, dir, [4]int{7, 6, 5, 4}, sideSize)
+	addSide(edgeMapping, [2]int{12, 8}, dir, [4]int{6, 2, 1, 5}, sideSize)
+
+	fmt.Println("laenge:", len(edgeMapping))
+	for ints, i := range edgeMapping {
+		fmt.Println(ints)
+		fmt.Println(i)
+		fmt.Println("NEXT")
+	}
+
+	//fmt.Println(path)
+	//utils.Print2DStringsGrid(grid)
+	//fmt.Println(move2(grid, [2]int{6, 4}, [2]int{0, -1}, 1, edgeMapping, sideSize))
+
 	startx, _ := rowMinMax(grid, 0)
 	pos := [2]int{startx, 0}
-	dir := [2]int{1, 0}
+	dir = [2]int{1, 0}
 	for i, s := range path {
 		if i%2 == 0 {
 			steps := utils.ToInt(s)
-			pos = move(grid, pos, dir, steps)
+			pos, dir = move2(grid, pos, dir, steps, edgeMapping, sideSize)
 		} else {
 			if s == "L" {
 				dir = turnLeft(dir)
@@ -163,7 +330,7 @@ func main() {
 				dir = turnRight(dir)
 			}
 			grid[pos] = "*"
-			//utils.Print2DStringsGrid(grid)
+			utils.Print2DStringsGrid(grid)
 		}
 	}
 	row := pos[1] + 1
@@ -178,5 +345,5 @@ func main() {
 	} else if dir == [2]int{0, -1} {
 		password += 3
 	}
-	fmt.Println(password)
+	fmt.Println("Day 22:", password)
 }
