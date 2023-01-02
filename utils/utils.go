@@ -332,3 +332,19 @@ func CopyStringIntMap(in map[string]int) map[string]int {
 	}
 	return ret
 }
+
+func Map[inType string, outType int](in []inType, fun func(inType) outType) (out []outType) {
+	for _, i2 := range in {
+		out = append(out, fun(i2))
+	}
+	return
+}
+
+func SliceMax[K int](in []K) (max K) {
+	for _, k := range in {
+		if k > max {
+			max = k
+		}
+	}
+	return max
+}
