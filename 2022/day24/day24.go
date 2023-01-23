@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-//go:embed testinput
+//go:embed input
 var input string
 
 func add(first [2]int, second [2]int) [2]int {
@@ -85,7 +85,7 @@ func printValley(grid map[[2]int]string) {
 
 func main() {
 	valley := make(map[[2]int]string)
-	allPos := make(map[[2]int]bool)
+
 	y := 0
 	for _, line := range strings.Split(input, "\n") {
 		for x, v := range line {
@@ -98,30 +98,39 @@ func main() {
 	}
 	maxY = y - 2
 
-	minute := 0
-	allPos[[2]int{1, 0}] = true
-	target := [2]int{maxX, maxY + 1}
-outer:
-	for {
-		newPositions := make(map[[2]int]bool)
-		for pos := range allPos {
-			for _, dir := range allDir {
-				newPos := plainAdd(pos, dir)
-				if newPos == target {
-					fmt.Println("Day 24.1:", minute)
-					break outer
-				}
-				if newPos[1] >= 0 {
-					if _, ok := valley[newPos]; !ok {
-						newPositions[newPos] = true
+	start := [2]int{1, 0}
+	exit := [2]int{maxX, maxY + 1}
+
+	getMinSteps := func(start, target [2]int) int {
+		minute := 0
+		allPos := make(map[[2]int]bool)
+		allPos[start] = true
+		for {
+			newPositions := make(map[[2]int]bool)
+			for pos := range allPos {
+				for _, dir := range allDir {
+					newPos := plainAdd(pos, dir)
+					if newPos == target {
+						//fmt.Println("Day 24.1:", minute)
+						return minute
+					}
+					if newPos[1] >= 0 {
+						if _, ok := valley[newPos]; !ok {
+							newPositions[newPos] = true
+						}
 					}
 				}
 			}
+			allPos = newPositions
+			minute++
+			moveWinds(valley)
 		}
-		allPos = newPositions
-		minute++
-		moveWinds(valley)
 	}
+	first := getMinSteps(start, exit)
+	fmt.Println("Day 24.1:", first)
+	second := getMinSteps(exit, start)
+	third := getMinSteps(start, exit)
+	fmt.Println("Day 24.2:", first+second+third)
 
 	//printValley(valley)
 }
