@@ -23,10 +23,11 @@ func main() {
 	}
 
 	var possibleIds []int
+	var powers []int
 	for _, line := range lines {
-		//red := 0
-		//green := 0
-		//blue := 0
+		maxRed := 0
+		maxGreen := 0
+		maxBlue := 0
 		items := strings.Split(line, ":")
 		id := utils.ToInt(strings.Split(items[0], " ")[1])
 		split := strings.Split(items[1], " ")
@@ -34,18 +35,33 @@ func main() {
 		for i2, s := range split {
 
 			if strings.Contains(s, "red") {
+				number := utils.ToInt(split[i2-1])
+				if number > maxRed {
+					maxRed = number
+				}
 				if utils.ToInt(split[i2-1]) > 12 {
 					GamePossible = false
+
 				}
 			}
 			if strings.Contains(s, "green") {
+				number := utils.ToInt(split[i2-1])
+				if number > maxGreen {
+					maxGreen = number
+				}
 				if utils.ToInt(split[i2-1]) > 13 {
 					GamePossible = false
+
 				}
 			}
 			if strings.Contains(s, "blue") {
+				number := utils.ToInt(split[i2-1])
+				if number > maxBlue {
+					maxBlue = number
+				}
 				if utils.ToInt(split[i2-1]) > 14 {
 					GamePossible = false
+
 				}
 			}
 
@@ -59,9 +75,17 @@ func main() {
 		}
 		GamePossible = true
 
+		powers = append(powers, maxGreen*maxBlue*maxRed)
+		maxBlue = 0
+		maxRed = 0
+		maxGreen = 0
+
 	}
-	fmt.Println(possibleIds)
+	//fmt.Println(possibleIds)
 	sum := utils.SumSlice(possibleIds)
 	fmt.Println("Day 1.1:", sum)
+	fmt.Println(powers)
+	sum2 := utils.SumSlice(powers)
+	fmt.Println("Day 1.1:", sum2)
 
 }
