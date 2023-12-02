@@ -348,3 +348,8 @@ func SliceMax[K int](in []K) (max K) {
 	}
 	return max
 }
+
+func StringIsInt(input string) bool {
+	_, err := strconv.Atoi(input)
+	return err == nil
+}
