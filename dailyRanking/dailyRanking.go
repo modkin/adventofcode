@@ -72,6 +72,16 @@ func main() {
 			}
 		}
 	}
+	firstWithoutPoints := 0
+	for i, point := range memberPoints {
+		if utils.SumSlice(point.points) == 0 {
+			firstWithoutPoints = i
+			break
+		}
+	}
+
+	memberPoints = memberPoints[:firstWithoutPoints]
+
 	//fmt.Println(memberPoints)
 	fmt.Printf("%-24v|", "Name")
 	for i := 0; i < daysDone*2; i++ {
@@ -86,11 +96,19 @@ func main() {
 		fmt.Print(" ", utils.SumSlice(mem.points), "\n")
 	}
 	fmt.Println()
+	fmt.Println("Close ones:")
 	for i := 0; i < daysDone*2; i++ {
-		difference := memberPoints[2].timings[i] - memberPoints[1].timings[i]
-		//fmt.Println("Day: ", i/2, ".", i%2)
-		if utils.IntAbs(difference) < 120 && difference != 0 {
-			fmt.Print("Day: ", (i/2)+1, ".", i%2, " ", difference, "\n")
+		for left := 0; left < len(memberPoints); left++ {
+			for right := 0; right < len(memberPoints); right++ {
+				if left != right {
+					difference := memberPoints[left].timings[i] - memberPoints[right].timings[i]
+					if utils.IntAbs(difference) < 120 && difference > 0 {
+						fmt.Print("Day: ", (i/2)+1, ".", i%2, " ")
+						fmt.Print(memberPoints[right].Name, " was ", difference, " seconds faster than ", memberPoints[left].Name, "\n")
+					}
+				}
+			}
 		}
+
 	}
 }
