@@ -30,23 +30,36 @@ func main() {
 	}
 	fmt.Println(races)
 
-	var possiblilities []int
+	var possibilities []int
 	for _, race := range races {
 		counter := 0
 		time := race[0]
 		distance := race[1]
-		for i := 1; i < distance; i++ {
+		for i := 1; i < time; i++ {
 			remainingTime := time - i
 			if i*remainingTime > distance {
 				counter++
 			}
 		}
-		possiblilities = append(possiblilities, counter)
+		possibilities = append(possibilities, counter)
 	}
 	prod := 1
-	for _, i2 := range possiblilities {
+	for _, i2 := range possibilities {
 		prod *= i2
 	}
-	fmt.Println(prod)
+	fmt.Println("Day 6.1:", prod)
+
+	time := utils.ToInt(strings.Join(strings.Fields(lines[0])[1:], ""))
+	distance := utils.ToInt(strings.Join(strings.Fields(lines[1])[1:], ""))
+	fmt.Println(time, distance)
+
+	counter := 0
+	for i := 1; i < time; i++ {
+		remainingTime := time - i
+		if i*remainingTime > distance {
+			counter++
+		}
+	}
+	fmt.Println("Day 6.2:", counter)
 
 }

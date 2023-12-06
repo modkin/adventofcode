@@ -81,6 +81,9 @@ func main() {
 	}
 
 	memberPoints = memberPoints[:firstWithoutPoints]
+	sort.SliceStable(memberPoints, func(i, j int) bool {
+		return utils.SumSlice(memberPoints[i].points) > utils.SumSlice(memberPoints[j].points)
+	})
 
 	//fmt.Println(memberPoints)
 	fmt.Printf("%-24v|", "Name")
@@ -103,7 +106,7 @@ func main() {
 				if left != right {
 					difference := memberPoints[left].timings[i] - memberPoints[right].timings[i]
 					if utils.IntAbs(difference) < 120 && difference > 0 {
-						fmt.Print("Day: ", (i/2)+1, ".", i%2, " ")
+						fmt.Print("Day: ", (i/2)+1, ".", i%2+1, " ")
 						fmt.Print(memberPoints[right].Name, " was ", difference, " seconds faster than ", memberPoints[left].Name, "\n")
 					}
 				}
