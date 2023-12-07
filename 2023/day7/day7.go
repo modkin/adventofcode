@@ -52,7 +52,7 @@ func findBestJoker(hand []string) int {
 	for _, card := range cards {
 		joined := strings.Join(hand, "")
 		replaced := strings.ReplaceAll(joined, "J", card)
-		handType, _ := handPoints(strings.Fields(replaced))
+		handType, _ := handPoints(strings.Split(replaced, ""))
 		if handType > maxPoints {
 			maxPoints = handType
 		}
@@ -62,6 +62,7 @@ func findBestJoker(hand []string) int {
 
 func toValue(in string) int {
 	order := []string{"2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"}
+	order = []string{"J", "2", "3", "4", "5", "6", "7", "8", "9", "T", "Q", "K", "A"}
 	for i, i2 := range order {
 		if i2 == in {
 			return i + 2
@@ -99,6 +100,7 @@ func main() {
 		bets = append(bets, utils.ToInt(split[1]))
 		hands = append(hands, split[0])
 		points, hihgest := handPoints(strings.Split(split[0], ""))
+		points = findBestJoker(strings.Split(split[0], ""))
 		ref = append(ref, 10000000000*points+hihgest)
 		ranks = append(ranks, 10000000000*points+hihgest)
 	}
