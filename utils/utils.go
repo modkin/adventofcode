@@ -215,7 +215,7 @@ func Print2DStringsGrid(grid map[[2]int]string) {
 			if val, ok := grid[[2]int{x, y}]; ok {
 				fmt.Print(val)
 			} else {
-				fmt.Print(" ")
+				fmt.Print(".")
 			}
 		}
 		fmt.Println()

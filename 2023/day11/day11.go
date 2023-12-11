@@ -38,44 +38,48 @@ func main() {
 		}
 		return counter
 	}
-	galaxies := make(map[[2]int]string)
-	y := 0
-	x := 0
-	startXLength := len(lines[0])
-	startYLength := len(lines[1])
 
-	//var maxY int
-	for _, line := range lines {
-		if strings.Count(line, ".") == startXLength {
+	//galaxies2 := make(map[[2]int]string)
+
+	expandGalaxies := func(expansionFaktor int) (expGalaxy map[[2]int]string) {
+		expGalaxy = make(map[[2]int]string)
+		y := 0
+		startXLength := len(lines[0])
+		startYLength := len(lines[1])
+		for _, line := range lines {
+			if strings.Count(line, ".") == startXLength {
+				y += expansionFaktor - 1
+			}
+			x := 0
+			for i, start := range line {
+				if countY(i) == startYLength {
+					x += expansionFaktor - 1
+				}
+				if start == '#' {
+					expGalaxy[[2]int{x, y}] = string(start)
+				}
+				x += 1
+			}
 			y++
 		}
-		x = 0
-		for i, start := range line {
-			if countY(i) == startYLength {
-				x++
-			}
-			if start == '#' {
-				galaxies[[2]int{x, y}] = string(start)
-			}
-			x++
-		}
-		y++
-		//maxX = len(scanner.Text())
+		return
 	}
-	//maxY = y - 1
+	galaxies1 := expandGalaxies(2)
+	galaxies2 := expandGalaxies(1000000)
 
-	utils.Print2DStringsGrid(galaxies)
-	//fmt.Println(maxX, maxY)
-
-	totalDist := 0
-	for left, _ := range galaxies {
-		counter := 0
-		for right, _ := range galaxies {
-			if left != right {
-				totalDist += dist(left, right)
+	calculateDistances := func(galaxy map[[2]int]string) int {
+		totalDist := 0
+		for left, _ := range galaxy {
+			counter := 0
+			for right, _ := range galaxy {
+				if left != right {
+					totalDist += dist(left, right)
+				}
+				counter++
 			}
-			counter++
 		}
+		return totalDist / 2
 	}
-	fmt.Println(totalDist / 2)
+	fmt.Println("Day 11.1:", calculateDistances(galaxies1))
+	fmt.Println("Day 11.2:", calculateDistances(galaxies2))
 }
