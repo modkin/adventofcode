@@ -7,6 +7,14 @@ import (
 	"os"
 )
 
+func flip(in rune) rune {
+	if in == '#' {
+		return '.'
+	} else {
+		return '#'
+	}
+}
+
 func main() {
 	file, err := os.Open("2023/day13/input")
 	if err != nil {
@@ -22,6 +30,9 @@ func main() {
 	}
 	var mirrors [][]string
 
+	colCache := make(map[int]int)
+	rowCache := make(map[int]int)
+
 	fmt.Println(lines)
 	newMirror := make([]string, 0)
 	for _, line := range lines {
@@ -35,7 +46,7 @@ func main() {
 	mirrors = append(mirrors, newMirror)
 	fmt.Println(mirrors)
 
-	findMirror := func(mirror []string) (int, bool) {
+	findMirror := func(mirror []string, mirrorIdx int) (int, bool) {
 
 		for col := 0; col < len(mirror[0])-1; col++ {
 			startLeft := col
@@ -53,8 +64,13 @@ func main() {
 				}
 			}
 			if isMirror {
-				fmt.Println("Col Mirror:", col+1)
-				return col + 1, true
+				//fmt.Println("Col Mirror:", col+1)
+				if val, ok := colCache[mirrorIdx]; !ok || val != col+1 {
+					colCache[mirrorIdx] = col + 1
+					fmt.Println(mirrorIdx, "return col", col+1)
+					return col + 1, true
+				}
+				//fmt.Println("continue")
 			}
 			startLeft++
 			startRight++
@@ -75,8 +91,13 @@ func main() {
 				}
 			}
 			if isMirror {
-				fmt.Println("Row Mirror:", row+1)
-				return row + 1, false
+				//fmt.Println("Row Mirror:", row+1)
+				if val, ok := rowCache[mirrorIdx]; !ok || val != row+1 {
+					rowCache[mirrorIdx] = row + 1
+					fmt.Println(mirrorIdx, "return row", row+1)
+					return row + 1, false
+				}
+				//fmt.Println("continue")
 			}
 			startTop++
 			startBot++
@@ -85,8 +106,8 @@ func main() {
 		return math.MaxInt, false
 	}
 	ret := 0
-	for _, mirror := range mirrors {
-		nbr, col := findMirror(mirror)
+	for mirrorIdx, mirror := range mirrors {
+		nbr, col := findMirror(mirror, mirrorIdx)
 		if col {
 			ret += nbr
 		} else {
@@ -94,4 +115,30 @@ func main() {
 		}
 	}
 	fmt.Println(ret)
+
+	ret = 0
+outer:
+	for mirrorIdx, mirror := range mirrors {
+		for y := 0; y < len(mirror); y++ {
+			for x := 0; x < len(mirror[0]); x++ {
+				oldLine := mirror[y]
+				newLine := []rune(mirror[y])
+				newLine[x] = flip(newLine[x])
+				mirror[y] = string(newLine)
+				nbr, col := findMirror(mirror, mirrorIdx)
+				if nbr < 100000000 {
+					if col {
+						ret += nbr
+					} else {
+						ret += (100 * nbr)
+					}
+					continue outer
+				}
+				mirror[y] = oldLine
+			}
+		}
+
+	}
+	fmt.Println(ret)
+
 }
