@@ -5,6 +5,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
+	"strings"
 )
 
 func main() {
@@ -31,9 +33,7 @@ func main() {
 	fmt.Println(maxX, maxY)
 
 	utils.Print2DStringsGrid(ma)
-	energy := make(map[[2]int]bool)
-	beams := make(map[[2][2]int]bool)
-	beams[[2][2]int{[2]int{0, 0}, [2]int{1, 0}}] = true
+
 	move := func(in map[[2][2]int]bool) map[[2][2]int]bool {
 		//var out [][2][2]int
 		out := make(map[[2][2]int]bool)
@@ -94,28 +94,58 @@ func main() {
 		return out
 	}
 
-	for len(beams) != 0 {
-		utils.Print2DStringGrid(energy)
-		changed := false
-		for beam := range beams {
-			energy[beam[0]] = true
-			changed = true
+	getHash := func(in map[[2][2]int]bool) string {
+		var keys []string
+		for i, _ := range in {
+			str := string(rune(i[0][0])) + string(rune(i[0][1])) + string(rune(i[1][0])) + string(rune(i[1][1]))
+			keys = append(keys, str)
+		}
+		sort.Strings(keys)
+		return strings.Join(keys, "-")
+	}
+	getEnergy := func(start [2][2]int) int {
+		cache := make(map[string]bool)
+		energy := make(map[[2]int]bool)
+		beams := make(map[[2][2]int]bool)
+		beams[start] = true
+		for i := 0; i < 1000; i++ {
+			for beam := range beams {
+				energy[beam[0]] = true
+			}
+			beams = move(beams)
+			hash := getHash(beams)
+			if _, ok := cache[hash]; ok {
+				break
+			}
+			cache[hash] = true
 		}
 		counter := 0
 		for _, _ = range energy {
 			counter++
 		}
-		fmt.Println("count:", counter)
-		if changed {
-			beams = move(beams)
+		return counter
+	}
+	fmt.Println(getEnergy([2][2]int{{0, 0}, {1, 0}}))
 
-		} else {
-			break
+	maxEnergy := 0
+	for i := 0; i <= maxX; i++ {
+		fmt.Println(i)
+		energy := getEnergy([2][2]int{{0, i}, {1, 0}})
+		if energy > maxEnergy {
+			maxEnergy = energy
+		}
+		energy = getEnergy([2][2]int{{maxX, i}, {-1, 0}})
+		if energy > maxEnergy {
+			maxEnergy = energy
+		}
+		energy = getEnergy([2][2]int{{i, 0}, {0, 1}})
+		if energy > maxEnergy {
+			maxEnergy = energy
+		}
+		energy = getEnergy([2][2]int{{i, maxY}, {0, -1}})
+		if energy > maxEnergy {
+			maxEnergy = energy
 		}
 	}
-	counter := 0
-	for _, _ = range energy {
-		counter++
-	}
-	fmt.Println(counter)
+	fmt.Println(maxEnergy)
 }
