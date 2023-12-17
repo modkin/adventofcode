@@ -51,66 +51,67 @@ func main() {
 		maxX = len(scanner.Text()) - 1
 	}
 	maxY = y - 1
-	fmt.Println(maxX, maxY)
-	var allPositions []cur
-	allPositions = append(allPositions, cur{[2]int{0, 0}, 0, [2]int{1, 0}})
-	allPositions = append(allPositions, cur{[2]int{0, 0}, 0, [2]int{0, 1}})
-	minCost := make(map[cachePos]int)
-	minCost[cachePos{[2]int{0, 0}, [2]int{1, 0}, 3}] = 0
-	minCost[cachePos{[2]int{0, 0}, [2]int{0, 1}, 3}] = 0
-	for len(allPositions) != 0 {
-		var newAllPos []cur
-		for _, current := range allPositions {
-			var newDirs [][2]int
-			newDirs = append(newDirs, turnLeft(current.dir))
-			newDirs = append(newDirs, turnRight(current.dir))
-			for _, nextDir := range newDirs {
 
-				costTmp := 0
+	findShortes := func(minSteps int, maxSteps int) int {
+		var allPositions []cur
+		allPositions = append(allPositions, cur{[2]int{0, 0}, 0, [2]int{1, 0}})
+		allPositions = append(allPositions, cur{[2]int{0, 0}, 0, [2]int{0, 1}})
+		minCost := make(map[cachePos]int)
+		minCost[cachePos{[2]int{0, 0}, [2]int{1, 0}, 10}] = 0
+		minCost[cachePos{[2]int{0, 0}, [2]int{0, 1}, 10}] = 0
+		for len(allPositions) != 0 {
+			var newAllPos []cur
+			for _, current := range allPositions {
+				var newDirs [][2]int
+				newDirs = append(newDirs, turnLeft(current.dir))
+				newDirs = append(newDirs, turnRight(current.dir))
+				for _, nextDir := range newDirs {
 
-				for steps := 1; steps <= 3; steps++ {
-					stepsLeft := 3 - steps
-					nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
-					if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
-						continue
+					costTmp := 0
+					for steps := 1; steps < minSteps; steps++ {
+						nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
+						if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
+							continue
+						}
+						costTmp += lavaMap[nextPos]
 					}
-					costTmp += lavaMap[nextPos]
-					nextCost := current.cost + costTmp
-					if value, ok := minCost[cachePos{nextPos, nextDir, stepsLeft}]; ok {
-						if nextCost < value {
+
+					for steps := minSteps; steps <= maxSteps; steps++ {
+						stepsLeft := 10 - steps
+						nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
+						if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
+							continue
+						}
+						costTmp += lavaMap[nextPos]
+						nextCost := current.cost + costTmp
+						if value, ok := minCost[cachePos{nextPos, nextDir, stepsLeft}]; ok {
+							if nextCost < value {
+								newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
+								minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
+							}
+						} else {
 							newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
 							minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
 						}
-					} else {
-						newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
-						minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
-					}
 
+					}
+				}
+			}
+			allPositions = newAllPos
+		}
+
+		minDist := math.MaxInt
+		for pos, ints := range minCost {
+			if pos.pos == [2]int{maxX, maxY} {
+				if ints < minDist {
+					minDist = ints
 				}
 			}
 		}
-		allPositions = newAllPos
+		return minDist
 	}
 
-	utils.Print2DIntGrid(lavaMap)
-
-	for pos, ints := range minCost {
-		if pos.pos == [2]int{6, 0} {
-			fmt.Println("pos", pos)
-			fmt.Println(ints)
-			fmt.Println("next")
-		}
-
-	}
-
-	minDist := math.MaxInt
-	for pos, ints := range minCost {
-		if pos.pos == [2]int{maxX, maxY} {
-			if ints < minDist {
-				minDist = ints
-			}
-		}
-	}
-	fmt.Println(minDist)
+	fmt.Println("Day 17.1:", findShortes(1, 3))
+	fmt.Println("Day 17.2:", findShortes(4, 10))
 
 }
