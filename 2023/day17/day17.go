@@ -4,8 +4,8 @@ import (
 	"adventofcode/utils"
 	"bufio"
 	"fmt"
-	"math"
 	"os"
+	"sort"
 )
 
 type cur struct {
@@ -30,6 +30,12 @@ func turnRight(vec [2]int) (ret [2]int) {
 	ret[1] = vec[0]
 	return
 }
+
+type byCost []cur
+
+func (c byCost) Len() int           { return len(c) }
+func (c byCost) Less(i, j int) bool { return c[i].cost < c[j].cost }
+func (c byCost) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 func main() {
 	file, err := os.Open("2023/day17/input")
@@ -59,56 +65,46 @@ func main() {
 		minCost := make(map[cachePos]int)
 		minCost[cachePos{[2]int{0, 0}, [2]int{1, 0}, 10}] = 0
 		minCost[cachePos{[2]int{0, 0}, [2]int{0, 1}, 10}] = 0
-		for len(allPositions) != 0 {
+		for {
 			var newAllPos []cur
-			for _, current := range allPositions {
-				var newDirs [][2]int
-				newDirs = append(newDirs, turnLeft(current.dir))
-				newDirs = append(newDirs, turnRight(current.dir))
-				for _, nextDir := range newDirs {
+			current := allPositions[0]
 
-					costTmp := 0
-					for steps := 1; steps < minSteps; steps++ {
-						nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
-						if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
-							continue
-						}
-						costTmp += lavaMap[nextPos]
+			var newDirs [][2]int
+			newDirs = append(newDirs, turnLeft(current.dir))
+			newDirs = append(newDirs, turnRight(current.dir))
+			for _, nextDir := range newDirs {
+
+				costTmp := 0
+				for steps := 1; steps < minSteps; steps++ {
+					nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
+					if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
+						continue
 					}
+					costTmp += lavaMap[nextPos]
+				}
 
-					for steps := minSteps; steps <= maxSteps; steps++ {
-						stepsLeft := 10 - steps
-						nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
-						if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
-							continue
-						}
-						costTmp += lavaMap[nextPos]
-						nextCost := current.cost + costTmp
-						if value, ok := minCost[cachePos{nextPos, nextDir, stepsLeft}]; ok {
-							if nextCost < value {
-								newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
-								minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
-							}
-						} else {
-							newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
-							minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
-						}
-
+				for steps := minSteps; steps <= maxSteps; steps++ {
+					stepsLeft := 10 - steps
+					nextPos := [2]int{current.pos[0] + steps*nextDir[0], current.pos[1] + steps*nextDir[1]}
+					if nextPos[0] < 0 || nextPos[0] > maxX || nextPos[1] < 0 || nextPos[1] > maxY {
+						continue
+					}
+					costTmp += lavaMap[nextPos]
+					nextCost := current.cost + costTmp
+					value, exists := minCost[cachePos{nextPos, nextDir, stepsLeft}]
+					if !exists || nextCost < value {
+						newAllPos = append(newAllPos, cur{nextPos, nextCost, nextDir})
+						minCost[cachePos{nextPos, nextDir, stepsLeft}] = nextCost
 					}
 				}
 			}
-			allPositions = newAllPos
-		}
-
-		minDist := math.MaxInt
-		for pos, ints := range minCost {
-			if pos.pos == [2]int{maxX, maxY} {
-				if ints < minDist {
-					minDist = ints
-				}
+			allPositions = append(allPositions[1:], newAllPos...)
+			sort.Sort(byCost(allPositions))
+			if allPositions[0].pos[0] == maxX && allPositions[0].pos[1] == maxY {
+				return allPositions[0].cost
 			}
+
 		}
-		return minDist
 	}
 
 	fmt.Println("Day 17.1:", findShortes(1, 3))
