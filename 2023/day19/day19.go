@@ -10,8 +10,21 @@ import (
 	"strings"
 )
 
+type node struct {
+	curWF  string
+	ranges map[string][2]int
+}
+
+func copyString2IntMap(in map[string][2]int) map[string][2]int {
+	ret := make(map[string][2]int)
+	for s, i := range in {
+		ret[s] = i
+	}
+	return ret
+}
+
 func main() {
-	file, err := os.Open("2023/day19/testinput")
+	file, err := os.Open("2023/day19/input")
 	if err != nil {
 		panic(err)
 	}
@@ -96,20 +109,24 @@ func main() {
 	}
 	fmt.Println(total)
 	lists := make(map[string][]int)
-	rejectMap := make(map[string]map[int]bool)
+	rejectMap := make(map[string]map[int]int)
 	for _, i := range []string{"x", "a", "m", "s"} {
-		rejectMap[i] = make(map[int]bool)
+		rejectMap[i] = make(map[int]int)
 	}
 	for _, wf := range workflows {
 		for _, rule := range wf {
 			if strings.Contains(rule, "<") {
 				char := string(rule[0])
 				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0])-1)
-				//rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])-1] = true
+				if strings.Split(rule[2:], ":")[1] == "R" {
+					rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])-1] = -1
+				}
 			} else if strings.Contains(rule, ">") {
 				char := string(rule[0])
 				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0]))
-				//rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])] = true
+				if strings.Split(rule[2:], ":")[1] == "R" {
+					rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])] = 1
+				}
 			}
 		}
 	}
@@ -122,56 +139,73 @@ func main() {
 	}
 	fmt.Println(lists)
 	fmt.Println("Variants:", totalVariations)
-	var partList []map[string]int
-	var amountList []int
 
-	for ix, x := range lists["x"] {
-		if ix == 0 {
-			continue
-		}
-		if _, ok := rejectMap["x"][x]; ok {
-			continue
-		}
-		amountX := (x - lists["x"][ix-1])
-		for im, m := range lists["m"] {
-			if im == 0 {
-				continue
-			}
-			if _, ok := rejectMap["m"][m]; ok {
-				continue
-			}
-			amountM := amountX * (m - lists["m"][im-1])
-			for ia, a := range lists["a"] {
-				if ia == 0 {
-					continue
-				}
-				if _, ok := rejectMap["a"][a]; ok {
-					continue
-				}
-				amountA := amountM * (a - lists["a"][ia-1])
-				for is, s := range lists["s"] {
-					if is == 0 {
-						continue
-					}
-					if _, ok := rejectMap["s"][s]; ok {
-						continue
-					}
-					amount := amountA * (s - lists["s"][is-1])
-					amountList = append(amountList, amount)
-					newMap := map[string]int{"x": x, "m": m, "a": a, "s": s}
-					partList = append(partList)
-					partList = append(partList, newMap)
-				}
-			}
-		}
-		fmt.Println(len(partList))
-	}
+	var allNodes []node
+	allNodes = append(allNodes, node{
+		curWF:  "in",
+		ranges: map[string][2]int{"x": {0, 4000}, "a": {0, 4000}, "s": {0, 4000}, "m": {0, 4000}},
+	})
+
 	totalAmount := 0
-	for i, pl := range partList {
-		fmt.Println(len(partList) - i)
-		if getAcceptance(pl) == "A" {
-			totalAmount += amountList[i]
+
+	for len(allNodes) > 0 {
+		var newAllNodes []node
+		fmt.Println(len(allNodes))
+		for _, curNode := range allNodes {
+			if curNode.curWF == "A" {
+				amount := 1
+				for _, ints := range curNode.ranges {
+					amount *= ints[1] - ints[0]
+				}
+				totalAmount += amount
+			} else if curNode.curWF == "R" {
+				continue
+			}
+			nextWorkFlow := workflows[curNode.curWF]
+			for _, rule := range nextWorkFlow {
+				if !strings.Contains(rule, ":") {
+					curNode.curWF = rule
+					newAllNodes = append(newAllNodes, curNode)
+					continue
+				}
+				cond := string(rule[0])
+				condNum := utils.ToInt(strings.Split(rule[2:], ":")[0])
+				nextStep := strings.Split(rule[2:], ":")[1]
+				newNode := node{
+					curNode.curWF, copyString2IntMap(curNode.ranges),
+				}
+
+				low, high := curNode.ranges[cond][0], curNode.ranges[cond][1]
+				if strings.Contains(rule, "<") {
+					if high < condNum {
+						newNode.curWF = nextStep
+					} else if low >= condNum {
+						continue
+					} else {
+						lowerRange := [2]int{low, condNum - 1}
+						upperRange := [2]int{condNum - 1, high}
+						curNode.ranges[cond] = upperRange
+						newNode.ranges[cond] = lowerRange
+					}
+				}
+				if strings.Contains(rule, ">") {
+					if low > condNum {
+						newNode.curWF = nextStep
+					} else if high <= condNum {
+						continue
+					} else {
+						lowerRange := [2]int{low, condNum}
+						upperRange := [2]int{condNum, high}
+						curNode.ranges[cond] = lowerRange
+						newNode.ranges[cond] = upperRange
+					}
+
+				}
+				newNode.curWF = nextStep
+				newAllNodes = append(newAllNodes, newNode)
+			}
 		}
+		allNodes = newAllNodes
 	}
 
 	fmt.Println(totalAmount)
