@@ -4,12 +4,14 @@ import (
 	"adventofcode/utils"
 	"bufio"
 	"fmt"
+	"math"
 	"os"
+	"slices"
 	"strings"
 )
 
 func main() {
-	file, err := os.Open("2023/day19/input")
+	file, err := os.Open("2023/day19/testinput")
 	if err != nil {
 		panic(err)
 	}
@@ -46,17 +48,16 @@ func main() {
 	fmt.Println(workflows)
 	fmt.Println(parts)
 	var accepted []map[string]int
-	//partList:
-	for _, part := range parts {
+
+	getAcceptance := func(part map[string]int) string {
 		curWorkflow := "in"
-		fmt.Print(part, " ")
+		//fmt.Print(part, " ")
 		for {
-			fmt.Print(curWorkflow, " ")
+			//fmt.Print(curWorkflow, " ")
 			if curWorkflow == "A" {
-				accepted = append(accepted, part)
-				break
+				return "A"
 			} else if curWorkflow == "R" {
-				break
+				return "R"
 			}
 			workList := workflows[curWorkflow]
 			for i, step := range workList {
@@ -80,7 +81,12 @@ func main() {
 				}
 			}
 		}
-		fmt.Println()
+	}
+
+	for _, part := range parts {
+		if getAcceptance(part) == "A" {
+			accepted = append(accepted, part)
+		}
 	}
 	total := 0
 	for _, m := range accepted {
@@ -89,4 +95,86 @@ func main() {
 		}
 	}
 	fmt.Println(total)
+	lists := make(map[string][]int)
+	rejectMap := make(map[string]map[int]bool)
+	for _, i := range []string{"x", "a", "m", "s"} {
+		rejectMap[i] = make(map[int]bool)
+	}
+	for _, wf := range workflows {
+		for _, rule := range wf {
+			if strings.Contains(rule, "<") {
+				char := string(rule[0])
+				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0])-1)
+				//rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])-1] = true
+			} else if strings.Contains(rule, ">") {
+				char := string(rule[0])
+				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0]))
+				//rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])] = true
+			}
+		}
+	}
+	totalVariations := 1
+	for s, _ := range lists {
+		lists[s] = append(lists[s], 0)
+		lists[s] = append(lists[s], 4000)
+		slices.Sort(lists[s])
+		totalVariations *= len(lists[s])
+	}
+	fmt.Println(lists)
+	fmt.Println("Variants:", totalVariations)
+	var partList []map[string]int
+	var amountList []int
+
+	for ix, x := range lists["x"] {
+		if ix == 0 {
+			continue
+		}
+		if _, ok := rejectMap["x"][x]; ok {
+			continue
+		}
+		amountX := (x - lists["x"][ix-1])
+		for im, m := range lists["m"] {
+			if im == 0 {
+				continue
+			}
+			if _, ok := rejectMap["m"][m]; ok {
+				continue
+			}
+			amountM := amountX * (m - lists["m"][im-1])
+			for ia, a := range lists["a"] {
+				if ia == 0 {
+					continue
+				}
+				if _, ok := rejectMap["a"][a]; ok {
+					continue
+				}
+				amountA := amountM * (a - lists["a"][ia-1])
+				for is, s := range lists["s"] {
+					if is == 0 {
+						continue
+					}
+					if _, ok := rejectMap["s"][s]; ok {
+						continue
+					}
+					amount := amountA * (s - lists["s"][is-1])
+					amountList = append(amountList, amount)
+					newMap := map[string]int{"x": x, "m": m, "a": a, "s": s}
+					partList = append(partList)
+					partList = append(partList, newMap)
+				}
+			}
+		}
+		fmt.Println(len(partList))
+	}
+	totalAmount := 0
+	for i, pl := range partList {
+		fmt.Println(len(partList) - i)
+		if getAcceptance(pl) == "A" {
+			totalAmount += amountList[i]
+		}
+	}
+
+	fmt.Println(totalAmount)
+	fmt.Println(167409079868000)
+	fmt.Println(math.MaxInt)
 }
