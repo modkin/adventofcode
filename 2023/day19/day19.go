@@ -4,9 +4,7 @@ import (
 	"adventofcode/utils"
 	"bufio"
 	"fmt"
-	"math"
 	"os"
-	"slices"
 	"strings"
 )
 
@@ -58,15 +56,11 @@ func main() {
 			parts = append(parts, newMap)
 		}
 	}
-	fmt.Println(workflows)
-	fmt.Println(parts)
 	var accepted []map[string]int
 
 	getAcceptance := func(part map[string]int) string {
 		curWorkflow := "in"
-		//fmt.Print(part, " ")
 		for {
-			//fmt.Print(curWorkflow, " ")
 			if curWorkflow == "A" {
 				return "A"
 			} else if curWorkflow == "R" {
@@ -107,38 +101,7 @@ func main() {
 			total += i
 		}
 	}
-	fmt.Println(total)
-	lists := make(map[string][]int)
-	rejectMap := make(map[string]map[int]int)
-	for _, i := range []string{"x", "a", "m", "s"} {
-		rejectMap[i] = make(map[int]int)
-	}
-	for _, wf := range workflows {
-		for _, rule := range wf {
-			if strings.Contains(rule, "<") {
-				char := string(rule[0])
-				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0])-1)
-				if strings.Split(rule[2:], ":")[1] == "R" {
-					rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])-1] = -1
-				}
-			} else if strings.Contains(rule, ">") {
-				char := string(rule[0])
-				lists[char] = append(lists[char], utils.ToInt(strings.Split(rule[2:], ":")[0]))
-				if strings.Split(rule[2:], ":")[1] == "R" {
-					rejectMap[char][utils.ToInt(strings.Split(rule[2:], ":")[0])] = 1
-				}
-			}
-		}
-	}
-	totalVariations := 1
-	for s, _ := range lists {
-		lists[s] = append(lists[s], 0)
-		lists[s] = append(lists[s], 4000)
-		slices.Sort(lists[s])
-		totalVariations *= len(lists[s])
-	}
-	fmt.Println(lists)
-	fmt.Println("Variants:", totalVariations)
+	fmt.Println("Day 19.1:", total)
 
 	var allNodes []node
 	allNodes = append(allNodes, node{
@@ -150,7 +113,6 @@ func main() {
 
 	for len(allNodes) > 0 {
 		var newAllNodes []node
-		fmt.Println(len(allNodes))
 		for _, curNode := range allNodes {
 			if curNode.curWF == "A" {
 				amount := 1
@@ -208,7 +170,5 @@ func main() {
 		allNodes = newAllNodes
 	}
 
-	fmt.Println(totalAmount)
-	fmt.Println(167409079868000)
-	fmt.Println(math.MaxInt)
+	fmt.Println("Day 19.2:", totalAmount)
 }
