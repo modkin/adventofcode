@@ -27,115 +27,6 @@ func (c byZ) Len() int           { return len(c) }
 func (c byZ) Less(i, j int) bool { return c[i].parts[0][2] < c[j].parts[0][2] }
 func (c byZ) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
-func getFallDepth(xStart int, yStart int, zStart int, bricks []oldbrick, ignore oldbrick) int {
-	endHeight := 0
-	for _, b := range bricks {
-		if b == ignore {
-			continue
-		}
-		if zStart < b.start[2] && zStart < b.end[2] {
-			continue
-		}
-		higherZ := b.start[2]
-		if b.end[2] > higherZ {
-			higherZ = b.end[2]
-		}
-		var xStep int
-		var yStep int
-		if b.end[0]-b.start[0] == 0 {
-			xStep = 1
-		} else {
-			xStep = (b.end[0] - b.start[0]) / utils.IntAbs(b.end[0]-b.start[0])
-		}
-		if b.end[1]-b.start[1] == 0 {
-			yStep = 1
-		} else {
-			yStep = (b.end[1] - b.start[1]) / utils.IntAbs(b.end[1]-b.start[1])
-		}
-		for x := b.start[0]; x <= b.end[0]; x += xStep {
-			for y := b.start[1]; y <= b.end[1]; y += yStep {
-				if x == xStart && y == yStart {
-					if higherZ > endHeight {
-						endHeight = higherZ
-					}
-				}
-			}
-		}
-	}
-	if endHeight == 0 {
-		return zStart
-	} else {
-		return zStart - endHeight
-	}
-}
-
-func moveDown(bricks []oldbrick) ([]oldbrick, int) {
-	moved := true
-	movedCounter := 0
-	for moved {
-		moved = false
-		var newBricks []oldbrick
-		for _, this := range bricks {
-			lowerZ := this.start[2]
-			if this.end[2] < lowerZ {
-				lowerZ = this.end[2]
-			}
-			afterFallHeight := lowerZ
-			//for _,  := range bricks {
-
-			//xStep := b.end[0] - b.start[0]
-			//if utils.IntAbs(xStep) > 0 {
-			//	xStep =
-			//}
-			//yStep := b.end[1] - b.start[1]
-			//if utils.IntAbs(yStep) > 0 {
-			//	yStep =
-			//}
-			if this.start[2] == 1 || this.end[2] == 1 {
-				newBricks = append(newBricks, this)
-				continue
-			}
-			if (this.end[0]-this.start[0]) == 0 && (this.end[1]-this.start[1]) == 0 {
-				afterFallHeight = getFallDepth(this.start[0], this.end[1], lowerZ, bricks, this)
-			} else {
-				var xStep int
-				var yStep int
-				if this.end[0]-this.start[0] == 0 {
-					xStep = 1
-				} else {
-					xStep = (this.end[0] - this.start[0]) / utils.IntAbs(this.end[0]-this.start[0])
-				}
-				if this.end[1]-this.start[1] == 0 {
-					yStep = 1
-				} else {
-					yStep = (this.end[1] - this.start[1]) / utils.IntAbs(this.end[1]-this.start[1])
-				}
-				for x := this.start[0]; x <= this.end[0]; x += xStep {
-					for y := this.start[1]; y <= this.end[1]; y += yStep {
-						//for z := b.start[2]; z < b.end[2]; z += (b.end[2] - b.start[2]) / utils.IntAbs(b.end[2]-b.start[2]) {
-						if aFH := getFallDepth(x, y, this.start[2], bricks, this); aFH < afterFallHeight {
-							afterFallHeight = aFH
-						}
-						//}
-					}
-				}
-			}
-			//}
-			newBrick := this
-			if afterFallHeight != 0 {
-				newBrick.start[2] -= afterFallHeight
-				newBrick.end[2] -= afterFallHeight
-				moved = true
-				movedCounter++
-			}
-			newBricks = append(newBricks, newBrick)
-
-		}
-		bricks = newBricks
-	}
-	return bricks, movedCounter
-}
-
 func touch(first brick, second brick) bool {
 	for _, f := range first.parts {
 		for _, s := range second.parts {
@@ -233,17 +124,28 @@ func main() {
 	}
 
 	removeCounter := 0
-outer:
-	for i, _ := range bricks {
+	removeCount := make(map[string]int)
+	var droped bool
+	for i, removed := range bricks {
 		brickCopy := slices.Clone(bricks)
 		oneBrickRemoved := append(brickCopy[:i], brickCopy[(i+1):]...)
-		for _, b := range oneBrickRemoved {
-			if _, droped := dropBrick(b, oneBrickRemoved); droped {
-				continue outer
+		sort.Sort(byZ(bricks))
+		for j, b := range oneBrickRemoved {
+			oneBrickRemoved[j], droped = dropBrick(b, oneBrickRemoved)
+			sort.Sort(byZ(bricks))
+			if droped {
+				removeCount[removed.name]++
 			}
 		}
-		removeCounter++
+		if removeCount[removed.name] == 0 {
+			removeCounter++
+		}
 	}
-	fmt.Println(removeCounter)
+	fmt.Println("Day 22.1:", removeCounter)
 
+	sum := 0
+	for _, i := range removeCount {
+		sum += i
+	}
+	fmt.Println("Day 22.2:", sum)
 }
