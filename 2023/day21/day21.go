@@ -93,7 +93,7 @@ func main() {
 	for i := 129; true; i++ {
 		tmpCount := findPossiblePos(start, garden, i, maxX, maxY)
 		if tmpCount == lowerCount {
-			fmt.Println(i)
+			//fmt.Println(i)
 			break
 
 		}
@@ -124,11 +124,12 @@ func main() {
 	//dirs = append(dirs, [2]int{0, -1})
 	//reachable := make(map[[2]int]bool)
 	numSteps := 26501365
-	numSteps = 300
+	//numSteps = 300
 	maxFillSteps := 221
 	//maxFillSteps = 41
 	for i := 1; i <= numSteps; i++ {
-		fmt.Println(i)
+		continue
+		//fmt.Println(i)
 		newAllPos := make(map[[2][2]int]int)
 		//var newAllPos []position
 		for pos, oldDist := range allPos {
@@ -158,20 +159,21 @@ func main() {
 				}
 				newPosition := [2][2]int{newPos, newoffset}
 
-				_, ok := innerOffsets[newoffset]
-				if garden[newPos] != "#" && !ok {
-					if countInOffset(newoffset, allPos) == higherCount {
-						innerOffsets[newoffset] = i
-						if newoffset[0] == 0 && newoffset[1] < 1 {
-							//fmt.Println(newoffset, i-enterNewOffsets[newoffset])
-						}
-						if tmp := i - enterNewOffsets[newoffset]; tmp > maxFillSteps {
-							maxFillSteps = tmp
-						}
-						break
-					} else {
-						newAllPos[newPosition] = oldDist + 1
-					}
+				//_, ok := innerOffsets[newoffset]
+				//if garden[newPos] != "#" && !ok {
+				if garden[newPos] != "#" {
+					//	if countInOffset(newoffset, allPos) == higherCount {
+					//		innerOffsets[newoffset] = i
+					//		if newoffset[0] == 0 && newoffset[1] < 1 {
+					//			//fmt.Println(newoffset, i-enterNewOffsets[newoffset])
+					//		}
+					//		if tmp := i - enterNewOffsets[newoffset]; tmp > maxFillSteps {
+					//			maxFillSteps = tmp
+					//		}
+					//		break
+					//	} else {
+					newAllPos[newPosition] = oldDist + 1
+					//}
 					if _, ok2 := enterNewOffsets[newoffset]; !ok2 {
 						enterNewOffsets[newoffset] = i
 						//if newoffset[0] == 0 && newoffset[1] > 0 {
@@ -189,6 +191,7 @@ func main() {
 		//	fmt.Println("count: ", countInOffset(ints))
 		//}
 	}
+	fmt.Println("Brute Force:", len(allPos))
 
 	//quadStartIndex := 132
 
@@ -217,6 +220,7 @@ func main() {
 			areaSum += findPossiblePos(quadStart, garden, numSteps-i, maxX, maxY) * amount
 			amount++
 		}
+		fmt.Println("quad", quadStart, "area:", areaSum)
 		return areaSum
 	}
 
@@ -240,8 +244,10 @@ func main() {
 			}
 		}
 		for i := firstNotFullIndex; i <= numSteps; i += sideLength {
-			areaSum += findPossiblePos(recStart, garden, numSteps-i, maxX, maxY)
+			tmp := findPossiblePos(recStart, garden, numSteps-i, maxX, maxY)
+			areaSum += tmp
 		}
+		fmt.Println("rect", recStart, "area:", areaSum)
 		return areaSum
 	}
 	//fmt.Println("Part 1:", findPossiblePos(start, garden, 6))
@@ -277,14 +283,15 @@ func main() {
 		} else {
 			posCounter++
 		}
-		if i[1] == [2]int{1, 0} {
+		if i[1][0] > 0 && i[1][1] == 0 {
 			tmpCounter++
 		}
-		if i[1] == [2]int{2, 0} {
+		if i[1][0] == 2 && i[1][1] == 0 {
 			tmpCounter2++
 		}
 	}
 
+	fmt.Println("tmp:", tmpCounter, "tmp2:", tmpCounter2)
 	fmt.Println("GO")
 	areaSum := quadrantArea([2]int{1, -1}, [2]int{0, maxY})
 	fmt.Println(areaSum)
@@ -294,13 +301,13 @@ func main() {
 	fmt.Println(areaSum)
 	areaSum += quadrantArea([2]int{-1, 1}, [2]int{maxX, 0})
 	fmt.Println(areaSum)
-	areaSum += rectArea([2]int{0, (maxX / 2) + 1})
+	areaSum += rectArea([2]int{0, maxX / 2})
 	fmt.Println(areaSum)
-	areaSum += rectArea([2]int{(maxX / 2) + 1, 0})
+	areaSum += rectArea([2]int{maxX / 2, 0})
 	fmt.Println(areaSum)
-	areaSum += rectArea([2]int{maxX, (maxX / 2) + 1})
+	areaSum += rectArea([2]int{maxX, maxX / 2})
 	fmt.Println(areaSum)
-	areaSum += rectArea([2]int{(maxX / 2) + 1, maxY})
+	areaSum += rectArea([2]int{maxX / 2, maxY})
 	fmt.Println(areaSum)
 	areaSum += findPossiblePos(start, garden, numSteps%100+200, maxX, maxY)
 	fmt.Println("tmp:", tmpCounter, "tmp2:", tmpCounter2)
