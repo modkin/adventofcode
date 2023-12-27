@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"gonum.org/v1/gonum/floats"
+	"gonum.org/v1/gonum/mat"
 	"math"
 	"os"
 	"strconv"
@@ -97,5 +99,46 @@ func main() {
 	}
 	fmt.Println("Day 24.1:", len(crossPoints))
 	fmt.Println(counter)
-	//fmt.Println(crossPoints)
+
+	getRow := func(i, n int, coordOffset int) ([]float64, float64) {
+		var ret []float64
+		hailI := hailList[i]
+		hailN := hailList[n]
+		ret = append(ret, hailI.dir[1+coordOffset]-hailN.dir[1+coordOffset])
+		ret = append(ret, hailN.pos[1+coordOffset]-hailI.pos[1+coordOffset])
+		ret = append(ret, hailN.dir[0+coordOffset]-hailI.dir[0+coordOffset])
+		ret = append(ret, hailI.pos[0+coordOffset]-hailN.pos[0+coordOffset])
+		b := hailI.pos[0+coordOffset]*hailI.dir[1+coordOffset] - hailI.pos[1+coordOffset]*hailI.dir[0+coordOffset] - hailN.pos[0+coordOffset]*hailN.dir[1+coordOffset] + hailN.pos[1+coordOffset]*hailN.dir[0+coordOffset]
+		return ret, b
+	}
+
+	var stonePos, stoneDir []float64
+	for coordOffset := 0; coordOffset <= 1; coordOffset++ {
+
+		matrix := mat.NewDense(4, 4, nil)
+		b := mat.NewVecDense(4, nil)
+		x := mat.NewVecDense(4, nil)
+		for i := 0; i < 4; i++ {
+			newRow, newB := getRow(i, i+1, coordOffset)
+			matrix.SetRow(i, newRow)
+			b.SetVec(i, newB)
+		}
+		var matLU mat.LU
+		matLU.Factorize(matrix)
+		err = matLU.SolveVecTo(x, false, b)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(x)
+		if coordOffset == 0 {
+			stonePos = []float64{math.Round(x.AtVec(0)), math.Round(x.AtVec(2))}
+			stoneDir = []float64{math.Round(x.AtVec(1)), math.Round(x.AtVec(3))}
+		} else {
+			stonePos = append(stonePos, math.Round(x.AtVec(2)))
+			stoneDir = append(stoneDir, math.Round(x.AtVec(3)))
+		}
+	}
+	fmt.Println(stonePos, stoneDir)
+
+	fmt.Println(int(floats.Sum(stonePos)))
 }
