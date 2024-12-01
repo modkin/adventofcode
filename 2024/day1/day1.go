@@ -22,7 +22,7 @@ func main() {
 	var right []int
 	for scanner.Scan() {
 		//lines = append(lines, scanner.Text())
-		split := strings.Split(scanner.Text(), "   ")
+		split := strings.Fields(scanner.Text())
 		left = append(left, utils.ToInt(split[0]))
 		right = append(right, utils.ToInt(split[1]))
 	}
@@ -33,7 +33,6 @@ func main() {
 	for i, i2 := range left {
 		one += utils.IntAbs(right[i] - i2)
 	}
-	fmt.Println(one)
 
 	two := 0
 	for _, i2 := range left {
