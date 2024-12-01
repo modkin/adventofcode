@@ -5,11 +5,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
-	"strings"
 )
 
-func main() {
+func day16() {
 	file, err := os.Open("2023/day16/input")
 	if err != nil {
 		panic(err)
@@ -34,7 +32,7 @@ func main() {
 
 	utils.Print2DStringsGrid(ma)
 
-	move := func(in map[[2][2]int]bool) map[[2][2]int]bool {
+	move := func(in map[[2][2]int]bool, cache map[[2][2]int]bool) map[[2][2]int]bool {
 		//var out [][2][2]int
 		out := make(map[[2][2]int]bool)
 		for ints, bo := range in {
@@ -85,39 +83,28 @@ func main() {
 		for pos, _ := range out {
 			oldPos := pos[0]
 			if oldPos[0] > maxX || oldPos[1] > maxY || oldPos[0] < 0 || oldPos[1] < 0 {
-				out[pos] = false
+
 			} else {
-				cutOf[pos] = true
+				if _, ok := cache[pos]; !ok {
+					cutOf[pos] = true
+				}
 			}
 		}
 		out = cutOf
 		return out
 	}
 
-	getHash := func(in map[[2][2]int]bool) string {
-		var keys []string
-		for i, _ := range in {
-			str := string(rune(i[0][0])) + string(rune(i[0][1])) + string(rune(i[1][0])) + string(rune(i[1][1]))
-			keys = append(keys, str)
-		}
-		sort.Strings(keys)
-		return strings.Join(keys, "-")
-	}
 	getEnergy := func(start [2][2]int) int {
-		cache := make(map[string]bool)
+		cache := make(map[[2][2]int]bool)
 		energy := make(map[[2]int]bool)
 		beams := make(map[[2][2]int]bool)
 		beams[start] = true
 		for i := 0; i < 1000; i++ {
 			for beam := range beams {
 				energy[beam[0]] = true
+				cache[beam] = true
 			}
-			beams = move(beams)
-			hash := getHash(beams)
-			if _, ok := cache[hash]; ok {
-				break
-			}
-			cache[hash] = true
+			beams = move(beams, cache)
 		}
 		counter := 0
 		for _, _ = range energy {
@@ -129,7 +116,6 @@ func main() {
 
 	maxEnergy := 0
 	for i := 0; i <= maxX; i++ {
-		fmt.Println(i)
 		energy := getEnergy([2][2]int{{0, i}, {1, 0}})
 		if energy > maxEnergy {
 			maxEnergy = energy
@@ -148,4 +134,8 @@ func main() {
 		}
 	}
 	fmt.Println(maxEnergy)
+}
+
+func main() {
+	day16()
 }

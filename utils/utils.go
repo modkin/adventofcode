@@ -125,6 +125,16 @@ func CountStringinStringSlice(list []string, s string) int {
 	return count
 }
 
+func CountInSlice[EntryType comparable](list []EntryType, toCount EntryType) int {
+	count := 0
+	for _, elem := range list {
+		if toCount == elem {
+			count++
+		}
+	}
+	return count
+}
+
 func IntSliceContains(list []int, s int) bool {
 	for _, elem := range list {
 		if s == elem {

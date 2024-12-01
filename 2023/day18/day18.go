@@ -10,37 +10,6 @@ import (
 	"strings"
 )
 
-func print2DStringGridUpward(grid map[[2]int]bool) {
-	fmt.Println("----------------------------------------------")
-	xMax, yMax := 0, 0
-	xMin, yMin := math.MaxInt, math.MaxInt
-	for i := range grid {
-		if i[0] > xMax {
-			xMax = i[0]
-		}
-		if i[1] > yMax {
-			yMax = i[1]
-		}
-		if i[0] < xMin {
-			xMin = i[0]
-		}
-		if i[1] < yMin {
-			yMin = i[1]
-		}
-	}
-	for y := yMax; y >= yMin; y-- {
-		for x := xMin; x <= xMax; x++ {
-			if _, ok := grid[[2]int{x, y}]; ok {
-				fmt.Print("#")
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
-	}
-	fmt.Println("----------------------------------------------")
-}
-
 func distance(first [2]int, second [2]int) int {
 	ret := 0
 	ret += utils.IntAbs(second[0] - first[0])
@@ -103,9 +72,9 @@ func main() {
 	minX := math.MaxInt
 	minY := math.MaxInt
 	pos = [2]int{0, 0}
-	var points1 [][2]int
+	var pointsPart1 [][2]int
 	for _, line := range lines {
-		points1 = append(points1, pos)
+		pointsPart1 = append(pointsPart1, pos)
 		split := strings.Fields(line)
 		var dir [2]int
 

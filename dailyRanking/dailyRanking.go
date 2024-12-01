@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"sort"
+	"strings"
 )
 
 type member struct {
@@ -25,6 +26,7 @@ func genEmptyTimings(length int) []int {
 
 func main() {
 	jsonByte, _ := os.ReadFile("dailyRanking/678703.json")
+	//jsonByte, _ := os.ReadFile("dailyRanking/2021-score.json")
 
 	var data map[string]interface{}
 	err := json.Unmarshal([]byte(jsonByte), &data)
@@ -42,7 +44,7 @@ func main() {
 	//	allMember = append(allMember, tmp)
 	//}
 	//timestamp := time.Now()
-	daysDone := 15
+	daysDone := 25
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2), make([]int, daysDone*2)}
@@ -86,13 +88,19 @@ func main() {
 	})
 
 	//fmt.Println(memberPoints)
-	fmt.Printf("%-24v|", "Name")
+	fmt.Printf("%-3v|", "")
 	for i := 0; i < daysDone*2; i++ {
 		fmt.Printf("%2v|", (i/2)+1)
 	}
 	fmt.Print(" Sum\n")
 	for _, mem := range memberPoints {
-		fmt.Printf("%-24v|", mem.Name)
+		var initials string
+		if len(strings.Split(mem.Name, " ")) == 1 {
+			initials = strings.Split(mem.Name, " ")[0][0:2]
+		} else {
+			initials = string(strings.Split(mem.Name, " ")[0][0]) + string(strings.Split(mem.Name, " ")[1][0])
+		}
+		fmt.Printf("%-3v|", initials)
 		for _, point := range mem.points {
 			fmt.Printf("%2v|", point)
 		}
