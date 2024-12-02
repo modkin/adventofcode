@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func increase(input []string) bool {
+func isReportSafe(input []string) bool {
 	inc := true
 	dec := true
 	dist := true
@@ -19,19 +19,15 @@ func increase(input []string) bool {
 		}
 		if utils.ToInt(i2) < utils.ToInt(input[i-1]) {
 			inc = false
-
 		}
 		if utils.ToInt(i2) > utils.ToInt(input[i-1]) {
 			dec = false
-
 		}
 		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) > 3 {
 			dist = false
-
 		}
 		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) < 1 {
 			dist = false
-
 		}
 	}
 	return (inc || dec) && dist
@@ -49,23 +45,21 @@ func main() {
 	}
 	defer file.Close()
 
-	//var one []string
-	safe := 0
+	safe1 := 0
+	safe2 := 0
 
 	scanner := bufio.NewScanner(file)
 outer:
 	for scanner.Scan() {
-		//lines = append(lines, scanner.Text())
 		split := strings.Fields(scanner.Text())
-		if increase(split) {
-			safe++
-			fmt.Println(split)
+		if isReportSafe(split) {
+			safe1++
+			safe2++
 			continue
 		} else {
 			for i := range split {
-				if increase(removeI(split, i)) {
-					safe++
-					fmt.Println(split)
+				if isReportSafe(removeI(split, i)) {
+					safe2++
 					continue outer
 
 				}
@@ -74,6 +68,6 @@ outer:
 
 	}
 
-	fmt.Println("Day 2.1:", safe)
-	//fmt.Println("Day 2.2:", two)
+	fmt.Println("Day 2.1:", safe1)
+	fmt.Println("Day 2.2:", safe2)
 }
