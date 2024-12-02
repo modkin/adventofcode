@@ -39,6 +39,6 @@ func main() {
 		two += i2 * utils.CountInSlice(right, i2)
 	}
 	fmt.Println("Day 1.1:", one)
-	fmt.Println("Day 2.1:", two)
+	fmt.Println("Day 1.2:", two)
 
 }

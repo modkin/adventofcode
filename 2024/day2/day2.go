@@ -13,30 +13,33 @@ func increase(input []string) bool {
 	dec := true
 	dist := true
 
-	var wrong1 []int
-	var wrong2 []int
 	for i, i2 := range input {
 		if i == 0 {
 			continue
 		}
 		if utils.ToInt(i2) < utils.ToInt(input[i-1]) {
 			inc = false
-			wrong1 = append(wrong1, i)
+
 		}
 		if utils.ToInt(i2) > utils.ToInt(input[i-1]) {
 			dec = false
-			wrong1 = append(wrong1, i)
+
 		}
 		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) > 3 {
 			dist = false
-			wrong2 = append(wrong2, i)
+
 		}
 		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) < 1 {
 			dist = false
-			wrong2 = append(wrong2, i)
+
 		}
 	}
 	return (inc || dec) && dist
+}
+
+func removeI(in []string, i int) []string {
+	cop := utils.CopyStringSlice(in)
+	return append(cop[:i], cop[i+1:]...)
 }
 
 func main() {
@@ -50,12 +53,23 @@ func main() {
 	safe := 0
 
 	scanner := bufio.NewScanner(file)
+outer:
 	for scanner.Scan() {
 		//lines = append(lines, scanner.Text())
 		split := strings.Fields(scanner.Text())
 		if increase(split) {
 			safe++
 			fmt.Println(split)
+			continue
+		} else {
+			for i := range split {
+				if increase(removeI(split, i)) {
+					safe++
+					fmt.Println(split)
+					continue outer
+
+				}
+			}
 		}
 
 	}
