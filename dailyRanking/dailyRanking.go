@@ -44,7 +44,7 @@ func main() {
 	//	allMember = append(allMember, tmp)
 	//}
 	//timestamp := time.Now()
-	daysDone := 25
+	daysDone := 10
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2), make([]int, daysDone*2)}
@@ -107,13 +107,13 @@ func main() {
 		fmt.Print(" ", utils.SumSlice(mem.points), "\n")
 	}
 	fmt.Println()
-	fmt.Println("Close ones:")
+	fmt.Println("Close calls: (bellow 60 seconds)")
 	for i := 0; i < daysDone*2; i++ {
 		for left := 0; left < len(memberPoints); left++ {
 			for right := 0; right < len(memberPoints); right++ {
 				if left != right {
 					difference := memberPoints[left].timings[i] - memberPoints[right].timings[i]
-					if utils.IntAbs(difference) < 120 && difference > 0 {
+					if utils.IntAbs(difference) < 60 && difference > 0 {
 						fmt.Print("Day: ", (i/2)+1, ".", i%2+1, " ")
 						fmt.Print(memberPoints[right].Name, " was ", difference, " seconds faster than ", memberPoints[left].Name, "\n")
 					}

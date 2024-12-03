@@ -17,16 +17,13 @@ func isReportSafe(input []string) bool {
 		if i == 0 {
 			continue
 		}
-		if utils.ToInt(i2) < utils.ToInt(input[i-1]) {
+		if utils.ToInt(i2) <= utils.ToInt(input[i-1]) {
 			inc = false
 		}
-		if utils.ToInt(i2) > utils.ToInt(input[i-1]) {
+		if utils.ToInt(i2) >= utils.ToInt(input[i-1]) {
 			dec = false
 		}
 		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) > 3 {
-			dist = false
-		}
-		if utils.IntAbs(utils.ToInt(i2)-utils.ToInt(input[i-1])) < 1 {
 			dist = false
 		}
 	}
