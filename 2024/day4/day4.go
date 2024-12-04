@@ -43,6 +43,27 @@ func search(input [][]string) int {
 	return totalNum
 }
 
+func searchx_mas(input [][]string) int {
+	ylen := len(input) - 3
+	xlen := len(input[0]) - 3
+	totalNum := 0
+	for x := 3; x < ylen; x++ {
+		for j := 3; j < xlen; j++ {
+
+			if input[x][j] == "A" {
+				if (input[x+1][j+1] == "M" && input[x-1][j-1] == "S") || (input[x+1][j+1] == "S" && input[x-1][j-1] == "M") {
+					if (input[x+1][j-1] == "M" && input[x-1][j+1] == "S") || (input[x+1][j-1] == "S" && input[x-1][j+1] == "M") {
+						totalNum += 1
+					}
+				}
+			}
+		}
+		fmt.Println(totalNum)
+
+	}
+	return totalNum
+}
+
 func main() {
 	file, err := os.Open("2024/day4/input")
 	if err != nil {
@@ -79,4 +100,5 @@ func main() {
 
 	printStringSlice(words)
 	fmt.Println(search(words))
+	fmt.Println("Day 4.2:", searchx_mas(words))
 }
