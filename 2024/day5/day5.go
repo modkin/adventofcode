@@ -5,33 +5,25 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 )
 
-func getIdx(in int, update []int) int {
-	for i, i2 := range update {
-		if i2 == in {
-			return i
-		}
-	}
-	return -1
-}
-
-func checkUpdate(update []int, rules [][2]int) int {
+func checkUpdate(update []int, rules [][2]int) (bool, int) {
 	middleElement := update[(len(update)-1)/2]
 	for i, curUpdate := range update {
 		for _, rule := range rules {
 			if curUpdate == rule[0] || curUpdate == rule[1] {
-				idx := getIdx(rule[1], update)
+				idx := slices.Index(update, rule[1]) //getIdx(rule[1], update)
 				if idx != -1 {
 					if idx < i {
-						return 0
+						return false, 0
 					}
 				}
 			}
 		}
 	}
-	return middleElement
+	return true, middleElement
 }
 
 func main() {
@@ -50,7 +42,6 @@ func main() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if scanRules {
-
 			if line == "" {
 				scanRules = false
 				continue
@@ -67,11 +58,32 @@ func main() {
 		}
 	}
 	sum := 0
+	var incorrectUpdates [][]int
 	for _, page := range pages {
-		sum += checkUpdate(page, orderRules)
+		correct, middle := checkUpdate(page, orderRules)
+		//fmt.Println(middle)
+		sum += middle
+		if !correct {
+			incorrectUpdates = append(incorrectUpdates, utils.CopyIntSlice(page))
+		}
+	}
+	fmt.Println("Day 5.1:", sum)
+	//fmt.Println(incorrectUpdates)
+	sum2 := 0
+	cmp := func(a, b int) int {
+		for _, rule := range orderRules {
+			if rule[0] == a && rule[1] == b {
+				return -1
+			} else if rule[1] == a && rule[0] == b {
+				return 1
+			}
+		}
+		return 0
+	}
+	for _, update := range incorrectUpdates {
+		slices.SortFunc(update, cmp)
+		sum2 += update[(len(update)-1)/2]
 	}
 
-	fmt.Println(orderRules)
-	fmt.Println(pages)
-	fmt.Println(sum)
+	fmt.Println("Day 5.2:", sum2)
 }
