@@ -318,6 +318,24 @@ func main() {
 			}
 		}
 	}
-	fmt.Println(len(uniqueBeacons))
+	fmt.Println("Day 19.1:", len(uniqueBeacons))
 
+	var scannerOffsetFromZero [][3]int
+	for ints, c := range offSetMap {
+		if ints[0] == 0 {
+			scannerOffsetFromZero = append(scannerOffsetFromZero, c.offset)
+		}
+	}
+	maxDist := 0
+	for i, off1 := range scannerOffsetFromZero {
+		for j, off2 := range scannerOffsetFromZero {
+			dist := utils.IntAbs(off1[0]-off2[0]) + utils.IntAbs(off1[1]-off2[1]) + utils.IntAbs(off1[2]-off2[2])
+
+			if dist > maxDist {
+				maxDist = dist
+				fmt.Println(i, j, dist, off1, off2)
+			}
+		}
+	}
+	fmt.Println("Day 19.2:", maxDist)
 }
