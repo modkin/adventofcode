@@ -48,7 +48,7 @@ func move(guard guardPos, lab map[[2]int]string) guardPos {
 	return guard
 }
 
-func getLeavingSteps(guard guardPos, labor map[[2]int]string, xMax, yMax int) int {
+func getLeavingSteps(guard guardPos, labor map[[2]int]string, xMax, yMax int) (int, map[[2]int]bool) {
 	visited := make(map[[2]int]bool)
 	loop := make(map[[2]int]string)
 	for guard.pos[0] >= 0 && guard.pos[0] < xMax && guard.pos[1] >= 0 && guard.pos[1] < yMax {
@@ -56,10 +56,10 @@ func getLeavingSteps(guard guardPos, labor map[[2]int]string, xMax, yMax int) in
 		visited[guard.pos] = true
 		guard = move(guard, labor)
 		if strings.Contains(loop[guard.pos], guard.dir) {
-			return 0
+			return 0, visited
 		}
 	}
-	return len(visited)
+	return len(visited), visited
 }
 
 func main() {
@@ -92,24 +92,22 @@ func main() {
 	}
 	yMax = y
 
-	fmt.Println("Day 6.1:", getLeavingSteps(guard, labor, xMax, yMax))
+	part1, guardPath := getLeavingSteps(guard, labor, xMax, yMax)
+	fmt.Println("Day 6.1:", part1)
 
 	counter := 0
-	for x := 0; x < xMax; x++ {
-		for y = 0; y < yMax; y++ {
-			if !(x == guard.pos[0] && y == guard.pos[1]) {
-				if _, ok := labor[[2]int{x, y}]; !ok {
-					labor[[2]int{x, y}] = "O"
-					//utils.Print2DStringsGrid(labor)
-					steps := getLeavingSteps(guard, labor, xMax, yMax)
-					if steps == 0 {
-						counter++
+	for block := range guardPath {
+		if guard.pos != block {
+			labor[block] = "O"
+			//utils.Print2DStringsGrid(labor)
+			steps, _ := getLeavingSteps(guard, labor, xMax, yMax)
+			if steps == 0 {
+				counter++
 
-					}
-					delete(labor, [2]int{x, y})
-				}
 			}
+			delete(labor, block)
 		}
 	}
+
 	fmt.Println("Day 6.2:", counter)
 }
