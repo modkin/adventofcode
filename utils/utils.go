@@ -97,6 +97,10 @@ func Sum(one [2]int, two [2]int) [2]int {
 	return [2]int{one[0] + two[0], one[1] + two[1]}
 }
 
+func Sum3(one [3]int, two [3]int) [3]int {
+	return [3]int{one[0] + two[0], one[1] + two[1], one[2] + two[2]}
+}
+
 func SliceContains(list []string, s string) bool {
 	for _, elem := range list {
 		if s == elem {
