@@ -12,10 +12,10 @@ type guardPos struct {
 	dir string
 }
 
-func move(guard guardPos, lab map[[2]int]string) guardPos {
+func move(guard guardPos, lab map[[2]int]string, block [2]int) guardPos {
 	if guard.dir == "^" {
 		newPos := [2]int{guard.pos[0], guard.pos[1] - 1}
-		if _, ok := lab[newPos]; ok {
+		if _, ok := lab[newPos]; ok || newPos == block {
 			guard.dir = ">"
 		} else {
 			guard.pos = newPos
@@ -23,7 +23,7 @@ func move(guard guardPos, lab map[[2]int]string) guardPos {
 	}
 	if guard.dir == ">" {
 		newPos := [2]int{guard.pos[0] + 1, guard.pos[1]}
-		if _, ok := lab[newPos]; ok {
+		if _, ok := lab[newPos]; ok || newPos == block {
 			guard.dir = "v"
 		} else {
 			guard.pos = newPos
@@ -31,7 +31,7 @@ func move(guard guardPos, lab map[[2]int]string) guardPos {
 	}
 	if guard.dir == "v" {
 		newPos := [2]int{guard.pos[0], guard.pos[1] + 1}
-		if _, ok := lab[newPos]; ok {
+		if _, ok := lab[newPos]; ok || newPos == block {
 			guard.dir = "<"
 		} else {
 			guard.pos = newPos
@@ -39,7 +39,7 @@ func move(guard guardPos, lab map[[2]int]string) guardPos {
 	}
 	if guard.dir == "<" {
 		newPos := [2]int{guard.pos[0] - 1, guard.pos[1]}
-		if _, ok := lab[newPos]; ok {
+		if _, ok := lab[newPos]; ok || newPos == block {
 			guard.dir = "^"
 		} else {
 			guard.pos = newPos
@@ -48,18 +48,28 @@ func move(guard guardPos, lab map[[2]int]string) guardPos {
 	return guard
 }
 
-func getLeavingSteps(guard guardPos, labor map[[2]int]string, xMax, yMax int) (int, map[[2]int]bool) {
+func getDefaultRoute(guard guardPos, labor map[[2]int]string, xMax, yMax int) (int, map[[2]int]bool) {
 	visited := make(map[[2]int]bool)
+	for guard.pos[0] >= 0 && guard.pos[0] < xMax && guard.pos[1] >= 0 && guard.pos[1] < yMax {
+		visited[guard.pos] = true
+		nonBlockBlock := [2]int{-10, -10}
+		guard = move(guard, labor, nonBlockBlock)
+	}
+	return len(visited), visited
+}
+
+func checkLoop(guard guardPos, labor map[[2]int]string, block [2]int, xMax, yMax int, c chan bool) bool {
 	loop := make(map[[2]int]string)
 	for guard.pos[0] >= 0 && guard.pos[0] < xMax && guard.pos[1] >= 0 && guard.pos[1] < yMax {
 		loop[guard.pos] += guard.dir
-		visited[guard.pos] = true
-		guard = move(guard, labor)
+		guard = move(guard, labor, block)
 		if strings.Contains(loop[guard.pos], guard.dir) {
-			return 0, visited
+			c <- true
+			return true
 		}
 	}
-	return len(visited), visited
+	c <- false
+	return false
 }
 
 func main() {
@@ -92,20 +102,22 @@ func main() {
 	}
 	yMax = y
 
-	part1, guardPath := getLeavingSteps(guard, labor, xMax, yMax)
+	part1, guardPath := getDefaultRoute(guard, labor, xMax, yMax)
 	fmt.Println("Day 6.1:", part1)
 
 	counter := 0
-	for block := range guardPath {
-		if guard.pos != block {
-			labor[block] = "O"
-			//utils.Print2DStringsGrid(labor)
-			steps, _ := getLeavingSteps(guard, labor, xMax, yMax)
-			if steps == 0 {
-				counter++
+	c := make(chan bool, len(guardPath))
 
-			}
-			delete(labor, block)
+	delete(guardPath, guard.pos)
+	for block := range guardPath {
+		go func(block [2]int) {
+			checkLoop(guard, labor, block, xMax, yMax, c)
+		}(block)
+	}
+
+	for range guardPath {
+		if <-c {
+			counter++
 		}
 	}
 
