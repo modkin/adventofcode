@@ -5,12 +5,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type equation struct {
 	expected int
 	list     []int
+}
+
+func concatInts(one, two int) int {
+	return utils.ToInt(strconv.Itoa(one) + strconv.Itoa(two))
+
 }
 
 func main() {
@@ -47,6 +53,7 @@ outer:
 			for _, result := range possibleResults {
 				newPossResulsts = append(newPossResulsts, result+op)
 				newPossResulsts = append(newPossResulsts, result*op)
+				newPossResulsts = append(newPossResulsts, concatInts(result, op))
 			}
 			possibleResults = newPossResulsts
 
