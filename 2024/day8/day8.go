@@ -47,18 +47,32 @@ func main() {
 	yMax = y
 
 	antiNodes := make(map[[2]int]bool)
+	antiNodesPart1 := make(map[[2]int]bool)
 	for _, allPos := range antennas {
 		for one, _ := range allPos {
+			antiNodes[one] = true
 			for two, _ := range allPos {
 				if one != two {
 					dir := getDir(one, two)
-					antiPos := addVec(addVec(one, dir), dir)
-					if antiPos[0] >= 0 && antiPos[0] < xMax && antiPos[1] >= 0 && antiPos[1] < yMax {
-						antiNodes[antiPos] = true
+					antiPos := addVec(one, dir)
+					part1 := true
+					for {
+						antiPos = addVec(antiPos, dir)
+						if antiPos[0] >= 0 && antiPos[0] < xMax && antiPos[1] >= 0 && antiPos[1] < yMax {
+							antiNodes[antiPos] = true
+							if part1 {
+								antiNodesPart1[antiPos] = true
+								part1 = false
+							}
+						} else {
+							break
+						}
 					}
 				}
 			}
 		}
 	}
-	fmt.Println(len(antiNodes))
+	fmt.Println("Day 8.1:", len(antiNodesPart1))
+	fmt.Println("Day 8.2:", len(antiNodes))
+	//utils.Print2DStringGrid(antiNodes)
 }
