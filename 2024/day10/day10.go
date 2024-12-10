@@ -93,6 +93,8 @@ func main() {
 	for _, i := range scores {
 		sum += len(i)
 	}
-	fmt.Println(sum)
+	fmt.Println("Day 10.1:", sum)
+
+	fmt.Println("Day 10.2:", len(allPath))
 
 }
