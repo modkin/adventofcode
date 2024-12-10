@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
 	"math"
 	"os"
@@ -373,4 +374,18 @@ func SliceMax[K int](in []K) (max K) {
 func StringIsInt(input string) bool {
 	_, err := strconv.Atoi(input)
 	return err == nil
+}
+
+func ReadFileIntoLines(input string) (line []string) {
+	file, err := os.Open(input)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line = append(line, scanner.Text())
+	}
+	return line
 }
