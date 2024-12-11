@@ -44,7 +44,7 @@ func main() {
 	//	allMember = append(allMember, tmp)
 	//}
 	//timestamp := time.Now()
-	daysDone := 10
+	daysDone := 20
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2), make([]int, daysDone*2)}
