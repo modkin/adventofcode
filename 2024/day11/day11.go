@@ -46,60 +46,36 @@ func blink(stones []int) (output []int) {
 	return stones
 }
 
-func do5Blinks(stones []int) (output []int) {
-	output = utils.CopyIntSlice(stones)
-	for i := 0; i < 5; i++ {
-		output = blink(output)
+func countMap(input map[int]int) (sum int) {
+	for _, count := range input {
+		sum += count
 	}
-	return output
-}
-func doHashedBlinks(stones []int, hash map[int][]int, totalSteps int) (output []int) {
-
-	for steps := 0; steps < totalSteps; steps++ {
-		var newStone2 []int
-		for _, i2 := range stones {
-			if val, ok := hash[i2]; ok {
-				newStone2 = append(newStone2, val...)
-			} else {
-				tmp5 := do5Blinks([]int{i2})
-				newStone2 = append(newStone2, tmp5...)
-				hash[i2] = tmp5
-			}
-		}
-		stones = newStone2
-		//fmt.Println(steps, len(stones))
-	}
-	return stones
+	return
 }
 
 func main() {
 	lines := utils.ReadFileIntoLines("2024/day11/input")
 
-	stones := make([]int, 0)
+	stoneCount := make(map[int]int)
 	for _, line := range lines {
 		split := strings.Split(line, " ")
 		for _, s := range split {
-			stones = append(stones, utils.ToInt(s))
+			stoneCount[utils.ToInt(s)]++
 		}
 	}
 
-	hash5 := make(map[int][]int)
-	stones = doHashedBlinks(stones, hash5, 5)
-	fmt.Println("Day 11.1:", len(stones))
-
-	stones = doHashedBlinks(stones, hash5, 3)
-
-	hash35 := make(map[int]int)
-	sum := 0
-	for _, i2 := range stones {
-		if val, ok := hash35[i2]; ok {
-			sum += val
-		} else {
-			tmp35 := doHashedBlinks([]int{i2}, hash5, 7)
-			hash35[i2] = len(tmp35)
-			sum += len(tmp35)
+	for i := 0; i < 75; i++ {
+		if i == 25 {
+			fmt.Println("Day 11.1:", countMap(stoneCount))
 		}
+		newStoneCount := make(map[int]int)
+		for stone, count := range stoneCount {
+			tmp := blink([]int{stone})
+			for _, st := range tmp {
+				newStoneCount[st] += count
+			}
+		}
+		stoneCount = newStoneCount
 	}
-	fmt.Println("Day 11.2:", sum)
-
+	fmt.Println("Day 11.2:", countMap(stoneCount))
 }
