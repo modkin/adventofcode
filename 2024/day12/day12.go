@@ -3,13 +3,96 @@ package main
 import (
 	"adventofcode/utils"
 	"golang.org/x/exp/errors/fmt"
+	"math"
 	"strconv"
 	"strings"
 )
 
 type plotType struct {
 	area      int
+	allArea   map[[2]int]bool
 	perimeter map[[2]float64]bool
+}
+
+func clacSides(plot plotType) int {
+	//checked := make(map[[2]float64]bool)
+
+	input := plot.perimeter
+	counter := 0
+	for len(input) > 0 {
+		for pos1, _ := range input {
+			toDelete := [][2]float64{}
+			toDelete = append(toDelete, pos1)
+
+			if math.Abs(math.Mod(pos1[0], 1)) == 0.5 {
+
+				xPos := pos1[1] - 1
+				for {
+					if plot.allArea[[2]int{int(pos1[0] - 0.5), int(pos1[1])}] == plot.allArea[[2]int{int(pos1[0] - 0.5), int(xPos)}] ||
+						plot.allArea[[2]int{int(pos1[0] + 0.5), int(pos1[1])}] == plot.allArea[[2]int{int(pos1[0] + 0.5), int(xPos)}] {
+						if _, ok := input[[2]float64{pos1[0], xPos}]; ok {
+							toDelete = append(toDelete, [2]float64{pos1[0], xPos})
+							xPos--
+						} else {
+							break
+						}
+					} else {
+						break
+					}
+				}
+				xPos = pos1[1] + 1
+				for {
+					if plot.allArea[[2]int{int(pos1[0] - 0.5), int(pos1[1])}] == plot.allArea[[2]int{int(pos1[0] - 0.5), int(xPos)}] ||
+						plot.allArea[[2]int{int(pos1[0] + 0.5), int(pos1[1])}] == plot.allArea[[2]int{int(pos1[0] + 0.5), int(xPos)}] {
+						if _, ok := input[[2]float64{pos1[0], xPos}]; ok {
+							toDelete = append(toDelete, [2]float64{pos1[0], xPos})
+							xPos++
+						} else {
+							break
+						}
+					} else {
+						break
+					}
+				}
+			} else {
+				yPos := pos1[0] - 1
+				for {
+					if plot.allArea[[2]int{int(pos1[0]), int(pos1[1] - 0.5)}] == plot.allArea[[2]int{int(yPos), int(pos1[1] - 0.5)}] ||
+						plot.allArea[[2]int{int(pos1[0]), int(pos1[1] + 0.5)}] == plot.allArea[[2]int{int(yPos), int(pos1[1] + 0.5)}] {
+						if _, ok := input[[2]float64{yPos, pos1[1]}]; ok {
+							toDelete = append(toDelete, [2]float64{yPos, pos1[1]})
+							yPos--
+						} else {
+							break
+						}
+					} else {
+						break
+					}
+				}
+				yPos = pos1[0] + 1
+				for {
+					if plot.allArea[[2]int{int(pos1[0]), int(pos1[1] - 0.5)}] == plot.allArea[[2]int{int(yPos), int(pos1[1] - 0.5)}] ||
+						plot.allArea[[2]int{int(pos1[0]), int(pos1[1] + 0.5)}] == plot.allArea[[2]int{int(yPos), int(pos1[1] + 0.5)}] {
+						if _, ok := input[[2]float64{yPos, pos1[1]}]; ok {
+							toDelete = append(toDelete, [2]float64{yPos, pos1[1]})
+							yPos++
+						} else {
+							break
+						}
+					} else {
+						break
+					}
+				}
+			}
+
+			for _, p := range toDelete {
+				delete(input, p)
+			}
+			counter++
+			break
+		}
+	}
+	return counter
 }
 
 func main() {
@@ -76,9 +159,9 @@ func main() {
 				input[ints[0]][ints[1]] = input[ints[0]][ints[1]] + strconv.Itoa(typeCounter[plant])
 				allChecked[ints] = true
 			}
-			fmt.Println(plant)
-			utils.Print2DStringGrid(plantArea)
-			fmt.Println(input)
+
+			//utils.Print2DStringGrid(plantArea)
+
 			typeCounter[plant] = typeCounter[plant] + 1
 		}
 	}
@@ -86,10 +169,11 @@ func main() {
 	for y, line := range input {
 		for x, plant := range line {
 			if _, ok := allPlots[plant]; !ok {
-				allPlots[plant] = plotType{perimeter: make(map[[2]float64]bool)}
+				allPlots[plant] = plotType{allArea: make(map[[2]int]bool), perimeter: make(map[[2]float64]bool)}
 			}
 			plot := allPlots[plant]
 			plot.area = plot.area + 1
+			plot.allArea[[2]int{y, x}] = true
 			if x == 0 || input[y][x-1] != plant {
 				plot.perimeter[[2]float64{float64(y), float64(x) - 0.5}] = true
 			}
@@ -107,9 +191,16 @@ func main() {
 	}
 
 	sum := 0
+	sum2 := 0
 	for t, b := range allPlots {
-		fmt.Println(t, b.area*len(b.perimeter), b.area, len(b.perimeter), b.perimeter)
+		if b.area != len(b.allArea) {
+			fmt.Println("ERROR")
+		}
 		sum += b.area * len(b.perimeter)
+		sides := clacSides(b)
+		sum2 += b.area * sides
+		fmt.Println(t, sides, b.area*len(b.perimeter), b.area, len(b.perimeter))
 	}
 	fmt.Println(sum)
+	fmt.Println(sum2)
 }
