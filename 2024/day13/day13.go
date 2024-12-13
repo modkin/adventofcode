@@ -3,6 +3,7 @@ package main
 import (
 	"adventofcode/utils"
 	"fmt"
+	"os"
 	"regexp"
 )
 
@@ -33,24 +34,24 @@ func solve(ma machine, part1 bool) (bool, [2]int) {
 }
 
 func main() {
-	lines := utils.ReadFileIntoLines("2024/day13/input")
+	file, err := os.ReadFile("2024/day13/input")
+	if err != nil {
+		panic(err)
+	}
 
-	mach := regexp.MustCompile(`Button .: X(.\d*), Y(.\d*).*`)
-	regPrice := regexp.MustCompile(`.*X.(\d*), Y.(\d*).*`)
+	fullReg := regexp.MustCompile(`.*\+(\d*), Y.?(\d*)\n.*\+(\d*), Y.?(\d*)\n.*=(\d*), Y=(\d*)`)
 
 	var allMachines []machine
-	for i := 0; i < len(lines); i += 4 {
 
-		coordsA := mach.FindStringSubmatch(lines[i+0])
-		coordsB := mach.FindStringSubmatch(lines[i+1])
-		a := [2]int{utils.ToInt(coordsA[1]), utils.ToInt(coordsA[2])}
-		b := [2]int{utils.ToInt(coordsB[1]), utils.ToInt(coordsB[2])}
-		coordsPrice := regPrice.FindStringSubmatch(lines[i+2])
-		price := [2]int{utils.ToInt(coordsPrice[1]), utils.ToInt(coordsPrice[2])}
-		price2 := [2]int{utils.ToInt(coordsPrice[1]) + 10000000000000, utils.ToInt(coordsPrice[2]) + 10000000000000}
+	for _, strings := range fullReg.FindAllStringSubmatch(string(file), -1) {
+		a := [2]int{utils.ToInt(strings[1]), utils.ToInt(strings[2])}
+		b := [2]int{utils.ToInt(strings[3]), utils.ToInt(strings[4])}
+		price := [2]int{utils.ToInt(strings[5]), utils.ToInt(strings[6])}
+		price2 := [2]int{utils.ToInt(strings[5]) + 10000000000000, utils.ToInt(strings[6]) + 10000000000000}
 		newMach := machine{a: a, b: b, price: price, price2: price2}
 		allMachines = append(allMachines, newMach)
 	}
+
 	sum1 := 0
 	sum2 := 0
 
