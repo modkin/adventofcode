@@ -201,7 +201,7 @@ func Print2DIntGrid(grid map[[2]int]int) {
 			if val, ok := grid[[2]int{x, y}]; ok {
 				fmt.Print(val)
 			} else {
-				fmt.Print(".")
+				fmt.Print(" ")
 			}
 		}
 		fmt.Println()
