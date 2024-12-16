@@ -31,6 +31,10 @@ func AddPoints(one, two [2]int) [2]int {
 	return [2]int{one[0] + two[0], one[1] + two[1]}
 }
 
+func SubPoints(one, two [2]int) [2]int {
+	return [2]int{two[0] - one[0], two[1] - one[1]}
+}
+
 func Neighbours4Pt(p [2]int, g map[[2]int]string) map[[2]int]string {
 	ret := make(map[[2]int]string)
 	for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
@@ -71,6 +75,54 @@ func printCost(grid map[[2]int]posType) {
 	}
 }
 
+func getCost(path [][2]int) int {
+
+	totalCost := 0
+	dir := [2]int{1, 0}
+	for i, _ := range path {
+		if i == 0 {
+			continue
+		}
+		totalCost++
+		if newDir := SubPoints(path[i-1], path[i]); newDir != dir {
+			totalCost += 1000
+			dir = newDir
+		}
+
+	}
+	return totalCost
+}
+
+func pathContains(path [][2]int, p [2]int) bool {
+	for _, ints := range path {
+		if p == ints {
+			return true
+		}
+	}
+	return false
+}
+
+func copyPath(path [][2]int) [][2]int {
+	ret := [][2]int{}
+	for _, ints := range path {
+		ret = append(ret, ints)
+	}
+	return ret
+}
+
+func getMinPathIdx(pathes [][][2]int) int {
+	minCost := math.MaxInt
+	minIdx := -1
+	for i, path := range pathes {
+		if cost := getCost(path); cost < minCost {
+			minCost = cost
+			minIdx = i
+		}
+	}
+	return minIdx
+
+}
+
 func main() {
 	lines := utils.ReadFileIntoLines("2024/day16/input")
 
@@ -78,6 +130,7 @@ func main() {
 
 	cost := make(map[[2]int]posType)
 	visited := make(map[[2]int]bool)
+	var start [2]int
 	var target [2]int
 	for y, line := range lines {
 		split := strings.Split(line, "")
@@ -86,6 +139,7 @@ func main() {
 				maze[[2]int{x, y}] = "."
 				p := posType{dir: [2]int{1, 0}, pos: [2]int{x, y}, cost: 0}
 				cost[[2]int{x, y}] = p
+				start = [2]int{x, y}
 			} else if s == "E" {
 				maze[[2]int{x, y}] = "."
 				target = [2]int{x, y}
@@ -98,8 +152,6 @@ func main() {
 			}
 		}
 	}
-
-	printCost(cost)
 
 	for minP := findMin(cost, visited); minP.pos != target; minP = findMin(cost, visited) {
 		visited[minP.pos] = true
@@ -117,17 +169,72 @@ func main() {
 			if cost[nextPos].cost > nextCost {
 				cost[nextPos] = posType{pos: nextPos, dir: nextDir, cost: nextCost}
 			}
-
 		}
 		//utils.Print2DStringGrid(visited)
 	}
 
-	fmt.Println(cost[[2]int{1, 13}])
-	fmt.Println(cost[[2]int{1, 12}])
-	fmt.Println(cost[[2]int{1, 11}])
-	fmt.Println(cost[[2]int{1, 10}])
-	fmt.Println(cost[[2]int{1, 9}])
-	fmt.Println(cost[[2]int{2, 9}])
-
 	fmt.Println(cost[target].cost)
+
+	targetCost := cost[target].cost
+
+	allPath := [][][2]int{}
+
+	allSeats := make(map[[2]int]bool)
+
+	startPath := [][2]int{start}
+	allPath = append(allPath, startPath)
+
+	counter := 0
+	for len(allPath) != 0 {
+		minPathIdx := getMinPathIdx(allPath)
+		path := allPath[minPathIdx]
+		allPath = append(allPath[:minPathIdx], allPath[minPathIdx+1:]...)
+		//for _, path := range allPath {
+
+		for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+			nextPos := AddPoints(path[len(path)-1], offset)
+			if maze[nextPos] == "#" {
+				continue
+			}
+			if pathContains(path, nextPos) {
+				continue
+			}
+
+			newPath := append(copyPath(path), nextPos)
+			if nextPos == target {
+				for _, ints := range newPath {
+					allSeats[ints] = true
+				}
+				//} else if cost[nextPos].cost > targetCost {
+				//	continue
+				//} else if getCost(path) >= targetCost {
+			} else if newCost := getCost(newPath); newCost == cost[nextPos].cost || newCost == (cost[nextPos].cost+1000) {
+				allPath = append(allPath, newPath)
+			}
+		}
+		//fmt.Println("-----------", counter, "-----------")
+		//for i, i2 := range allPath {
+		//	tmp := make(map[[2]int]bool)
+		//	for _, ints := range i2 {
+		//		tmp[ints] = true
+		//	}
+		//	fmt.Println(i)
+		//	utils.Print2DStringGrid(tmp)
+		//}
+		counter++
+	}
+
+	totalSum := 0
+
+	for _, p := range cost {
+		if p.cost < targetCost {
+			totalSum++
+		}
+	}
+	fmt.Println(totalSum)
+
+	utils.Print2DStringGrid(allSeats)
+
+	fmt.Println("Day 16.2:", len(allSeats))
+
 }
