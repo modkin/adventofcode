@@ -2,7 +2,7 @@ package main
 
 import (
 	"adventofcode/utils"
-	"golang.org/x/exp/errors/fmt"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
