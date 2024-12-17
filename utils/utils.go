@@ -37,6 +37,14 @@ func ToInt(str string) int {
 	return ret
 }
 
+func ToUint(str string) uint {
+	ret, err := strconv.Atoi(strings.TrimSpace(str))
+	if err != nil {
+		panic(err)
+	}
+	return uint(ret)
+}
+
 func IntAbs(x int) int {
 	return int(math.Abs(float64(x)))
 }
