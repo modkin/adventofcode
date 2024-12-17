@@ -2,9 +2,11 @@ package main
 
 import (
 	"adventofcode/utils"
+	"container/heap"
 	"fmt"
 	"math"
 	"strings"
+	"time"
 )
 
 type posType struct {
@@ -75,8 +77,11 @@ func printCost(grid map[[2]int]posType) {
 	}
 }
 
+var getCostTime time.Duration
+
 func getCost(path [][2]int) int {
 
+	tmp := time.Now()
 	totalCost := 0
 	dir := [2]int{1, 0}
 	for i, _ := range path {
@@ -88,16 +93,14 @@ func getCost(path [][2]int) int {
 			totalCost += 1000
 			dir = newDir
 		}
-
 	}
+	getCostTime += (time.Now().Sub(tmp))
 	return totalCost
 }
 
 func pathContains(path [][2]int, p [2]int) bool {
-	for _, ints := range path {
-		if p == ints {
-			return true
-		}
+	if p == path[len(path)-1] {
+		return true
 	}
 	return false
 }
@@ -121,6 +124,46 @@ func getMinPathIdx(pathes [][][2]int) int {
 	}
 	return minIdx
 
+}
+
+type posHeap []posType
+
+func (h posHeap) Len() int           { return len(h) }
+func (h posHeap) Less(i, j int) bool { return h[i].cost < h[j].cost }
+func (h posHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *posHeap) Push(x any) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.(posType))
+}
+
+func (h *posHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+type pathHeap [][][2]int
+
+func (h pathHeap) Len() int           { return len(h) }
+func (h pathHeap) Less(i, j int) bool { return getCost(h[i]) < getCost(h[j]) }
+func (h pathHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *pathHeap) Push(x any) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.([][2]int))
+}
+
+func (h *pathHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
 }
 
 func main() {
@@ -153,7 +196,21 @@ func main() {
 		}
 	}
 
-	for minP := findMin(cost, visited); minP.pos != target; minP = findMin(cost, visited) {
+	h := &posHeap{}
+	heap.Init(h)
+	for _, p := range cost {
+		heap.Push(h, p)
+	}
+	startDijkstra := time.Now()
+
+	for {
+		minP := heap.Pop(h).(posType)
+		if minP.pos == target {
+			break
+		}
+		if _, ok := visited[minP.pos]; ok {
+			continue
+		}
 		visited[minP.pos] = true
 		for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 			nextPos := AddPoints(minP.pos, offset)
@@ -166,62 +223,55 @@ func main() {
 				turnCost = 1000
 			}
 			nextCost := minP.cost + 1 + turnCost
-			if cost[nextPos].cost > nextCost {
-				cost[nextPos] = posType{pos: nextPos, dir: nextDir, cost: nextCost}
+			nextPosCost := cost[nextPos]
+			if nextPosCost.cost > nextCost {
+				newP := posType{cost: nextCost, pos: nextPos, dir: nextDir}
+				heap.Push(h, newP)
+				cost[nextPos] = newP
 			}
 		}
+
 		//utils.Print2DStringGrid(visited)
 	}
+	fmt.Println(time.Now().Sub(startDijkstra))
+	//fmt.Println(len(cost), dijCounter)
 
-	fmt.Println(cost[target].cost)
+	fmt.Println("Day 16.1:", cost[target].cost)
 
 	targetCost := cost[target].cost
-
-	allPath := [][][2]int{}
 
 	allSeats := make(map[[2]int]bool)
 
 	startPath := [][2]int{start}
-	allPath = append(allPath, startPath)
+	ph := &pathHeap{}
+	heap.Init(ph)
 
-	counter := 0
-	for len(allPath) != 0 {
-		minPathIdx := getMinPathIdx(allPath)
-		path := allPath[minPathIdx]
-		allPath = append(allPath[:minPathIdx], allPath[minPathIdx+1:]...)
-		//for _, path := range allPath {
+	heap.Push(ph, startPath)
 
+	for ph.Len() > 0 {
+		path := heap.Pop(ph).([][2]int)
+		firstBranch := true
 		for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 			nextPos := AddPoints(path[len(path)-1], offset)
 			if maze[nextPos] == "#" {
 				continue
 			}
-			if pathContains(path, nextPos) {
-				continue
-			}
 
-			newPath := append(copyPath(path), nextPos)
+			var newPath [][2]int
+			if firstBranch {
+				newPath = append(path, nextPos)
+				firstBranch = false
+			} else {
+				newPath = append(copyPath(path), nextPos)
+			}
 			if nextPos == target {
 				for _, ints := range newPath {
 					allSeats[ints] = true
 				}
-				//} else if cost[nextPos].cost > targetCost {
-				//	continue
-				//} else if getCost(path) >= targetCost {
 			} else if newCost := getCost(newPath); newCost == cost[nextPos].cost || newCost == (cost[nextPos].cost+1000) {
-				allPath = append(allPath, newPath)
+				heap.Push(ph, newPath)
 			}
 		}
-		//fmt.Println("-----------", counter, "-----------")
-		//for i, i2 := range allPath {
-		//	tmp := make(map[[2]int]bool)
-		//	for _, ints := range i2 {
-		//		tmp[ints] = true
-		//	}
-		//	fmt.Println(i)
-		//	utils.Print2DStringGrid(tmp)
-		//}
-		counter++
 	}
 
 	totalSum := 0
@@ -231,10 +281,9 @@ func main() {
 			totalSum++
 		}
 	}
-	fmt.Println(totalSum)
-
-	utils.Print2DStringGrid(allSeats)
 
 	fmt.Println("Day 16.2:", len(allSeats))
+	fmt.Println(time.Now().Sub(startDijkstra))
+	fmt.Println("getCostTime", getCostTime)
 
 }
