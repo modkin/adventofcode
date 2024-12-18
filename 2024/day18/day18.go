@@ -81,39 +81,67 @@ func main() {
 	cost := make(map[[2]int]int)
 	cost[start] = 0
 
-	for {
-		minP := heap.Pop(h).(posType)
-		if minP.pos == target {
-			fmt.Println(minP.cost)
+	try := func() bool {
+		for {
+			if h.Len() == 0 {
+				return false
+			}
+			minP := heap.Pop(h).(posType)
+			if minP.pos == target {
+				fmt.Println(minP.cost)
+				return true
+			}
+
+			visited[minP.pos] = true
+			for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
+
+				nextPos := AddPoints(minP.pos, offset)
+				if _, ok := visited[nextPos]; ok {
+					continue
+				}
+				if _, ok := memory[nextPos]; ok {
+					continue
+				}
+				if nextPos[0] < 0 || nextPos[0] >= xMax || nextPos[1] < 0 || nextPos[1] >= yMax {
+					continue
+				}
+
+				nextCost := minP.cost + 1
+				if val, ok := cost[nextPos]; !ok || val > nextCost {
+					newP := posType{cost: nextCost, pos: nextPos}
+					heap.Push(h, newP)
+					cost[nextPos] = nextCost
+				}
+			}
+
+			//fmt.Println(h)
+		}
+	}
+
+	for i, line := range lines {
+
+		if i < stop {
+			continue
+		}
+
+		split := strings.Split(line, ",")
+		memory[[2]int{utils.ToInt(split[0]), utils.ToInt(split[1])}] = true
+		//utils.Print2DStringGrid(memory)
+		visited = make(map[[2]int]bool)
+		visited[start] = true
+		for h.Len() > 0 {
+			h.Pop()
+		}
+		heap.Push(h, posType{pos: start, cost: 0})
+
+		cost = make(map[[2]int]int)
+		cost[start] = 0
+		out := try()
+		if !out {
+			fmt.Println("Gone", split)
 			break
 		}
 
-		visited[minP.pos] = true
-		for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
-
-			nextPos := AddPoints(minP.pos, offset)
-			if _, ok := visited[nextPos]; ok {
-				continue
-			}
-			if _, ok := memory[nextPos]; ok {
-				continue
-			}
-			if nextPos[0] < 0 || nextPos[0] >= xMax || nextPos[1] < 0 || nextPos[1] >= yMax {
-				continue
-			}
-
-			nextCost := minP.cost + 1
-			if val, ok := cost[nextPos]; !ok || val > nextCost {
-				newP := posType{cost: nextCost, pos: nextPos}
-				heap.Push(h, newP)
-				cost[nextPos] = nextCost
-			}
-		}
-
-		//fmt.Println(h)
 	}
-	utils.Print2DStringGrid(visited)
-	fmt.Println(cost)
-	fmt.Println(cost[target])
 
 }
