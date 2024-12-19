@@ -68,37 +68,30 @@ func main() {
 		memory[[2]int{utils.ToInt(split[0]), utils.ToInt(split[1])}] = true
 
 	}
-	utils.Print2DStringGrid(memory)
+	//utils.Print2DStringGrid(memory)
 
-	fmt.Println(start, target)
+	//fmt.Println(start, target)
 
 	h := &posHeap{}
 	heap.Init(h)
 	heap.Push(h, posType{pos: start, cost: 0})
-	visited := make(map[[2]int]bool)
-	visited[start] = true
 
 	cost := make(map[[2]int]int)
 	cost[start] = 0
 
-	try := func() bool {
+	try := func() (bool, int) {
 		for {
 			if h.Len() == 0 {
-				return false
+				return false, -1
 			}
 			minP := heap.Pop(h).(posType)
 			if minP.pos == target {
-				fmt.Println(minP.cost)
-				return true
+				//fmt.Println(minP.cost)
+				return true, minP.cost
 			}
-
-			visited[minP.pos] = true
 			for _, offset := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
 
 				nextPos := AddPoints(minP.pos, offset)
-				if _, ok := visited[nextPos]; ok {
-					continue
-				}
 				if _, ok := memory[nextPos]; ok {
 					continue
 				}
@@ -118,6 +111,9 @@ func main() {
 		}
 	}
 
+	_, part1 := try()
+	fmt.Println("Day 18.1:", part1)
+
 	for i, line := range lines {
 
 		if i < stop {
@@ -127,8 +123,6 @@ func main() {
 		split := strings.Split(line, ",")
 		memory[[2]int{utils.ToInt(split[0]), utils.ToInt(split[1])}] = true
 		//utils.Print2DStringGrid(memory)
-		visited = make(map[[2]int]bool)
-		visited[start] = true
 		for h.Len() > 0 {
 			h.Pop()
 		}
@@ -136,9 +130,9 @@ func main() {
 
 		cost = make(map[[2]int]int)
 		cost[start] = 0
-		out := try()
+		out, _ := try()
 		if !out {
-			fmt.Println("Gone", split)
+			fmt.Println("Day 18.2", split)
 			break
 		}
 
