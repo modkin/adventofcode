@@ -206,8 +206,8 @@ func Print2DIntGrid(grid map[[2]int]int) {
 	}
 	for y := 0; y <= yMax; y++ {
 		for x := 0; x <= xMax; x++ {
-			if val, ok := grid[[2]int{x, y}]; ok {
-				fmt.Print(val)
+			if _, ok := grid[[2]int{x, y}]; ok {
+				fmt.Print(".")
 			} else {
 				fmt.Print(" ")
 			}
