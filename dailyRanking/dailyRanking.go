@@ -44,7 +44,7 @@ func main() {
 	//	allMember = append(allMember, tmp)
 	//}
 	//timestamp := time.Now()
-	daysDone := 20
+	daysDone := 25
 	for _, elem := range data["members"].(map[string]interface{}) {
 		name := elem.(map[string]interface{})["name"]
 		tmp := member{name.(string), genEmptyTimings(daysDone * 2), make([]int, daysDone*2)}
@@ -74,15 +74,15 @@ func main() {
 			}
 		}
 	}
-	firstWithoutPoints := 0
-	for i, point := range memberPoints {
-		if utils.SumSlice(point.points) == 0 {
-			firstWithoutPoints = i
-			break
-		}
-	}
-
-	memberPoints = memberPoints[:firstWithoutPoints]
+	//firstWithoutPoints := 0
+	//for i, point := range memberPoints {
+	//	if utils.SumSlice(point.points) == 0 {
+	//		firstWithoutPoints = i
+	//		break
+	//	}
+	//}
+	//
+	//memberPoints = memberPoints[:firstWithoutPoints]
 	sort.SliceStable(memberPoints, func(i, j int) bool {
 		return utils.SumSlice(memberPoints[i].points) > utils.SumSlice(memberPoints[j].points)
 	})
