@@ -4,6 +4,7 @@ import (
 	"adventofcode/utils"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -48,9 +49,15 @@ func movesNumeric(start, end string) string {
 	return moves
 }
 
-func movesDir(start, end string) string {
+var moveCache = make(map[[2]string][]string)
+
+func movesDir(start, end string) []string {
+	if val, ok := moveCache[[2]string{start, end}]; ok {
+		return val
+	}
 	offset := SubPoints(dirCoordsMap[end], dirCoordsMap[start])
-	var moves, xMoves, yMoves string
+	var xMoves, yMoves string
+	var moves []string
 	for x := 0; x < utils.IntAbs(offset[0]); x++ {
 		if offset[0] > 0 {
 			xMoves += ">"
@@ -65,12 +72,38 @@ func movesDir(start, end string) string {
 			yMoves += "^"
 		}
 	}
-	if offset[0] > 0 {
-		moves = xMoves + yMoves
-	} else {
-		moves = yMoves + xMoves
+
+	moves = append(moves, xMoves+yMoves)
+	if xMoves+yMoves != yMoves+xMoves {
+		moves = append(moves, yMoves+xMoves)
 	}
-	return moves
+
+	cleanedList := []string{}
+	for _, elem := range moves {
+		safe := true
+		pos := dirCoordsMap[start]
+		for _, e := range strings.Split(elem, "") {
+			if e == ">" {
+				pos[0] += 1
+			} else if e == "<" {
+				pos[0] -= 1
+			} else if e == "v" {
+				pos[1] += 1
+			} else if e == "^" {
+				pos[1] -= 1
+			}
+			if pos[0] == 0 && pos[1] == 0 {
+				safe = false
+				break
+			}
+		}
+		//safe = true
+		if safe {
+			cleanedList = append(cleanedList, elem)
+		}
+	}
+	moveCache[[2]string{start, end}] = cleanedList
+	return cleanedList
 }
 
 func GenerateVariations(elements []string, start string, numeric bool) []string {
@@ -92,6 +125,7 @@ func GenerateVariations(elements []string, start string, numeric bool) []string 
 	generate(elements, 0)
 	cleanedElement := make(map[string]bool)
 	cleanedList := []string{}
+	minLen := math.MaxInt32
 	for _, elem := range result {
 		safe := true
 		var pos [2]int
@@ -124,13 +158,18 @@ func GenerateVariations(elements []string, start string, numeric bool) []string 
 			tmp := append(elem, "A")
 			cleanedElement[strings.Join(tmp, "")] = true
 			cleanedList = append(cleanedList, strings.Join(tmp, ""))
+			if len(tmp) < minLen {
+				minLen = len(tmp)
+			}
 		}
 	}
-	result = [][]string{}
+	result2 := []string{}
 	for k := range cleanedElement {
-		result = append(result, strings.Split(k, ""))
+		if minLen == len(k) {
+			result2 = append(result2, k)
+		}
 	}
-	return cleanedList
+	return result2
 }
 
 func getInputfromString(input string) string {
@@ -156,27 +195,118 @@ func getInputfromString(input string) string {
 	return ret
 }
 
+func genNew(allDoorCombs []string) []string {
+
+	allFirstCombs2 := []string{}
+	for _, doorMoves := range allDoorCombs {
+		pos1 := "A"
+		allFirstCombs := []string{}
+		for _, move1 := range strings.Split(doorMoves, "") {
+			basicFirstMoves := movesDir(pos1, move1)
+			//basicFirstMoves = append(basicFirstMoves, "A")
+			var permFirst []string
+			if len(basicFirstMoves) == 0 {
+				permFirst = []string{"A"}
+			} else {
+				for _, move := range basicFirstMoves {
+					permFirst = append(permFirst, move+"A")
+				}
+			}
+			pos1 = move1
+
+			if len(allFirstCombs) == 0 {
+				allFirstCombs = permFirst
+			} else {
+				newallFirstCombs := []string{}
+				for _, m := range permFirst {
+					for _, comb := range allFirstCombs {
+						newallFirstCombs = append(newallFirstCombs, comb+m)
+					}
+				}
+				allFirstCombs = newallFirstCombs
+			}
+		}
+		allFirstCombs2 = append(allFirstCombs2, allFirstCombs...)
+	}
+	return allFirstCombs2
+}
+
+func getBestCombs(allFirstCombs2 []string) ([]string, int) {
+
+	minLen := math.MaxInt32
+	allOut := make(map[string]int)
+	for _, firstMoves := range allFirstCombs2 {
+		pos2 := "A"
+		l := 0
+		//var endMoves string
+		for _, move2 := range strings.Split(firstMoves, "") {
+			secondMoves := movesDir(pos2, move2)
+			//secondMoves += "A"
+			pos2 = move2
+			l += len(secondMoves)
+			//endMoves += secondMoves
+		}
+		if _, ok := allOut[firstMoves]; ok {
+			fmt.Println("ERROR")
+		}
+		allOut[firstMoves] = l
+		if l < minLen {
+			minLen = l
+		}
+	}
+	out := []string{}
+	for s, i := range allOut {
+		if i == minLen {
+			out = append(out, s)
+		}
+	}
+	return out, minLen
+}
+
+func calcCost(moves string, depth int) int {
+	if depth == 0 {
+		return len(moves)
+	}
+	cost := 0
+
+	for i := 0; i < len(moves)-2; i++ {
+		costSlice := []int{}
+		for _, m := range movesDir(string(moves[i]), string(moves[i+1])) {
+			newCost := calcCost(m+"A", depth-1)
+			costSlice = append(costSlice, newCost)
+		}
+		slices.Sort(costSlice)
+		cost += costSlice[0]
+	}
+	return cost
+}
+
 func main() {
 
 	//positions := []string{"A", "A", "A", "A"}
 	codes := []string{}
 
-	lines := utils.ReadFileIntoLines("2024/day21/input")
+	lines := utils.ReadFileIntoLines("2024/day21/testinput")
 	for _, line := range lines {
 
 		codes = append(codes, line)
 	}
 
 	sum := 0
+
+	moveCostCache := make(map[string]int)
+	for _, s := range []string{"<", ">", "v", "^", "A"} {
+		moveCostCache[s] = len(movesDir("A", s))
+	}
+	fmt.Println(moveCostCache)
+
 	for i, code := range codes {
 		//if i != 1 {
 		//	continue
 		//}
-		fmt.Println(i)
+		fmt.Println(i, code)
 
 		doorPos := "A"
-		pos1 := "A"
-		pos2 := "A"
 		allDoorCombs := []string{}
 		for _, s := range strings.Split(code, "") {
 			basicDoorMoves := movesNumeric(doorPos, s)
@@ -195,68 +325,26 @@ func main() {
 				allDoorCombs = newAllDoorCombs
 			}
 		}
-
-		allFirstCombs2 := []string{}
-		for _, doorMoves := range allDoorCombs {
-			allFirstCombs := []string{}
-			for _, move1 := range strings.Split(doorMoves, "") {
-				basicFirstMoves := movesDir(pos1, move1)
-				//basicFirstMoves = append(basicFirstMoves, "A")
-				var permFirst []string
-				if len(basicFirstMoves) == 0 {
-					permFirst = []string{"A"}
-				} else {
-					permFirst = GenerateVariations(strings.Split(basicFirstMoves, ""), pos1, false)
-				}
-				pos1 = move1
-
-				if len(allFirstCombs) == 0 {
-					allFirstCombs = permFirst
-				} else {
-					newallFirstCombs := []string{}
-					for _, m := range permFirst {
-						for _, comb := range allFirstCombs {
-							newallFirstCombs = append(newallFirstCombs, comb+m)
-						}
-					}
-					allFirstCombs = newallFirstCombs
-				}
-			}
-			//fmt.Println(allFirstCombs)
-			allFirstCombs2 = append(allFirstCombs2, allFirstCombs...)
+		allDoorCosts := []int{}
+		for _, comb := range allDoorCombs {
+			allDoorCosts = append(allDoorCosts, calcCost(comb, 1))
 		}
+		fmt.Println(allDoorCosts)
 
 		minLen := math.MaxInt32
-		for _, firstMoves := range allFirstCombs2 {
-			l := 0
-			var endMoves string
-			for _, move2 := range strings.Split(firstMoves, "") {
-				secondMoves := movesDir(pos2, move2)
-				secondMoves += "A"
-				pos2 = move2
-
-				l += len(secondMoves)
-				endMoves += secondMoves
-
-			}
-
-			//fmt.Println(firstMoves, l)
-			if l < minLen {
-				fmt.Println(firstMoves, l)
-				fmt.Println(endMoves)
-				minLen = l
+		for _, s := range allDoorCosts {
+			if s < minLen {
+				minLen = s
 			}
 		}
 
-		//moveStr := strings.Join(allMoves, "")
-
 		numPart, _ := strconv.Atoi(code[:3])
-		fmt.Println(numPart, minLen)
+		fmt.Println("NumPart:", numPart, "MinLen:", minLen)
 		sum += numPart * minLen
 
 	}
 
 	fmt.Println("Day 21.1: ", sum)
 
-	fmt.Println(getInputfromString("<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"))
+	//fmt.Println(getInputfromString("<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A"))
 }
