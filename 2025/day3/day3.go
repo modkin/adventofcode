@@ -3,7 +3,6 @@ package main
 import (
 	"adventofcode/utils"
 	"fmt"
-	"strconv"
 )
 
 func main() {
@@ -13,36 +12,30 @@ func main() {
 		value []int
 	}
 	total := 0
+	jolt_size := 12
 	for _, line := range lines {
 		jolt := joltage{}
-	outer:
-		for i := 9; i > 0; i-- {
-			for i2, s := range line {
-				if i2 == len(line)-1 {
-					continue
-				}
-				if int(s-'0') == i {
-					jolt.pos1 = i2
-					jolt.value1 = int(s - '0')
-					break outer
-				}
-			}
-		}
-	outer2:
-		for i := 9; i > 0; i-- {
-			for i2, s := range line {
-				if i2 == 0 || i2 <= jolt.pos1 {
-					continue
-				}
-				if int(s-'0') == i {
-					jolt.pos2 = i2
-					jolt.value2 = int(s - '0')
-					break outer2
+		jolt.pos = make([]int, 0)
+		jolt.value = make([]int, 0)
+		joltval := ""
+		for js := 0; js < jolt_size; js++ {
+		outer:
+			for i := 9; i > 0; i-- {
+				for i2, s := range line {
+					if i2 > len(line)-(jolt_size-js) || (js > 0 && i2 <= jolt.pos[js-1]) {
+						continue
+					}
+					if int(s-'0') == i {
+						jolt.pos = append(jolt.pos, i2)
+						jolt.value = append(jolt.value, int(s-'0'))
+						joltval += string(s)
+						break outer
+					}
 				}
 			}
 		}
-		fmt.Println(jolt.value1, jolt.value2)
-		total += utils.ToInt(strconv.Itoa(jolt.value1) + strconv.Itoa(jolt.value2))
+		fmt.Println(line, joltval)
+		total += utils.ToInt(joltval)
 	}
 	fmt.Println(total)
 }
